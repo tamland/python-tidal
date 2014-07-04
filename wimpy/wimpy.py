@@ -25,8 +25,8 @@ from .compat import urljoin
 log = logging.getLogger(__name__)
 
 Artist = namedtuple('Artist', ['name', 'id'])
-Track = namedtuple('Track', ['title', 'id'])
-Album = namedtuple('Album', ['title', 'id'])
+Track = namedtuple('Track', ['name', 'id'])
+Album = namedtuple('Album', ['name', 'id'])
 
 
 class Session(object):

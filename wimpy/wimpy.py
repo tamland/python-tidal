@@ -34,8 +34,8 @@ class Session(object):
     api_token = 'rQtt0XAsYjXYIlml'
 
     def __init__(self, session_id='', country_code='NO'):
-        self._session_id = session_id
-        self._country_code = country_code
+        self.session_id = session_id
+        self.country_code = country_code
 
     def login(self, username, password):
         url = urljoin(self.api_location, 'login/username')
@@ -47,14 +47,14 @@ class Session(object):
         r = requests.post(url, data=payload, params=params)
         r.raise_for_status()
         body = r.json()
-        self._session_id = body['sessionId']
-        self._country_code = body['countryCode']
+        self.session_id = body['sessionId']
+        self.country_code = body['countryCode']
         return True
 
     def _request(self, path, **params):
         common_params = {
-            'sessionId': self._session_id,
-            'countryCode': self._country_code,
+            'sessionId': self.session_id,
+            'countryCode': self.country_code,
         }
         url = urljoin(self.api_location, path)
         r = requests.get(url, params=dict(common_params, **params))

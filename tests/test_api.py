@@ -26,13 +26,23 @@ logging.basicConfig(level=logging.DEBUG)
 def session():
     return wimpy.Session()
 
-
 def test_artist(session):
     artist_id = 18888
     artist = session.get_artist(artist_id)
     assert artist.id == artist_id
     assert artist.name == 'Mala'
 
+def test_get_artist_albums(session):
+    albums = session.get_artist_albums(18888)
+    assert albums[0].name == 'Mala in Cuba'
+
+def test_get_artist_albums_ep_single(session):
+    albums = session.get_artist_albums_ep_singles(18888)
+    assert albums[0].name == 'Changes (Distance Remix) / Miracles (Commodo Remix)'
+
+def test_get_artist_albums_other(session):
+    albums = session.get_artist_albums_other(18888)
+    assert albums[0].name == 'Hyperdub 10.1'
 
 def test_album(session):
     album_id = 16909093
@@ -42,7 +52,6 @@ def test_album(session):
     assert album.num_tracks == 14
     assert album.duration == 3437
     assert album.artist.name == 'Mala'
-
 
 def test_get_album_tracks(session):
     tracks = session.get_album_tracks(16909093)
@@ -55,6 +64,9 @@ def test_get_album_tracks(session):
     assert tracks[0].artist.name == 'Mala'
     assert tracks[0].album.name == 'Mala in Cuba'
 
+def test_artist_radio(session):
+    tracks = session.get_artist_radio(18888)
+    assert len(tracks) == 10
 
 def test_search(session):
     artists = session.search('artists', 'mala')

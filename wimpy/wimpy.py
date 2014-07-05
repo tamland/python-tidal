@@ -63,8 +63,7 @@ class Session(object):
 
     def get_album(self, album_id):
         json_obj = self._request('albums/%s/tracks' % album_id)
-        items = json_obj['items']
-        return [Track(name=item['title'], id=item['id']) for item in items]
+        return map(_parse_track, json_obj['items'])
 
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}
@@ -74,7 +73,7 @@ class Session(object):
     def get_albums(self, artist_id):
         params = {'filter': 'COMPILATIONS'}
         json_obj = self._request('artists/%s/albums' % artist_id, **params)
-        return [Album(name=item['title'], id=item['id']) for item in json_obj['items']]
+        return map(_parse_album, json_obj['items'])
 
     def search(self, ret, query):
         params = {
@@ -83,5 +82,25 @@ class Session(object):
         }
         if ret == 'artists':
             json_obj = self._request('search/artists', **params)
-            return [Artist(name=item['name'], id=item['id']) for item in json_obj['items']]
+            return map(_parse_artist, json_obj['items'])
         return None
+
+
+def _parse_artist(json_obj):
+    return Artist(id=json_obj['id'], name=json_obj['name'])
+
+
+def _parse_album(json_obj):
+    artist = _parse_artist(json_obj['artist'])
+    return Album(id=json_obj['id'], name=json_obj['title'], artist=artist)
+
+
+def _parse_track(json_obj):
+    artist = _parse_artist(json_obj['artist'])
+    track = Track(id=json_obj['id'],
+                  name=json_obj['title'],
+                  duration=json_obj['duration'],
+                  track_num=json_obj['trackNumber'],
+                  popularity=json_obj['popularity'],
+                  artist=artist)
+    return track

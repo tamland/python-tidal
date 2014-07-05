@@ -69,6 +69,10 @@ class Session(object):
         response = self._request('artists/%s' % artist_id)
         return _parse_artist(response)
 
+    def get_album(self, album_id):
+        response = self._request('albums/%s' % album_id)
+        return _parse_album(response)
+
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}
         json_obj = self._request('tracks/%s/streamUrl' % track_id, **params)

@@ -21,12 +21,9 @@ import logging
 from collections import namedtuple
 import requests
 from .compat import urljoin
+from .models import Artist, Album, Track
 
 log = logging.getLogger(__name__)
-
-Artist = namedtuple('Artist', ['name', 'id'])
-Track = namedtuple('Track', ['name', 'id'])
-Album = namedtuple('Album', ['name', 'id'])
 
 
 class Session(object):
@@ -67,7 +64,7 @@ class Session(object):
     def get_album(self, album_id):
         json_obj = self._request('albums/%s/tracks' % album_id)
         items = json_obj['items']
-        return [Track(item['title'], item['id']) for item in items]
+        return [Track(name=item['title'], id=item['id']) for item in items]
 
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}
@@ -77,7 +74,7 @@ class Session(object):
     def get_albums(self, artist_id):
         params = {'filter': 'COMPILATIONS'}
         json_obj = self._request('artists/%s/albums' % artist_id, **params)
-        return [Album(item['title'], item['id']) for item in json_obj['items']]
+        return [Album(name=item['title'], id=item['id']) for item in json_obj['items']]
 
     def search(self, ret, query):
         params = {
@@ -86,5 +83,5 @@ class Session(object):
         }
         if ret == 'artists':
             json_obj = self._request('search/artists', **params)
-            return [Artist(item['name'], item['id']) for item in json_obj['items']]
+            return [Artist(name=item['name'], id=item['id']) for item in json_obj['items']]
         return None

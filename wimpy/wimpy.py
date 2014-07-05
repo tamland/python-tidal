@@ -21,7 +21,7 @@ import logging
 from collections import namedtuple
 import requests
 from .compat import urljoin
-from .models import Artist, Album, Track
+from .models import Artist, Album, Track, User
 
 log = logging.getLogger(__name__)
 
@@ -30,9 +30,10 @@ class Session(object):
     api_location = 'https://play.wimpmusic.com/v1/'
     api_token = 'rQtt0XAsYjXYIlml'
 
-    def __init__(self, session_id='', country_code='NO'):
+    def __init__(self, session_id='', country_code='NO', user_id=None):
         self.session_id = session_id
         self.country_code = country_code
+        self.user = User(id=user_id) if user_id else None
 
     def login(self, username, password):
         url = urljoin(self.api_location, 'login/username')
@@ -46,6 +47,7 @@ class Session(object):
         body = r.json()
         self.session_id = body['sessionId']
         self.country_code = body['countryCode']
+        self.user = User(id=body['userId'])
         return True
 
     def _request(self, path, **params):

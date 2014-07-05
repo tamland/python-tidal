@@ -45,3 +45,8 @@ class Track(Immutable):
     popularity = -1
     artist = None
     album = None
+
+
+class User(object):
+    def __init__(self, id):
+        self.id = id

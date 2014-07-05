@@ -63,7 +63,7 @@ class Session(object):
 
     def get_album_tracks(self, album_id):
         json_obj = self._request('albums/%s/tracks' % album_id)
-        return map(_parse_track, json_obj['items'])
+        return list(map(_parse_track, json_obj['items']))
 
     def get_artist(self, artist_id):
         response = self._request('artists/%s' % artist_id)
@@ -81,7 +81,7 @@ class Session(object):
     def get_albums(self, artist_id):
         params = {'filter': 'COMPILATIONS'}
         json_obj = self._request('artists/%s/albums' % artist_id, **params)
-        return map(_parse_album, json_obj['items'])
+        return list(map(_parse_album, json_obj['items']))
 
     def search(self, ret, query):
         params = {
@@ -90,7 +90,7 @@ class Session(object):
         }
         if ret == 'artists':
             json_obj = self._request('search/artists', **params)
-            return map(_parse_artist, json_obj['items'])
+            return list(map(_parse_artist, json_obj['items']))
         return None
 
 

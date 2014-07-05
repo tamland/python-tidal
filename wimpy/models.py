@@ -31,6 +31,8 @@ class Immutable(object):
 
 class Album(Immutable):
     artist = None
+    num_tracks = -1
+    duration = -1
 
 
 class Artist(Immutable):
@@ -42,3 +44,4 @@ class Track(Immutable):
     track_num = -1
     popularity = -1
     artist = None
+    album = None

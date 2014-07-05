@@ -98,17 +98,23 @@ def _parse_artist(json_obj):
     return Artist(id=json_obj['id'], name=json_obj['name'])
 
 
-def _parse_album(json_obj):
-    artist = _parse_artist(json_obj['artist'])
-    return Album(id=json_obj['id'], name=json_obj['title'], artist=artist)
+def _parse_album(json_obj, artist=None):
+    if artist is None:
+        artist = _parse_artist(json_obj['artist'])
+    return Album(id=json_obj['id'], name=json_obj['title'],
+                 num_tracks=json_obj.get('numberOfTracks'),
+                 duration=json_obj.get('duration'),
+                 artist=artist)
 
 
 def _parse_track(json_obj):
     artist = _parse_artist(json_obj['artist'])
+    album = _parse_album(json_obj['album'], artist)
     track = Track(id=json_obj['id'],
                   name=json_obj['title'],
                   duration=json_obj['duration'],
                   track_num=json_obj['trackNumber'],
                   popularity=json_obj['popularity'],
-                  artist=artist)
+                  artist=artist,
+                  album=album)
     return track

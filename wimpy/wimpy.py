@@ -61,7 +61,7 @@ class Session(object):
         log.debug("response: %s" % json.dumps(json_obj, indent=4))
         return json_obj
 
-    def get_album(self, album_id):
+    def get_album_tracks(self, album_id):
         json_obj = self._request('albums/%s/tracks' % album_id)
         return map(_parse_track, json_obj['items'])
 

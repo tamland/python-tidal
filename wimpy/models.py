@@ -39,6 +39,17 @@ class Artist(Immutable):
     pass
 
 
+class Playlist(Immutable):
+    description = None
+    creator = None
+    type = None
+    is_public = None
+    created = None
+    last_updated = None
+    num_tracks = -1
+    duration = -1
+
+
 class Track(Immutable):
     duration = -1
     track_num = -1

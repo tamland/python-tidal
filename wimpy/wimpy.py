@@ -20,7 +20,7 @@ import json
 import logging
 import requests
 from .compat import urljoin
-from .models import Artist, Album, Track, User
+from .models import Artist, Album, Track, User, Playlist
 
 log = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ class Session(object):
         elif ret.startswith('user'):
             raise NotImplementedError()
         elif ret.startswith('playlist'):
-            raise NotImplementedError()
+            parse = _parse_playlist
 
         items = json_obj.get('items')
         if items is None:
@@ -166,6 +166,19 @@ def _parse_album(json_obj, artist=None):
         'artist': artist,
     }
     return Album(**kwargs)
+
+
+def _parse_playlist(json_obj):
+    kwargs = {
+        'id': json_obj['uuid'],
+        'name': json_obj['title'],
+        'description': json_obj['description'],
+        'num_tracks': int(json_obj['numberOfTracks']),
+        'duration': int(json_obj['duration']),
+        'is_public': json_obj['publicPlaylist'],
+        #TODO 'creator': _parse_user(json_obj['creator']),
+    }
+    return Playlist(**kwargs)
 
 
 def _parse_track(json_obj):

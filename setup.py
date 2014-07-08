@@ -4,7 +4,7 @@
 import sys
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
-
+from wimpy import __version__
 
 class PyTest(TestCommand):
     def finalize_options(self):
@@ -29,7 +29,7 @@ test_requirements = [
 
 setup(
     name='wimpy',
-    version='0.1.0',
+    version=__version__,
     description='Unofficial WiMP Python API',
     long_description=readme + '\n\n' + history,
     author='Thomas Amland',

@@ -76,7 +76,8 @@ class Session(object):
         return self._map_request('users/%s/favorites/albums' % user_id, ret='albums')
 
     def get_favorite_tracks(self, user_id):
-        return self._map_request('users/%s/favorites/tracks' % user_id, ret='tracks')
+        json_obj = self._request('users/%s/favorites/tracks' % user_id)
+        return [_parse_track(item['item']) for item in json_obj['items']]
 
     def get_playlist(self, playlist_id):
         return self._map_request('playlists/%s' % playlist_id, ret='playlist')

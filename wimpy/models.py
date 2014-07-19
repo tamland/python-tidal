@@ -59,6 +59,11 @@ class Playlist(Immutable):
     num_tracks = -1
     duration = -1
 
+    @property
+    def image(self, width=512, height=512):
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='uuid')
+
+
 
 class Track(Immutable):
     duration = -1

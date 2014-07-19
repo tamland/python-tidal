@@ -18,6 +18,7 @@
 from __future__ import unicode_literals
 import logging
 import pytest
+import requests
 import wimpy
 
 logging.basicConfig(level=logging.DEBUG)
@@ -71,3 +72,15 @@ def test_artist_radio(session):
 def test_search(session):
     artists = session.search('artists', 'mala')
     assert artists[0].name == "Mala"
+
+def test_artist_image(session):
+    artist = session.get_artist(18888)
+    assert requests.get(artist.image).status_code == 200
+
+def test_album_image(session):
+    artist = session.get_album(16909093)
+    assert requests.get(artist.image).status_code == 200
+
+def test_playlist_image(session):
+    playlist = session.get_playlist('6e0791c8-cfaf-4b05-b78c-6198148413f')
+    assert requests.get(playlist.image).status_code == 200

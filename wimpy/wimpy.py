@@ -134,7 +134,10 @@ class Session(object):
         items = json_obj.get('items')
         if items is None:
             return parse(json_obj)
-        return list(map(parse, items))
+        elif len(items) > 0 and 'item' in items[0]:
+            return list(map(parse, [item['item'] for item in items]))
+        else:
+            return list(map(parse, items))
 
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}

@@ -73,7 +73,7 @@ class User(object):
         return self._session.get_user_playlists(self.id)
 
     @property
-    def favourite_artist(self):
+    def favourite_artists(self):
         return self._session.get_favorite_artists(self.id)
 
     @property

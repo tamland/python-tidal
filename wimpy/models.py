@@ -17,6 +17,8 @@
 
 from __future__ import unicode_literals
 
+IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
+
 class Immutable(object):
     id = None
     name = None
@@ -30,13 +32,21 @@ class Immutable(object):
 
 
 class Album(Immutable):
+
     artist = None
     num_tracks = -1
     duration = -1
 
+    @property
+    def image(self, width=512, height=512):
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='albumid')
+
 
 class Artist(Immutable):
-    pass
+
+    @property
+    def image(self, width=512, height=512):
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='artistid')
 
 
 class Playlist(Immutable):
@@ -56,6 +66,10 @@ class Track(Immutable):
     popularity = -1
     artist = None
     album = None
+
+    @property
+    def image(self, width=512, height=512):
+        return self.album.image
 
 
 class User(object):

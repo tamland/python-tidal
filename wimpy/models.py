@@ -67,10 +67,6 @@ class Track(Immutable):
     artist = None
     album = None
 
-    @property
-    def image(self, width=512, height=512):
-        return self.album.image
-
 
 class User(object):
 

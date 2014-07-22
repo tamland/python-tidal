@@ -53,6 +53,7 @@ class Session(object):
         common_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
+            'limit': '9999',
         }
         params = dict(common_params, **params) if params else common_params
         url = urljoin(self.api_location, path)

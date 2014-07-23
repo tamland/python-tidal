@@ -67,7 +67,7 @@ def test_get_album_tracks(session):
 
 def test_artist_radio(session):
     tracks = session.get_artist_radio(18888)
-    assert len(tracks) == 10
+    assert len(tracks) > 0
 
 def test_search(session):
     artists = session.search('artists', 'mala')

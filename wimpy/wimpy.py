@@ -50,14 +50,15 @@ class Session(object):
         return True
 
     def _request(self, path, params=None):
-        common_params = {
+        request_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
             'limit': '9999',
         }
-        params = dict(common_params, **params) if params else common_params
+        if params:
+            request_params.update(params)
         url = urljoin(self.api_location, path)
-        r = requests.get(url, params=params)
+        r = requests.get(url, params=request_params)
         log.debug("request: %s" % r.request.url)
         r.raise_for_status()
         json_obj = r.json()
@@ -116,7 +117,7 @@ class Session(object):
         return self._map_request('artists/%s/similar' % artist_id, ret='artists')
 
     def get_artist_radio(self, artist_id):
-        return self._map_request('artists/%s/radio' % artist_id, ret='tracks')
+        return self._map_request('artists/%s/radio' % artist_id, params={'limit': 100}, ret='tracks')
 
     def _map_request(self, url, params=None, ret=None):
         json_obj = self._request(url, params)

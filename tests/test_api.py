@@ -82,5 +82,5 @@ def test_album_image(session):
     assert requests.get(artist.image).status_code == 200
 
 def test_playlist_image(session):
-    playlist = session.get_playlist('6e0791c8-cfaf-4b05-b78c-6198148413f')
+    playlist = session.get_playlist('33136f5a-d93a-4469-9353-8365897aaf94')
     assert requests.get(playlist.image).status_code == 200

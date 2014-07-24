@@ -20,7 +20,7 @@ import json
 import logging
 import requests
 from .compat import urljoin
-from .models import Artist, Album, Track, User, Playlist
+from .models import Artist, Album, Track, User, Playlist, SearchResult
 
 log = logging.getLogger(__name__)
 
@@ -146,15 +146,18 @@ class Session(object):
         json_obj = self._request('tracks/%s/streamUrl' % track_id, params)
         return json_obj['url']
 
-    def search(self, ret, query):
+    def search(self, field, value):
         params = {
-            'query': query,
-            'limit': 25,
+            'query': value,
+            'limit': 50,
         }
-        if ret == 'artists':
-            json_obj = self._request('search/artists', params)
-            return list(map(_parse_artist, json_obj['items']))
-        return None
+        if field not in ['artist', 'album', 'playlist', 'track']:
+            raise ValueError('Unknown field \'%s\'' % field)
+
+        ret_type = field + 's'
+        url = 'search/' + field + 's'
+        result = self._map_request(url, params, ret=ret_type)
+        return SearchResult(**{ret_type: result})
 
 
 def _parse_artist(json_obj):

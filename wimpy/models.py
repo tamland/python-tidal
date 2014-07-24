@@ -98,3 +98,10 @@ class User(object):
     @property
     def favourite_tracks(self):
         return self._session.get_favorite_tracks(self.id)
+
+
+class SearchResult(Immutable):
+    artists = []
+    albums = []
+    tracks = []
+    playlists = []

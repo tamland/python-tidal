@@ -20,7 +20,8 @@ from __future__ import unicode_literals
 
 IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
 
-class Immutable(object):
+
+class Model(object):
     id = None
     name = None
 
@@ -28,11 +29,8 @@ class Immutable(object):
         for name, value in kwargs.items():
             self.__dict__[name] = value
 
-    def __setattr__(self, name, value):
-        raise AttributeError('immutable')
 
-
-class Album(Immutable):
+class Album(Model):
 
     artist = None
     num_tracks = -1
@@ -43,14 +41,14 @@ class Album(Immutable):
         return IMG_URL.format(width=width, height=height, id=self.id, id_type='albumid')
 
 
-class Artist(Immutable):
+class Artist(Model):
 
     @property
     def image(self, width=512, height=512):
         return IMG_URL.format(width=width, height=height, id=self.id, id_type='artistid')
 
 
-class Playlist(Immutable):
+class Playlist(Model):
     description = None
     creator = None
     type = None
@@ -66,7 +64,7 @@ class Playlist(Immutable):
 
 
 
-class Track(Immutable):
+class Track(Model):
     duration = -1
     track_num = -1
     popularity = -1
@@ -101,7 +99,7 @@ class User(object):
         return self._session.get_favorite_tracks(self.id)
 
 
-class SearchResult(Immutable):
+class SearchResult(Model):
     artists = []
     albums = []
     tracks = []

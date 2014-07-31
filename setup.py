@@ -46,9 +46,9 @@ setup(
     cmdclass={'test': PyTest},
     keywords='',
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU Lesser General Public License (LGPL)',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',

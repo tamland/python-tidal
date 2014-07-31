@@ -35,7 +35,7 @@ setup(
     author='Thomas Amland',
     author_email='thomas.amland@googlemail.com',
     url='https://github.com/tamland/wimpy',
-    license='GPL',
+    license='LGPL',
     zip_safe=False,
     include_package_data=True,
     packages=['wimpy'],
@@ -48,7 +48,7 @@ setup(
     classifiers=[
         'Development Status :: 1 - Planning',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'License :: OSI Approved :: GNU Lesser General Public License (LGPL)',
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',

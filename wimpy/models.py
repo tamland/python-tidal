@@ -26,8 +26,7 @@ class Model(object):
     name = None
 
     def __init__(self, **kwargs):
-        for name, value in kwargs.items():
-            self.__dict__[name] = value
+        self.__dict__.update(kwargs)
 
 
 class Album(Model):

@@ -68,7 +68,8 @@ class Session(object):
         r = requests.request(method, url, params=request_params, data=data)
         log.debug("request: %s" % r.request.url)
         r.raise_for_status()
-        log.debug("response: %s" % json.dumps(r.json(), indent=4))
+        if r.content:
+            log.debug("response: %s" % json.dumps(r.json(), indent=4))
         return r
 
     def get_user(self, user_id):

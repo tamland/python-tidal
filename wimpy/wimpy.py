@@ -49,6 +49,13 @@ class Session(object):
         self.user = User(self, id=body['userId'])
         return True
 
+    def check_login(self):
+        """ Returns true if current session is valid, false otherwise. """
+        if self.user is None or not self.user.id or not self.session_id:
+            return False
+        url = urljoin(self.api_location, 'users/%s/subscription' % self.user.id)
+        return requests.get(url, params={'sessionId': self.session_id}).ok
+
     def _request(self, path, params=None):
         request_params = {
             'sessionId': self.session_id,

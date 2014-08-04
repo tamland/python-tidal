@@ -56,7 +56,7 @@ class Session(object):
         url = urljoin(self.api_location, 'users/%s/subscription' % self.user.id)
         return requests.get(url, params={'sessionId': self.session_id}).ok
 
-    def request(self, method, path, params=None):
+    def request(self, method, path, params=None, data=None):
         request_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
@@ -65,7 +65,7 @@ class Session(object):
         if params:
             request_params.update(params)
         url = urljoin(self.api_location, path)
-        r = requests.request(method, url, params=request_params)
+        r = requests.request(method, url, params=request_params, data=data)
         log.debug("request: %s" % r.request.url)
         r.raise_for_status()
         log.debug("response: %s" % json.dumps(r.json(), indent=4))

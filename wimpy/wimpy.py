@@ -56,7 +56,7 @@ class Session(object):
         url = urljoin(self.api_location, 'users/%s/subscription' % self.user.id)
         return requests.get(url, params={'sessionId': self.session_id}).ok
 
-    def _request(self, method, path, params=None):
+    def request(self, method, path, params=None):
         request_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
@@ -84,7 +84,7 @@ class Session(object):
         return self._map_request('users/%s/favorites/albums' % user_id, ret='albums')
 
     def get_favorite_tracks(self, user_id):
-        r = self._request('GET', 'users/%s/favorites/tracks' % user_id)
+        r = self.request('GET', 'users/%s/favorites/tracks' % user_id)
         return [_parse_track(item['item']) for item in r.json()['items']]
 
     def get_playlist(self, playlist_id):
@@ -117,7 +117,7 @@ class Session(object):
         return self._map_request('artists/%s/toptracks' % artist_id, ret='tracks')
 
     def get_artist_bio(self, artist_id):
-        return self._request('GET', 'artists/%s/bio' % artist_id).json()['text']
+        return self.request('GET', 'artists/%s/bio' % artist_id).json()['text']
 
     def get_artist_similar(self, artist_id):
         return self._map_request('artists/%s/similar' % artist_id, ret='artists')
@@ -126,7 +126,7 @@ class Session(object):
         return self._map_request('artists/%s/radio' % artist_id, params={'limit': 100}, ret='tracks')
 
     def _map_request(self, url, params=None, ret=None):
-        json_obj = self._request('GET', url, params).json()
+        json_obj = self.request('GET', url, params).json()
         parse = None
         if ret.startswith('artist'):
             parse = _parse_artist
@@ -149,7 +149,7 @@ class Session(object):
 
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}
-        r = self._request('GET', 'tracks/%s/streamUrl' % track_id, params)
+        r = self.request('GET', 'tracks/%s/streamUrl' % track_id, params)
         return r.json()['url']
 
     def search(self, field, value):

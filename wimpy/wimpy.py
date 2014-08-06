@@ -20,7 +20,7 @@ import json
 import logging
 import requests
 from .compat import urljoin
-from .models import Artist, Album, Track, User, Playlist, SearchResult
+from .models import Artist, Album, Track, Playlist, SearchResult
 
 log = logging.getLogger(__name__)
 
@@ -29,13 +29,10 @@ class Session(object):
     api_location = 'https://play.wimpmusic.com/v1/'
     api_token = 'rQtt0XAsYjXYIlml'
 
-    favorites = None
-
     def __init__(self, session_id='', country_code='NO', user_id=None):
         self.session_id = session_id
         self.country_code = country_code
         self.user = User(self, id=user_id) if user_id else None
-        self.favorites = Favorites(self, self.user) if self.user else None
 
     def login(self, username, password):
         url = urljoin(self.api_location, 'login/username')
@@ -50,7 +47,6 @@ class Session(object):
         self.session_id = body['sessionId']
         self.country_code = body['countryCode']
         self.user = User(self, id=body['userId'])
-        self.favorites = Favorites(self, self.user)
         return True
 
     def check_login(self):
@@ -218,9 +214,9 @@ def _parse_track(json_obj):
 
 class Favorites(object):
 
-    def __init__(self, session, user):
+    def __init__(self, session, user_id):
         self._session = session
-        self._base_url = 'users/%s/favorites' % user.id
+        self._base_url = 'users/%s/favorites' % user_id
 
     def add_artist(self, artist_id):
         return self._session.request('POST', self._base_url + '/artists', data={'artistId': artist_id}).ok
@@ -239,3 +235,34 @@ class Favorites(object):
 
     def remove_track(self, track_id):
         return self._session.request('DELETE', self._base_url + '/tracks/%s' % track_id).ok
+
+
+class User(object):
+
+    favorites = None
+
+    def __init__(self, session, id):
+        """
+        :type session: :class:`wimpy.Session`
+        :param id: The user ID
+        """
+        self._session = session
+        self.id = id
+        self.favorites = Favorites(session, self.id)
+
+
+    @property
+    def playlists(self):
+        return self._session.get_user_playlists(self.id)
+
+    @property
+    def favourite_artists(self):
+        return self._session.get_favorite_artists(self.id)
+
+    @property
+    def favourite_albums(self):
+        return self._session.get_favorite_albums(self.id)
+
+    @property
+    def favourite_tracks(self):
+        return self._session.get_favorite_tracks(self.id)

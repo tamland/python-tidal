@@ -71,33 +71,6 @@ class Track(Model):
     album = None
 
 
-class User(object):
-
-    def __init__(self, session, id):
-        """
-        :type session: :class:`wimpy.Session`
-        :param id: The user ID
-        """
-        self._session = session
-        self.id = id
-
-    @property
-    def playlists(self):
-        return self._session.get_user_playlists(self.id)
-
-    @property
-    def favourite_artists(self):
-        return self._session.get_favorite_artists(self.id)
-
-    @property
-    def favourite_albums(self):
-        return self._session.get_favorite_albums(self.id)
-
-    @property
-    def favourite_tracks(self):
-        return self._session.get_favorite_tracks(self.id)
-
-
 class SearchResult(Model):
     artists = []
     albums = []

@@ -29,10 +29,13 @@ class Session(object):
     api_location = 'https://play.wimpmusic.com/v1/'
     api_token = 'rQtt0XAsYjXYIlml'
 
+    favorites = None
+
     def __init__(self, session_id='', country_code='NO', user_id=None):
         self.session_id = session_id
         self.country_code = country_code
         self.user = User(self, id=user_id) if user_id else None
+        self.favorites = Favorites(self, self.user) if self.user else None
 
     def login(self, username, password):
         url = urljoin(self.api_location, 'login/username')
@@ -47,6 +50,7 @@ class Session(object):
         self.session_id = body['sessionId']
         self.country_code = body['countryCode']
         self.user = User(self, id=body['userId'])
+        self.favorites = Favorites(self, self.user)
         return True
 
     def check_login(self):
@@ -210,3 +214,28 @@ def _parse_track(json_obj):
         'album': album
     }
     return Track(**kwargs)
+
+
+class Favorites(object):
+
+    def __init__(self, session, user):
+        self._session = session
+        self._base_url = 'users/%s/favorites' % user.id
+
+    def add_artist(self, artist_id):
+        return self._session.request('POST', self._base_url + '/artists', data={'artistId': artist_id}).ok
+
+    def add_album(self, album_id):
+        return self._session.request('POST', self._base_url + '/albums', data={'albumId': album_id}).ok
+
+    def add_track(self, track_id):
+        return self._session.request('POST', self._base_url + '/tracks', data={'trackId': track_id}).ok
+
+    def remove_artist(self, artist_id):
+        return self._session.request('DELETE', self._base_url + '/artists/%s' % artist_id).ok
+
+    def remove_album(self, album_id):
+        return self._session.request('DELETE', self._base_url + '/albums/%s' % album_id).ok
+
+    def remove_track(self, track_id):
+        return self._session.request('DELETE', self._base_url + '/tracks/%s' % track_id).ok

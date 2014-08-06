@@ -249,3 +249,7 @@ class User(object):
         self._session = session
         self.id = id
         self.favorites = Favorites(session, self.id)
+
+    @property
+    def playlists(self):
+        return self._session.get_user_playlists(self.id)

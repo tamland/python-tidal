@@ -62,10 +62,10 @@ class Playlist(Model):
         return IMG_URL.format(width=width, height=height, id=self.id, id_type='uuid')
 
 
-
 class Track(Model):
     duration = -1
     track_num = -1
+    disc_num = 1
     popularity = -1
     artist = None
     album = None

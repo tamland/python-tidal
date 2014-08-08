@@ -195,6 +195,7 @@ def _parse_track(json_obj):
         'name': json_obj['title'],
         'duration': json_obj['duration'],
         'track_num': json_obj['trackNumber'],
+        'disc_num': json_obj['volumeNumber'],
         'popularity': json_obj['popularity'],
         'artist': artist,
         'album': album

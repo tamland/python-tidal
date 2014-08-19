@@ -39,11 +39,11 @@ def test_get_artist_albums(session):
 
 def test_get_artist_albums_ep_single(session):
     albums = session.get_artist_albums_ep_singles(18888)
-    assert albums[0].name == 'Changes (Distance Remix) / Miracles (Commodo Remix)'
+    assert any([a.name == 'Noches Sueños' for a in albums])
 
 def test_get_artist_albums_other(session):
     albums = session.get_artist_albums_other(18888)
-    assert albums[0].name == 'Hyperdub 10.1'
+    assert any([a.name == 'Hyperdub 10.1' for a in albums])
 
 def test_album(session):
     album_id = 16909093

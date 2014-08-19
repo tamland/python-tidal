@@ -198,7 +198,8 @@ def _parse_track(json_obj):
         'disc_num': json_obj['volumeNumber'],
         'popularity': json_obj['popularity'],
         'artist': artist,
-        'album': album
+        'album': album,
+        'available': bool(json_obj['streamReady']),
     }
     return Track(**kwargs)
 

@@ -69,6 +69,7 @@ class Track(Model):
     popularity = -1
     artist = None
     album = None
+    available = True
 
 
 class SearchResult(Model):

@@ -234,6 +234,9 @@ class Favorites(object):
     def albums(self):
         return self._session._map_request(self._base_url + '/albums', ret='albums')
 
+    def playlists(self):
+        return self._session._map_request(self._base_url + '/playlists', ret='playlists')
+
     def tracks(self):
         r = self._session.request('GET', self._base_url + '/tracks')
         return [_parse_track(item['item']) for item in r.json()['items']]

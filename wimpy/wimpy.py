@@ -159,6 +159,12 @@ class Session(object):
     def get_mood_playlists(self, mood):
         return self._map_request('/'.join(['moods', mood, 'playlists']), ret='playlists')
 
+    def get_genres(self):
+        return self.request('GET', 'genres', None).json()
+
+    def get_genre_items(self, genre, _type):
+        return self._map_request('/'.join(['genres', genre, _type]), ret=_type)
+
     def _map_request(self, url, params=None, ret=None, _filter=None):
         json_obj = self.request('GET', url, params).json()
         parse = None

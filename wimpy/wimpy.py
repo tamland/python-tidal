@@ -150,6 +150,9 @@ class Session(object):
     def get_featured(self):
         return self._map_request('promotions', ret='featured_playlist', _filter=lambda x: x['type'] == 'PLAYLIST')
 
+    def get_recommended_new_top(self, what, _type):
+        return self._map_request('/'.join(['featured', _type, what]), ret=what)
+
     def _map_request(self, url, params=None, ret=None, _filter=None):
         json_obj = self.request('GET', url, params).json()
         parse = None

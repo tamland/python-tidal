@@ -147,7 +147,10 @@ class Session(object):
     def get_artist_radio(self, artist_id):
         return self._map_request('artists/%s/radio' % artist_id, params={'limit': 100}, ret='tracks')
 
-    def _map_request(self, url, params=None, ret=None):
+    def get_featured(self):
+        return self._map_request('promotions', ret='featured_playlist', _filter=lambda x: x['type'] == 'PLAYLIST')
+
+    def _map_request(self, url, params=None, ret=None, _filter=None):
         json_obj = self.request('GET', url, params).json()
         parse = None
         if ret.startswith('artist'):
@@ -160,8 +163,13 @@ class Session(object):
             raise NotImplementedError()
         elif ret.startswith('playlist'):
             parse = _parse_playlist
+        elif ret.startswith('featured_playlist'):
+            parse = _parse_featured_playlist
 
         items = json_obj.get('items')
+        if _filter is not None and items is not None:
+            items = filter(_filter, items)
+
         if items is None:
             return parse(json_obj)
         elif len(items) > 0 and 'item' in items[0]:
@@ -203,6 +211,15 @@ def _parse_album(json_obj, artist=None):
         'artist': artist,
     }
     return Album(**kwargs)
+
+
+def _parse_featured_playlist(json_obj):
+    kwargs = {
+        'id': json_obj['artifactId'],
+        'name': json_obj['header'],
+        'description': json_obj['text'],
+    }
+    return Playlist(**kwargs)
 
 
 def _parse_playlist(json_obj):

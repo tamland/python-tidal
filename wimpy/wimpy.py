@@ -153,6 +153,12 @@ class Session(object):
     def get_recommended_new_top(self, what, _type):
         return self._map_request('/'.join(['featured', _type, what]), ret=what)
 
+    def get_moods(self):
+        return self.request('GET', 'moods', None).json()
+
+    def get_mood_playlists(self, mood):
+        return self._map_request('/'.join(['moods', mood, 'playlists']), ret='playlists')
+
     def _map_request(self, url, params=None, ret=None, _filter=None):
         json_obj = self.request('GET', url, params).json()
         parse = None

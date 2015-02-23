@@ -165,6 +165,9 @@ class Session(object):
     def get_genre_items(self, genre, _type):
         return self._map_request('/'.join(['genres', genre, _type]), ret=_type)
 
+    def get_track_radio(self, track_id):
+        return self._map_request('tracks/%s/radio' % track_id, params={'limit': 100}, ret='tracks')
+
     def _map_request(self, url, params=None, ret=None, _filter=None):
         json_obj = self.request('GET', url, params).json()
         parse = None

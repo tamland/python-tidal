@@ -29,7 +29,7 @@ Api = namedtuple('API', ['location', 'token'])
 
 WIMP_API = Api(
     location='https://play.wimpmusic.com/v1/',
-    token='rQtt0XAsYjXYIlml',
+    token='oIaGpqT_vQPnTr0Q',
 )
 
 TIDAL_API = Api(

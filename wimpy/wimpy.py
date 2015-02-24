@@ -19,20 +19,44 @@ from __future__ import unicode_literals
 import json
 import logging
 import requests
+from collections import namedtuple
 from .compat import urljoin
 from .models import Artist, Album, Track, Playlist, SearchResult
 
 log = logging.getLogger(__name__)
 
+Api = namedtuple('API', ['location', 'token'])
+
+WIMP_API = Api(
+    location='https://play.wimpmusic.com/v1/',
+    token='rQtt0XAsYjXYIlml',
+)
+
+TIDAL_API = Api(
+    location='https://listen.tidalhifi.com/v1/',
+    token='P5Xbeo5LFvESeDy6',
+)
+
+
+class Config(object):
+    api = WIMP_API
+    country_code = 'NO'
+    session_id = None
+    user_id = None
+
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
 
 class Session(object):
-    api_location = 'https://play.wimpmusic.com/v1/'
-    api_token = 'rQtt0XAsYjXYIlml'
 
-    def __init__(self, session_id='', country_code='NO', user_id=None):
-        self.session_id = session_id
-        self.country_code = country_code
-        self.user = User(self, id=user_id) if user_id else None
+    def __init__(self, config):
+        self.session_id = config.session_id
+        self.country_code = config.country_code
+        self.api_location = config.api.location
+        self.api_token = config.api.token
+        self._config = config  # TODO: clean up config and attributes
+        self.user = User(self, id=config.user_id) if config.user_id else None
 
     def login(self, username, password):
         url = urljoin(self.api_location, 'login/username')

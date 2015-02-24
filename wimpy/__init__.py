@@ -20,3 +20,6 @@ __version__ = '0.1.0'
 from .wimpy import Session
 from .wimpy import User
 from .wimpy import Favorites
+from .wimpy import Config
+from .wimpy import WIMP_API
+from .wimpy import TIDAL_API

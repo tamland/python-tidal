@@ -38,9 +38,16 @@ TIDAL_API = Api(
 )
 
 
+class Quality(object):
+    lossless = 'LOSSLESS'
+    high = 'HIGH'
+    low = 'LOW'
+
+
 class Config(object):
     api = WIMP_API
     country_code = 'NO'
+    quality = Quality.high
     session_id = None
     user_id = None
 
@@ -163,7 +170,7 @@ class Session(object):
             return list(map(parse, items))
 
     def get_media_url(self, track_id):
-        params = {'soundQuality': 'HIGH'}
+        params = {'soundQuality': self._config.quality}
         r = self.request('GET', 'tracks/%s/streamUrl' % track_id, params)
         return r.json()['url']
 

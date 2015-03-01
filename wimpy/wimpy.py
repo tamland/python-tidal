@@ -151,8 +151,8 @@ class Session(object):
         items = self.request('GET', 'promotions').json()['items']
         return [_parse_featured_playlist(item) for item in items if item['type'] == 'PLAYLIST']
 
-    def get_recommended_new_top(self, content_type, ordering):
-        return self._map_request('/'.join(['featured', ordering, content_type]), ret=content_type)
+    def get_featured_items(self, content_type, group):
+        return self._map_request('/'.join(['featured', group, content_type]), ret=content_type)
 
     def get_moods(self):
         return map(_parse_moods, self.request('GET', 'moods').json())

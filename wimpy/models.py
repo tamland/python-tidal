@@ -80,4 +80,4 @@ class SearchResult(Model):
 
 
 class Category(Model):
-    pass
+    image = None

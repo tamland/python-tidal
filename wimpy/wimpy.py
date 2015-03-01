@@ -155,13 +155,13 @@ class Session(object):
         return self._map_request('/'.join(['featured', ordering, content_type]), ret=content_type)
 
     def get_moods(self):
-        return map(_parse_category, self.request('GET', 'moods').json())
+        return map(_parse_moods, self.request('GET', 'moods').json())
 
     def get_mood_playlists(self, mood_id):
         return self._map_request('/'.join(['moods', mood_id, 'playlists']), ret='playlists')
 
     def get_genres(self):
-        return map(_parse_category, self.request('GET', 'genres').json())
+        return map(_parse_genres, self.request('GET', 'genres').json())
 
     def get_genre_items(self, genre_id, content_type):
         return self._map_request('/'.join(['genres', genre_id, content_type]), ret=content_type)
@@ -266,8 +266,16 @@ def _parse_track(json_obj):
     return Track(**kwargs)
 
 
-def _parse_category(json_obj):
-    return Category(id=json_obj['path'], name=json_obj['name'])
+def _parse_genres(json_obj):
+    image = "http://resources.wimpmusic.com/images/%s/460x306.jpg" \
+            % json_obj['image'].replace('-', '/')
+    return Category(id=json_obj['path'], name=json_obj['name'], image=image)
+
+
+def _parse_moods(json_obj):
+    image = "http://resources.wimpmusic.com/images/%s/342x342.jpg" \
+            % json_obj['image'].replace('-', '/')
+    return Category(id=json_obj['path'], name=json_obj['name'], image=image)
 
 
 class Favorites(object):

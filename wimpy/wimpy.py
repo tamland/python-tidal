@@ -148,7 +148,8 @@ class Session(object):
         return self._map_request('artists/%s/radio' % artist_id, params={'limit': 100}, ret='tracks')
 
     def get_featured(self):
-        return self._map_request('promotions', ret='featured_playlist', _filter=lambda x: x['type'] == 'PLAYLIST')
+        items = self.request('GET', 'promotions').json()['items']
+        return [_parse_featured_playlist(item) for item in items if item['type'] == 'PLAYLIST']
 
     def get_recommended_new_top(self, what, _type):
         return self._map_request('/'.join(['featured', _type, what]), ret=what)
@@ -168,7 +169,7 @@ class Session(object):
     def get_track_radio(self, track_id):
         return self._map_request('tracks/%s/radio' % track_id, params={'limit': 100}, ret='tracks')
 
-    def _map_request(self, url, params=None, ret=None, _filter=None):
+    def _map_request(self, url, params=None, ret=None):
         json_obj = self.request('GET', url, params).json()
         parse = None
         if ret.startswith('artist'):
@@ -181,13 +182,8 @@ class Session(object):
             raise NotImplementedError()
         elif ret.startswith('playlist'):
             parse = _parse_playlist
-        elif ret.startswith('featured_playlist'):
-            parse = _parse_featured_playlist
 
         items = json_obj.get('items')
-        if _filter is not None and items is not None:
-            items = filter(_filter, items)
-
         if items is None:
             return parse(json_obj)
         elif len(items) > 0 and 'item' in items[0]:

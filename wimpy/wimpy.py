@@ -21,7 +21,7 @@ import logging
 import requests
 from collections import namedtuple
 from .compat import urljoin
-from .models import Artist, Album, Track, Playlist, SearchResult
+from .models import Artist, Album, Track, Playlist, SearchResult, Category
 
 log = logging.getLogger(__name__)
 
@@ -154,13 +154,13 @@ class Session(object):
         return self._map_request('/'.join(['featured', _type, what]), ret=what)
 
     def get_moods(self):
-        return self.request('GET', 'moods', None).json()
+        return map(_parse_category, self.request('GET', 'moods').json())
 
     def get_mood_playlists(self, mood):
         return self._map_request('/'.join(['moods', mood, 'playlists']), ret='playlists')
 
     def get_genres(self):
-        return self.request('GET', 'genres', None).json()
+        return map(_parse_category, self.request('GET', 'genres').json())
 
     def get_genre_items(self, genre, _type):
         return self._map_request('/'.join(['genres', genre, _type]), ret=_type)
@@ -268,6 +268,10 @@ def _parse_track(json_obj):
         'available': bool(json_obj['streamReady']),
     }
     return Track(**kwargs)
+
+
+def _parse_category(json_obj):
+    return Category(id=json_obj['path'], name=json_obj['name'])
 
 
 class Favorites(object):

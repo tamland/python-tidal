@@ -77,3 +77,7 @@ class SearchResult(Model):
     albums = []
     tracks = []
     playlists = []
+
+
+class Category(Model):
+    pass

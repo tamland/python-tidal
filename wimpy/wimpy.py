@@ -151,20 +151,20 @@ class Session(object):
         items = self.request('GET', 'promotions').json()['items']
         return [_parse_featured_playlist(item) for item in items if item['type'] == 'PLAYLIST']
 
-    def get_recommended_new_top(self, what, _type):
-        return self._map_request('/'.join(['featured', _type, what]), ret=what)
+    def get_recommended_new_top(self, content_type, ordering):
+        return self._map_request('/'.join(['featured', ordering, content_type]), ret=content_type)
 
     def get_moods(self):
         return map(_parse_category, self.request('GET', 'moods').json())
 
-    def get_mood_playlists(self, mood):
-        return self._map_request('/'.join(['moods', mood, 'playlists']), ret='playlists')
+    def get_mood_playlists(self, mood_id):
+        return self._map_request('/'.join(['moods', mood_id, 'playlists']), ret='playlists')
 
     def get_genres(self):
         return map(_parse_category, self.request('GET', 'genres').json())
 
-    def get_genre_items(self, genre, _type):
-        return self._map_request('/'.join(['genres', genre, _type]), ret=_type)
+    def get_genre_items(self, genre_id, content_type):
+        return self._map_request('/'.join(['genres', genre_id, content_type]), ret=content_type)
 
     def get_track_radio(self, track_id):
         return self._map_request('tracks/%s/radio' % track_id, params={'limit': 100}, ret='tracks')

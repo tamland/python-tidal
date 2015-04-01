@@ -46,10 +46,8 @@ class Quality(object):
 
 class Config(object):
     api = WIMP_API
-    country_code = 'NO'
+    """:type api: :class:`Api`"""
     quality = Quality.high
-    session_id = None
-    user_id = None
 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
@@ -57,17 +55,21 @@ class Config(object):
 
 class Session(object):
 
-    def __init__(self, config):
-        self.session_id = config.session_id
-        self.country_code = config.country_code
-        self.api_location = config.api.location
-        self.api_token = config.api.token
-        self._config = config  # TODO: clean up config and attributes
-        self.user = User(self, id=config.user_id) if config.user_id else None
+    def __init__(self, config=Config()):
+        self.session_id = None
+        self.country_code = None
+        self.user = None
+        self._config = config
+        """:type _config: :class:`Config`"""
+
+    def load_session(self, session_id, country_code, user_id):
+        self.session_id = session_id
+        self.country_code = country_code
+        self.user = User(self, id=user_id)
 
     def login(self, username, password):
-        url = urljoin(self.api_location, 'login/username')
-        params = {'token': self.api_token}
+        url = urljoin(self._config.api.location, 'login/username')
+        params = {'token': self._config.api.token}
         payload = {
             'username': username,
             'password': password,
@@ -84,7 +86,7 @@ class Session(object):
         """ Returns true if current session is valid, false otherwise. """
         if self.user is None or not self.user.id or not self.session_id:
             return False
-        url = urljoin(self.api_location, 'users/%s/subscription' % self.user.id)
+        url = urljoin(self._config.api.location, 'users/%s/subscription' % self.user.id)
         return requests.get(url, params={'sessionId': self.session_id}).ok
 
     def request(self, method, path, params=None, data=None):
@@ -95,7 +97,7 @@ class Session(object):
         }
         if params:
             request_params.update(params)
-        url = urljoin(self.api_location, path)
+        url = urljoin(self._config.api.location, path)
         r = requests.request(method, url, params=request_params, data=data)
         log.debug("request: %s" % r.request.url)
         r.raise_for_status()

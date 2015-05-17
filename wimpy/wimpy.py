@@ -33,8 +33,8 @@ WIMP_API = Api(
 )
 
 TIDAL_API = Api(
-    location='https://listen.tidalhifi.com/v1/',
-    token='P5Xbeo5LFvESeDy6',
+    location='https://api.tidalhifi.com/v1/',
+    token='wdgaB1CilGA-S_s2',
 )
 
 

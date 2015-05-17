@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
+
+import datetime
 import json
 import logging
 import requests
@@ -226,6 +228,11 @@ def _parse_album(json_obj, artist=None):
         'duration': json_obj.get('duration'),
         'artist': artist,
     }
+    if 'releaseDate' in json_obj:
+        try:
+            kwargs['release_date'] = datetime.datetime(*map(int, json_obj['releaseDate'].split('-')))
+        except ValueError:
+            pass
     return Album(**kwargs)
 
 

@@ -30,10 +30,10 @@ class Model(object):
 
 
 class Album(Model):
-
     artist = None
     num_tracks = -1
     duration = -1
+    release_date = None
 
     @property
     def image(self, width=512, height=512):

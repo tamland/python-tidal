@@ -22,5 +22,3 @@ from .wimpy import User
 from .wimpy import Favorites
 from .wimpy import Config
 from .wimpy import Quality
-from .wimpy import WIMP_API
-from .wimpy import TIDAL_API

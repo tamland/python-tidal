@@ -29,11 +29,6 @@ log = logging.getLogger(__name__)
 
 Api = namedtuple('API', ['location', 'token'])
 
-WIMP_API = Api(
-    location='https://play.wimpmusic.com/v1/',
-    token='oIaGpqT_vQPnTr0Q',
-)
-
 TIDAL_API = Api(
     location='https://api.tidalhifi.com/v1/',
     token='wdgaB1CilGA-S_s2',
@@ -47,7 +42,7 @@ class Quality(object):
 
 
 class Config(object):
-    api = WIMP_API
+    api = TIDAL_API
     """:type api: :class:`Api`"""
     quality = Quality.high
 

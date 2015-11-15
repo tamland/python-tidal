@@ -2,30 +2,26 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
-from wimpy import __version__
 
+long_description = ""
+with open('README.rst') as f:
+    long_description += f.read()
 
-readme = open('README.rst').read()
-history = open('HISTORY.rst').read().replace('.. :changelog:', '')
-
-requirements = [
-    'requests >=2.2.1'
-]
+with open('HISTORY.rst') as f:
+    long_description += '\n\n'
+    long_description += f.read() .replace('.. :changelog:', '')
 
 setup(
     name='wimpy',
-    version=__version__,
+    version='0.1.0',
     description='Unofficial WiMP Python API',
-    long_description=readme + '\n\n' + history,
+    long_description=long_description,
     author='Thomas Amland',
     author_email='thomas.amland@googlemail.com',
     url='https://github.com/tamland/wimpy',
     license='LGPL',
-    zip_safe=False,
-    include_package_data=True,
     packages=['wimpy'],
-    package_dir={'wimpy': 'wimpy'},
-    install_requires=requirements,
+    install_requires=['requests'],
     keywords='',
     classifiers=[
         'Development Status :: 3 - Alpha',

@@ -84,7 +84,7 @@ class Session(object):
         request_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
-            'limit': '9999',
+            'limit': '999',
         }
         if params:
             request_params.update(params)

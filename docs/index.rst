@@ -1,21 +1,13 @@
+Welcome to tidalapi's documentation!
+====================================
 
-Welcome to wimpy's documentation!
-======================================
+.. include:: ../README.rst
 
-Contents:
-
-.. toctree::
-    :maxdepth: 2
-
-    Quickstart <quickstart>
-    installation
-    api
-    contributing
-    history
 
 Indices and tables
 ==================
 
+* :ref:`api`
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

@@ -1,11 +1,12 @@
-==============
+.. _api:
+
 API Reference
-==============
+=============
 
-`wimpy`
-=================
+`tidalapi`
+----------
 
-.. module:: wimpy
+.. module:: tidalapi
 
 .. autoclass:: Session
     :members:
@@ -20,10 +21,10 @@ API Reference
     :undoc-members:
 
 
-`wimpy.models`
-============================
+`tidalapi.models`
+-----------------
 
-.. automodule:: wimpy.models
+.. automodule:: tidalapi.models
 
 .. autoclass:: Artist
     :members:

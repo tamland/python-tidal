@@ -19,13 +19,13 @@ from __future__ import unicode_literals
 import logging
 import pytest
 import requests
-import wimpy
+import tidalapi
 
 logging.basicConfig(level=logging.DEBUG)
 
 @pytest.fixture()
 def session():
-    return wimpy.Session()
+    return tidalapi.Session()
 
 def test_artist(session):
     artist_id = 18888

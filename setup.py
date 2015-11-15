@@ -12,15 +12,15 @@ with open('HISTORY.rst') as f:
     long_description += f.read() .replace('.. :changelog:', '')
 
 setup(
-    name='wimpy',
+    name='tidalapi',
     version='0.1.0',
-    description='Unofficial WiMP Python API',
+    description='Unofficial API for TIDAL music streaming service.',
     long_description=long_description,
     author='Thomas Amland',
     author_email='thomas.amland@googlemail.com',
-    url='https://github.com/tamland/wimpy',
+    url='https://github.com/tamland/tidalapi',
     license='LGPL',
-    packages=['wimpy'],
+    packages=['tidalapi'],
     install_requires=['requests'],
     keywords='',
     classifiers=[

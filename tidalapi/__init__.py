@@ -22,8 +22,12 @@ import json
 import logging
 import requests
 from collections import namedtuple
-from .compat import urljoin
 from .models import Artist, Album, Track, Playlist, SearchResult, Category
+try:
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urljoin
+
 
 log = logging.getLogger(__name__)
 
@@ -320,7 +324,7 @@ class User(object):
 
     def __init__(self, session, id):
         """
-        :type session: :class:`wimpy.Session`
+        :type session: :class:`Session`
         :param id: The user ID
         """
         self._session = session

@@ -1,15 +1,22 @@
-=====
-wimpy
-=====
+tidalapi
+========
 
-.. image:: https://badge.fury.io/py/wimpy.png
-    :target: http://badge.fury.io/py/wimpy
-    
-.. image:: https://travis-ci.org/tamland/wimpy.png?branch=master
-        :target: https://travis-ci.org/tamland/wimpy
+.. image:: https://badge.fury.io/py/tidalapi.png
+    :target: http://badge.fury.io/py/tidalapi
 
 
-Unofficial WiMP Python API
+Unofficial Python API for TIDAL music streaming service.
+
+
+Installation
+------------
+
+Install from `PyPI <https://pypi.python.org/pypi/tidalapi/>`_ using ``pip``:
+
+.. code-block:: bash
+
+    $ pip install tidalapi
+
 
 
 Example usage
@@ -17,17 +24,16 @@ Example usage
 
 .. code-block:: python
 
-    from wimpy import Session
+    import tidalapi
 
-    wimp = Session()
-    wimp.login('username', 'password')
-    tracks = wimp.get_album_tracks(album_id=16909093)
+    session = tidalapi.Session()
+    session.login('username', 'password')
+    tracks = session.get_album_tracks(album_id=16909093)
     for track in tracks:
         print(track.name)
 
 
-TODO
------
+Documentation
+-------------
 
-- OO API (let's see how long until the web API changes first)
-- Implement POST methods (edit playlists, add favourites etc.)
+Documentation is available at http://pythonhosted.org/tidalapi/

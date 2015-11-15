@@ -29,11 +29,6 @@ log = logging.getLogger(__name__)
 
 Api = namedtuple('API', ['location', 'token'])
 
-TIDAL_API = Api(
-    location='https://api.tidalhifi.com/v1/',
-    token='wdgaB1CilGA-S_s2',
-)
-
 
 class Quality(object):
     lossless = 'LOSSLESS'
@@ -42,12 +37,11 @@ class Quality(object):
 
 
 class Config(object):
-    api = TIDAL_API
-    """:type api: :class:`Api`"""
-    quality = Quality.high
-
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+    def __init__(self, quality=Quality.high):
+        self.quality = quality
+        self.api_location = 'https://api.tidalhifi.com/v1/'
+        self.api_token = 'P5Xbeo5LFvESeDy6' if self.quality == \
+            Quality.lossless else 'wdgaB1CilGA-S_s2',
 
 
 class Session(object):
@@ -65,8 +59,8 @@ class Session(object):
         self.user = User(self, id=user_id)
 
     def login(self, username, password):
-        url = urljoin(self._config.api.location, 'login/username')
-        params = {'token': self._config.api.token}
+        url = urljoin(self._config.api_location, 'login/username')
+        params = {'token': self._config.api_token}
         payload = {
             'username': username,
             'password': password,
@@ -83,7 +77,7 @@ class Session(object):
         """ Returns true if current session is valid, false otherwise. """
         if self.user is None or not self.user.id or not self.session_id:
             return False
-        url = urljoin(self._config.api.location, 'users/%s/subscription' % self.user.id)
+        url = urljoin(self._config.api_location, 'users/%s/subscription' % self.user.id)
         return requests.get(url, params={'sessionId': self.session_id}).ok
 
     def request(self, method, path, params=None, data=None):
@@ -94,7 +88,7 @@ class Session(object):
         }
         if params:
             request_params.update(params)
-        url = urljoin(self._config.api.location, path)
+        url = urljoin(self._config.api_location, path)
         r = requests.request(method, url, params=request_params, data=data)
         log.debug("request: %s" % r.request.url)
         r.raise_for_status()

@@ -13,7 +13,7 @@ with open('HISTORY.rst') as f:
 
 setup(
     name='tidalapi',
-    version='0.1.0',
+    version='0.5.0',
     description='Unofficial API for TIDAL music streaming service.',
     long_description=long_description,
     author='Thomas Amland',
@@ -24,7 +24,7 @@ setup(
     install_requires=['requests'],
     keywords='',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         "Programming Language :: Python :: 2",

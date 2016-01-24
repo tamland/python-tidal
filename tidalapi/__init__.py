@@ -166,6 +166,9 @@ class Session(object):
     def get_track_radio(self, track_id):
         return self._map_request('tracks/%s/radio' % track_id, params={'limit': 100}, ret='tracks')
 
+    def get_track(self, track_id):
+        return self._map_request('tracks/%s' % track_id, ret='track')
+
     def _map_request(self, url, params=None, ret=None):
         json_obj = self.request('GET', url, params).json()
         parse = None
@@ -208,7 +211,7 @@ class Session(object):
 
 
 def _parse_artist(json_obj):
-    return Artist(id=json_obj['id'], name=json_obj['name'])
+    return Artist(id=json_obj['id'], name=json_obj['name'], type=json_obj['type'])
 
 
 def _parse_artists(json_obj):

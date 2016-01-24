@@ -42,6 +42,7 @@ class Album(Model):
 
 
 class Artist(Model):
+    type = None
 
     @property
     def image(self, width=512, height=512):

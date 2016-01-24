@@ -46,3 +46,4 @@ docs/_build
 .vs
 *.sln
 *.pyproj
+/.cache/

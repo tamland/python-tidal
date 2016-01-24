@@ -31,6 +31,7 @@ class Model(object):
 
 class Album(Model):
     artist = None
+    artists = []
     num_tracks = -1
     duration = -1
     release_date = None
@@ -68,6 +69,7 @@ class Track(Model):
     disc_num = 1
     popularity = -1
     artist = None
+    artists = []
     album = None
     available = True
 

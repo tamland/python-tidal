@@ -211,15 +211,22 @@ def _parse_artist(json_obj):
     return Artist(id=json_obj['id'], name=json_obj['name'])
 
 
-def _parse_album(json_obj, artist=None):
+def _parse_artists(json_obj):
+    return list(map(_parse_artist, json_obj))
+
+
+def _parse_album(json_obj, artist=None, artists=None):
     if artist is None:
         artist = _parse_artist(json_obj['artist'])
+    if artists is None:
+        artists = _parse_artists(json_obj['artists'])
     kwargs = {
         'id': json_obj['id'],
         'name': json_obj['title'],
         'num_tracks': json_obj.get('numberOfTracks'),
         'duration': json_obj.get('duration'),
         'artist': artist,
+        'artists': artists,
     }
     if 'releaseDate' in json_obj:
         try:
@@ -253,7 +260,8 @@ def _parse_playlist(json_obj):
 
 def _parse_track(json_obj):
     artist = _parse_artist(json_obj['artist'])
-    album = _parse_album(json_obj['album'], artist)
+    artists = _parse_artists(json_obj['artists'])
+    album = _parse_album(json_obj['album'], artist, artists)
     kwargs = {
         'id': json_obj['id'],
         'name': json_obj['title'],
@@ -262,6 +270,7 @@ def _parse_track(json_obj):
         'disc_num': json_obj['volumeNumber'],
         'popularity': json_obj['popularity'],
         'artist': artist,
+        'artists': artists,
         'album': album,
         'available': bool(json_obj['streamReady']),
     }

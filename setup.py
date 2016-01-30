@@ -2,6 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
+import sys
+
+required = ['requests']
+if sys.version_info < (3,4):
+    install_requires.append('enum34')
 
 long_description = ""
 with open('README.rst') as f:
@@ -21,7 +26,7 @@ setup(
     url='https://github.com/tamland/tidalapi',
     license='LGPL',
     packages=['tidalapi'],
-    install_requires=['requests'],
+    install_requires=required,
     keywords='',
     classifiers=[
         'Development Status :: 4 - Beta',

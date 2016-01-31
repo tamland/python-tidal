@@ -17,6 +17,7 @@
 
 
 from __future__ import unicode_literals
+from enum import Enum
 
 IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
 
@@ -31,6 +32,7 @@ class Model(object):
 
 class Album(Model):
     artist = None
+    artists = []
     num_tracks = -1
     duration = -1
     release_date = None
@@ -41,6 +43,7 @@ class Album(Model):
 
 
 class Artist(Model):
+    role = None
 
     @property
     def image(self, width=512, height=512):
@@ -68,6 +71,7 @@ class Track(Model):
     disc_num = 1
     popularity = -1
     artist = None
+    artists = []
     album = None
     available = True
 
@@ -81,3 +85,8 @@ class SearchResult(Model):
 
 class Category(Model):
     image = None
+
+
+class Role(Enum):
+    main = 'MAIN'
+    featured = 'FEATURED'

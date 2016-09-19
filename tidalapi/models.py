@@ -72,6 +72,14 @@ class BrowsableMedia(Model):
     _offset = 0
     _totalNumberOfItems = 0
 
+    @property
+    def image(self):
+        return None
+
+    @property
+    def fanart(self):
+        return None
+
 
 class Album(BrowsableMedia):
     title = 'Unknown'

@@ -25,7 +25,7 @@ import requests
 from requests.packages import urllib3
 from collections import Iterable
 from .models import UserInfo, Subscription, SubscriptionType, Quality
-from .models import Artist, Album, Track, Video, Playlist, PlayableMedia, Promotion, SearchResult, Category
+from .models import Artist, Album, Track, Video, Playlist, BrowsableMedia, PlayableMedia, Promotion, SearchResult, Category
 try:
     from urlparse import urljoin
 except ImportError:
@@ -42,6 +42,7 @@ class Config(object):
         self.api_token = 'wdgaB1CilGA-S_s2'     # Web Token, Plays m4a and Videos, Lossless audio is encrypted
         self.flac_token = 'P5Xbeo5LFvESeDy6'    # Plays FLAC, m4a and Videos, but Playlist Items are audio only
         self.flac_token2 = '4zx46pyr9o8qZNRw'   # This seems to be an old Token, many Lossless streams don't work
+        self.flac_token3 = '_KM2HixcUBZtmktH'   # Other old Token that don't work anymore
         self.preview_token = "8C7kRFdkaRp0dLBp" # Token for Preview Mode
 
 
@@ -110,15 +111,6 @@ class Session(object):
                 except:
                     msg = r.reason
                 log.error(msg)
-                # If first Lossless Token doesn't work, try the second one
-                headers = { "X-Tidal-Token": self._config.flac_token2 }
-                r = requests.post(url, data=payload, headers=headers)
-                if not r.ok:
-                    try:
-                        msg = r.json().get('userMessage')
-                    except:
-                        msg = r.reason
-                    log.error(msg)
             if r.ok:
                 # Take the second session
                 self.session_id = r.json()['sessionId']
@@ -134,14 +126,14 @@ class Session(object):
 
     @property
     def is_logged_in(self):
-        return self.session_id and self.api_session_id and self.country_code and self.user
+        return True if self.session_id and self.api_session_id and self.country_code and self.user else False
 
     def check_login(self):
         """ Returns true if current session is valid, false otherwise. """
         if not self.is_logged_in:
             return False
         self.user.subscription = self.get_user_subscription(self.user.id)
-        return self.user.subscription != None
+        return True if self.user.subscription != None else False
 
     def request(self, method, path, params=None, data=None, headers=None):
         request_headers = {}
@@ -172,8 +164,8 @@ class Session(object):
             except:
                 log.error(r.reason)
         r.raise_for_status()
-        if r.content and log.isEnabledFor(logging.DEBUG):
-            log.debug("response: %s" % json.dumps(r.json(), indent=4))
+        if r.content and log.isEnabledFor(logging.INFO):
+            log.info("response: %s" % json.dumps(r.json(), indent=4))
         return r
 
     def get_user(self, user_id):
@@ -360,6 +352,7 @@ class Session(object):
                 numberOfItems = int('0%s' % json_obj.get('totalNumberOfItems')) if 'totalNumberOfItems' in json_obj else 9999
             except:
                 numberOfItems = 9999
+            log.debug('NumberOfItems=%s, %s items in list' % (numberOfItems, len(items)))
             for item in items:
                 retType = ret
                 if 'type' in item and ret.startswith('playlistitem'):
@@ -371,7 +364,7 @@ class Session(object):
                 elif 'video' in item and ret.startswith('video'):
                     item = item['video']
                 nextItem = self._parse_one_item(item, retType)
-                if isinstance(nextItem, PlayableMedia):
+                if isinstance(nextItem, BrowsableMedia):
                     nextItem._itemPosition = itemPosition
                     nextItem._offset = offset
                     nextItem._totalNumberOfItems = numberOfItems
@@ -385,7 +378,7 @@ class Session(object):
                     result._etag = r.headers._store['etag'][1]
                 except:
                     result._etag = None
-                    log.debug('No ETag in response header for playlist "%s" (%s)' % (json_obj.get('title'), json_obj.get('id')))
+                    log.error('No ETag in response header for playlist "%s" (%s)' % (json_obj.get('title'), json_obj.get('id')))
         return result
 
     def get_media_url(self, track_id, quality=None):
@@ -465,7 +458,10 @@ class Session(object):
         return Subscription(**json_obj)
 
     def _parse_artist(self, json_obj):
-        return Artist(**json_obj)
+        artist = Artist(**json_obj)
+        if self.is_logged_in and self.user.favorites:
+            artist._isFavorite = self.user.favorites.isFavoriteArtist(artist.id)
+        return artist
 
     def _parse_all_artists(self, artist_id, json_obj):
         allArtists = []
@@ -580,7 +576,7 @@ class Favorites(object):
         if force_reload or not self.ids_loaded:
             # Reset all first
             self.ids = {'artists': [], 'albums': [], 'playlists': [], 'tracks': [], 'videos': []}
-            self.ids_loaded = True
+            self.ids_loaded = False
             r = self._session.request('GET', self._base_url + '/ids')
             if r.ok:
                 json_obj = r.json()
@@ -594,11 +590,12 @@ class Favorites(object):
                     self.ids['tracks'] = json_obj.get('TRACK')
                 if 'VIDEO' in json_obj:
                     self.ids['videos'] = json_obj.get('VIDEO')
+                self.ids_loaded = True
         return self.ids
 
     def get(self, content_type, limit=9999):
         items = self._session._map_request(self._base_url + '/%s' % content_type, params={'limit': limit}, ret=content_type)
-        self.ids[content_type] = [item.id for item in items]
+        self.ids[content_type] = ['%s' % item.id for item in items]
         return items
 
     def add(self, content_type, item_ids):
@@ -655,31 +652,31 @@ class Favorites(object):
         return self.get('artists')
 
     def isFavoriteArtist(self, artist_id):
-        return artist_id in self.ids.get('artists', [])
+        return '%s' % artist_id in self.ids.get('artists', [])
 
     def albums(self):
         return self.get('albums')
 
     def isFavoriteAlbum(self, album_id):
-        return album_id in self.ids.get('albums', [])
+        return '%s' % album_id in self.ids.get('albums', [])
 
     def playlists(self):
         return self.get('playlists')
 
     def isFavoritePlaylist(self, playlist_id):
-        return playlist_id in self.ids.get('playlists', [])
+        return '%s' % playlist_id in self.ids.get('playlists', [])
 
     def tracks(self):
         return self.get('tracks')
 
     def isFavoriteTrack(self, track_id):
-        return track_id in self.ids.get('tracks', [])
+        return '%s' % track_id in self.ids.get('tracks', [])
 
     def videos(self):
         return self.get('videos', limit=100)
 
     def isFavoriteVideo(self, video_id):
-        return video_id in self.ids.get('videos', [])
+        return '%s' % video_id in self.ids.get('videos', [])
 
 #------------------------------------------------------------------------------
 # Class to work with users playlists

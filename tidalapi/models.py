@@ -185,6 +185,8 @@ class Playlist(BrowsableMedia):
             self.creationDate = self.parse_date(self.created)
         if self.lastUpdated:
             self.lastUpdated = self.parse_date(self.lastUpdated)
+        else:
+            self.lastUpdated = self.creationDate
 
     @property
     def numberOfItems(self):
@@ -273,7 +275,7 @@ class Track(PlayableMedia):
 
     @property
     def year(self):
-        if self.album and isinstance(self.album, Album):
+        if self.album and isinstance(self.album, Album) and getattr(self.album, 'year', None):
             return self.album.year
         return super(Track, self).year
 

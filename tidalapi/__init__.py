@@ -40,9 +40,11 @@ class Config(object):
         self.quality = quality
         self.api_location = 'https://api.tidal.com/v1/'
         self.api_token = 'wdgaB1CilGA-S_s2'     # Web Token, Plays m4a and Videos, Lossless audio is encrypted
-        self.flac_token = 'P5Xbeo5LFvESeDy6'    # Plays FLAC, m4a and Videos, but Playlist Items are audio only
-        self.flac_token2 = '4zx46pyr9o8qZNRw'   # This seems to be an old Token, many Lossless streams don't work
-        self.flac_token3 = '_KM2HixcUBZtmktH'   # Other old Token that don't work anymore
+        self.flac_token = None                  # Token that is used for FLAC-Streaming
+        self.flac_tokens = ['oIaGpqT_vQPnTr0Q', # Old Wimp FLAC Token that still works for FLAC Streaming
+                            'P5Xbeo5LFvESeDy6', # Streams FLAC, m4a and Videos over HTTP. Seems to be disabled since September 2016
+                            '_KM2HixcUBZtmktH', # Other old Token that may work
+                            '4zx46pyr9o8qZNRw'] # This seems to be an old working Token, but many FLAC streams don't work
         self.preview_token = "8C7kRFdkaRp0dLBp" # Token for Preview Mode
 
 
@@ -70,7 +72,7 @@ class Session(object):
             # Set Local Country Code to enable Trial Mode 
             self.country_code = self.local_country_code()
         if user_id:
-            self.user = User(self, user_id=user_id, subscription_type=subscription_type)
+            self.user = self.init_user(user_id=user_id, subscription_type=subscription_type)
         else:
             self.user = None
 
@@ -97,24 +99,37 @@ class Session(object):
         self.session_id = body['sessionId']
         self.api_session_id = self.session_id
         self.country_code = body['countryCode']
-        self.user = User(self, user_id=body['userId'], subscription_type=subscription_type)
-        if not self.user.subscription.type: 
+        self.user = self.init_user(user_id=body['userId'], subscription_type=subscription_type)
+        if not self.user.subscription.type:
             # Set Subscription Type corresponding to the given playback quality
             self.user.subscription.type = SubscriptionType.hifi if self._config.quality == Quality.lossless else SubscriptionType.premium
         if self.user.subscription.type == SubscriptionType.hifi:
-            # For FLAC Streaming we needs a second Login Session ID.
-            headers = { "X-Tidal-Token": self._config.flac_token }
-            r = requests.post(url, data=payload, headers=headers)
-            if not r.ok:
-                try:
-                    msg = r.json().get('userMessage')
-                except:
-                    msg = r.reason
-                log.error(msg)
-            if r.ok:
-                # Take the second session
-                self.session_id = r.json()['sessionId']
+            # For FLAC Streaming we needs a second Login Session ID
+            for self._config.flac_token in self._config.flac_tokens:
+                headers = { "X-Tidal-Token": self._config.flac_token }
+                r = requests.post(url, data=payload, headers=headers)
+                if not r.ok:
+                    try:
+                        msg = r.json().get('userMessage')
+                    except:
+                        msg = r.reason
+                    log.error('FLAC-Token "%s" didn\'t work' % self._config.flac_token)
+                    log.debug(msg)
+                if r.ok:
+                    try:
+                        # Take the second session
+                        self.session_id = r.json()['sessionId']
+                        if self.session_id:
+                            log.debug('Using FLAC-Token "%s"' % self._config.flac_token)
+                            break
+                    except:
+                        pass
+            if self.session_id == self.api_session_id:
+                log.error('No FLAC-Token works anymore. Normal API-Key will be used for streaming.')
         return True
+
+    def init_user(self, user_id, subscription_type):
+        return User(self, user_id=user_id, subscription_type=subscription_type)
 
     def local_country_code(self):
         url = urljoin(self._config.api_location, 'country/context')
@@ -156,7 +171,7 @@ class Session(object):
             request_headers.pop('X-Tidal-SessionId', None)
             request_params.update({'token': self._config.preview_token})
         r = requests.request(method, url, params=request_params, data=data, headers=request_headers)
-        log.debug("request: %s" % r.request.url)
+        log.debug("%s %s" % (method, r.request.url))
         if not r.ok:
             log.error(r.url)
             try:
@@ -569,6 +584,9 @@ class Favorites(object):
     def __init__(self, session, user_id):
         self._session = session
         self._base_url = 'users/%s/favorites' % user_id
+        self.reset()
+
+    def reset(self):
         self.ids_loaded = False
         self.ids = {'artists': [], 'albums': [], 'playlists': [], 'tracks': [], 'videos': []}
 
@@ -594,7 +612,7 @@ class Favorites(object):
         return self.ids
 
     def get(self, content_type, limit=9999):
-        items = self._session._map_request(self._base_url + '/%s' % content_type, params={'limit': limit}, ret=content_type)
+        items = self._session._map_request(self._base_url + '/%s' % content_type, params={'limit': limit if content_type <> 'videos' else min(limit, 100)}, ret=content_type)
         self.ids[content_type] = ['%s' % item.id for item in items]
         return items
 

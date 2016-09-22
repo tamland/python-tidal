@@ -47,3 +47,7 @@ docs/_build
 *.sln
 *.pyproj
 /.cache/
+
+# Eclipse
+.settings
+*.prefs

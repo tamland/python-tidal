@@ -68,7 +68,7 @@ class BrowsableMedia(Model):
 
     # Internal Properties
     _isFavorite = False
-    _itemPosition = 0
+    _itemPosition = -1
     _offset = 0
     _totalNumberOfItems = 0
 
@@ -231,10 +231,10 @@ class PlayableMedia(BrowsableMedia):
 
     # Internal Properties
     _playlist_id = None        # ID of the Playlist
-    _playlist_pos = 0          # Item position in playlist
+    _playlist_pos = -1         # Item position in playlist
     _etag = None               # ETag for User Playlists
     _playlist_name = None      # Name of Playlist
-    _is_user_playlist = False  # Item of User Playlist ?
+    _playlist_type = ''        # Playlist Type
 
     def __init__(self):
         super(PlayableMedia, self).__init__()

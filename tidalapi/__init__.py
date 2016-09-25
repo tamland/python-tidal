@@ -197,7 +197,7 @@ class Session(object):
 
     def get_playlist_tracks(self, playlist_id, offset=0, limit=9999):
         items = self._map_request('playlists/%s/tracks' % playlist_id, params={'offset': offset, 'limit': limit}, ret='tracks')
-        track_no = offset + 1
+        track_no = offset
         for item in items:
             item._playlist_id = playlist_id
             item._playlist_pos = track_no
@@ -224,7 +224,7 @@ class Session(object):
                     item._playlist_pos = track_no
                     item._etag = playlist._etag
                     item._playlist_name = playlist.title
-                    item._is_user_playlist = playlist.type == 'USER'
+                    item._playlist_type = playlist.type
                     track_no += 1
                 remaining -= len(items)
                 result += items
@@ -743,8 +743,8 @@ class User(object):
             entry_no = None
             items = self._session.get_playlist_items(playlist_id)
             for item in items:
-                if item.id == item_id:
-                    entry_no = item._user_playlist_tack_no
+                if str(item.id) == str(item_id):
+                    entry_no = item._playlist_pos
             if entry_no == None:
                 return False
         # Read Playlist to get ETag

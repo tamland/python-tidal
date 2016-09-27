@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 
 import re
 import datetime
+import random
 import json
 import logging
 import requests
@@ -35,16 +36,25 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
+class LoginToken(object):
+    browser = 'wdgaB1CilGA-S_s2' # Streams HIGH/LOW Quality over RTMP, FLAC and Videos over HTTP, but many Lossless Streams are encrypted.
+    token1 = 'kgsOOmYk3zShYrNP'  # All Streams are HTTP Streams. Correct numberOfVideos in Playlists (best Token to use)
+    token2 = 'P5Xbeo5LFvESeDy6'  # Same function as token1, but Playlist Headers returns only numberOfTracks (numberOfVideos = 0)
+    token3 = 'oIaGpqT_vQPnTr0Q'  # Old WIMP-Token, same as token2, but HIGH/LOW Audio Quality uses RTMP protocol
+    token4 = '_KM2HixcUBZtmktH'  # Old WIMP-Token which still works.
+    token5 = '4zx46pyr9o8qZNRw'  # Other old Token that still works, but many FLAC streams are encrypted.
+    # Tokens which return correct numberOfVideos in Playlists
+    api_tokens = [token1, browser]
+    # Tokens which streams all FLAC content (no encryped streams)
+    hifi_tokens = [token1, token2, token3, token4]
+    # All Tokens to play HIGH/LOW quality
+    premium_tokens = [token1, browser, token2, token3, token4, token5]
+
+
 class Config(object):
     def __init__(self, quality=Quality.high):
         self.quality = quality
         self.api_location = 'https://api.tidal.com/v1/'
-        self.api_token = 'wdgaB1CilGA-S_s2'     # Web Token, Plays m4a and Videos, Lossless audio is encrypted
-        self.flac_token = None                  # Token that is used for FLAC-Streaming
-        self.flac_tokens = ['oIaGpqT_vQPnTr0Q', # Old Wimp FLAC Token that still works for FLAC Streaming
-                            'P5Xbeo5LFvESeDy6', # Streams FLAC, m4a and Videos over HTTP. Seems to be disabled since September 2016
-                            '_KM2HixcUBZtmktH', # Other old Token that may work
-                            '4zx46pyr9o8qZNRw'] # This seems to be an old working Token, but many FLAC streams don't work
         self.preview_token = "8C7kRFdkaRp0dLBp" # Token for Preview Mode
 
 
@@ -55,18 +65,20 @@ class Session(object):
         self.logout()
         self._config = config
         self.country_code = 'US'   # Enable Trial Mode
+        self.client_unique_key = None
         urllib3.disable_warnings() # Disable OpenSSL Warnings in URLLIB3
 
     def logout(self):
         self.session_id = None
+        self.session_token = None
         self.api_session_id = None
-        # Country Code can stay in config (for Trial Mode after logout)
-        # self.country_code = None
+        self.api_session_token = None
         self.user = None
 
-    def load_session(self, session_id, country_code, user_id=None, subscription_type=None, api_session_id=None):
+    def load_session(self, session_id, country_code, user_id=None, subscription_type=None, api_session_id=None, unique_key=None):
         self.session_id = session_id
         self.api_session_id = api_session_id if api_session_id else session_id
+        self.client_unique_key = unique_key
         self.country_code = country_code
         if not self.country_code:
             # Set Local Country Code to enable Trial Mode 
@@ -76,64 +88,90 @@ class Session(object):
         else:
             self.user = None
 
-    def login(self, username, password, subscription_type=None):
+    def login(self, username, password, subscription_type=None, loginToken=None):
+        self.logout()
         if not username or not password:
-            self.logout()
             return False
+        if not subscription_type:
+            # Set Subscription Type corresponding to the given playback quality
+            subscription_type = SubscriptionType.hifi if self._config.quality == Quality.lossless else SubscriptionType.premium
+        if loginToken:
+            tokens = [loginToken]  # Using only the given token
+        elif subscription_type == SubscriptionType.hifi:
+            tokens = LoginToken.hifi_tokens  # Using tokens with correct FLAC Streaming
+        else:
+            tokens = LoginToken.premium_tokens  # Using universal tokens for HIGH/LOW Quality
+        if not self.client_unique_key:
+            # Generate a random client key if no key is given
+            self.client_unique_key = format(random.getrandbits(64), '02x')
         url = urljoin(self._config.api_location, 'login/username')
-        headers = { "X-Tidal-Token": self._config.api_token}
         payload = {
             'username': username,
             'password': password,
+            'clientUniqueKey': self.client_unique_key
         }
-        r = requests.post(url, data=payload, headers=headers)
-        if not r.ok:
-            try:
-                msg = r.json().get('userMessage')
-            except:
-                msg = r.reason
-            log.error(msg)
-            self.logout()
-            r.raise_for_status()
-        body = r.json()
-        self.session_id = body['sessionId']
-        self.api_session_id = self.session_id
-        self.country_code = body['countryCode']
-        self.user = self.init_user(user_id=body['userId'], subscription_type=subscription_type)
-        if not self.user.subscription.type:
-            # Set Subscription Type corresponding to the given playback quality
-            self.user.subscription.type = SubscriptionType.hifi if self._config.quality == Quality.lossless else SubscriptionType.premium
-        if self.user.subscription.type == SubscriptionType.hifi:
-            # For FLAC Streaming we needs a second Login Session ID
-            for self._config.flac_token in self._config.flac_tokens:
-                headers = { "X-Tidal-Token": self._config.flac_token }
+        log.debug('Using clientUniqueKey "%s"' % self.client_unique_key)
+        for token in tokens:
+            headers = { "X-Tidal-Token": token }
+            r = requests.post(url, data=payload, headers=headers)
+            if not r.ok:
+                try:
+                    msg = r.json().get('userMessage')
+                except:
+                    msg = r.reason
+                log.error(msg)
+                log.error('Login-Token "%s" didn\'t work' % token)
+            else:
+                try:
+                    body = r.json()
+                    self.session_id = body['sessionId']
+                    self.session_token = token
+                    self.api_session_id = self.session_id
+                    self.api_session_token = token
+                    self.country_code = body['countryCode']
+                    self.user = self.init_user(user_id=body['userId'], subscription_type=subscription_type)
+                    log.debug('Using Login-Token "%s"' % token)
+                    break
+                except:
+                    log.error('Login-Token "%s" failed.' % token)
+
+        if not self.api_session_token in LoginToken.api_tokens:
+            # Try to get a valid API Token for Videos in Playlists
+            for token in LoginToken.api_tokens:
+                headers = { "X-Tidal-Token": token }
                 r = requests.post(url, data=payload, headers=headers)
                 if not r.ok:
                     try:
                         msg = r.json().get('userMessage')
                     except:
                         msg = r.reason
-                    log.error('FLAC-Token "%s" didn\'t work' % self._config.flac_token)
-                    log.debug(msg)
-                if r.ok:
+                    log.error(msg)
+                    log.error('API-Token "%s" failed.' % token)
+                else:
                     try:
-                        # Take the second session
-                        self.session_id = r.json()['sessionId']
-                        if self.session_id:
-                            log.debug('Using FLAC-Token "%s"' % self._config.flac_token)
-                            break
+                        body = r.json()
+                        self.api_session_id = body['sessionId']
+                        self.api_session_token = token
+                        if not self.user:
+                            # Previous login token(s) failed
+                            log.error('No FLAC-Token works anymore. Normal API-Key will be used for streaming.')
+                            self.session_id = self.api_session_id
+                            self.session_token = self.api_session_token
+                            self.country_code = body['countryCode']
+                            self.user = self.init_user(user_id=body['userId'], subscription_type=subscription_type)
+                        log.debug('Using API-Token "%s"' % token)
+                        break
                     except:
-                        pass
-            if self.session_id == self.api_session_id:
-                log.error('No FLAC-Token works anymore. Normal API-Key will be used for streaming.')
-        return True
+                        log.error('API-Token "%s" didn\'t work' % token)
+
+        return self.is_logged_in
 
     def init_user(self, user_id, subscription_type):
         return User(self, user_id=user_id, subscription_type=subscription_type)
 
     def local_country_code(self):
         url = urljoin(self._config.api_location, 'country/context')
-        headers = { "X-Tidal-Token": self._config.api_token}
+        headers = { "X-Tidal-Token": LoginToken.browser}
         r = requests.request('GET', url, params={'countryCode': 'WW'}, headers=headers)
         if not r.ok:
             return 'US'
@@ -418,7 +456,7 @@ class Session(object):
 
     def get_video_url(self, video_id):
         if self.is_logged_in:
-            r = self.request('GET', 'videos/%s/streamUrl' % video_id)
+            r = self.request('GET', 'videos/%s/streamUrl' % video_id, headers={'X-Tidal-SessionId': self.session_id})
         else:
             r = self.request('GET', 'videos/%s/previewurl' % video_id)
         if not r.ok:

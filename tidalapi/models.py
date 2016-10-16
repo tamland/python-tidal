@@ -23,7 +23,6 @@ import datetime
 IMG_URL = 'http://resources.tidal.com/images/{picture}/{size}.jpg'
 ARTIST_IMAGE_URL = 'http://images.tidalhifi.com/im/im?w={width}&h={height}&artistid={artistid}'
 VIDEO_IMAGE_URL = 'http://images.tidalhifi.com/im/im?w={width}&h={height}&img={imagepath}'
-USER_PLAYLIST_IMAGE_URL = 'http://images.tidalhifi.com/im/im?w={width}&h={height}&uuid={uuid}&cols={cols}&rows={rows}&artimg'
 
 DEFAULT_ARTIST_IMG = '1e01cdb6-f15d-4d8b-8440-a047976c1cac'
 DEFAULT_ALBUM_IMG = '0dfd3368-3aa1-49a3-935f-10ffb39803c0'
@@ -202,16 +201,12 @@ class Playlist(BrowsableMedia):
 
     @property
     def image(self):
-        if self.type == 'USER':
-            return USER_PLAYLIST_IMAGE_URL.format(width=512, height=512, uuid=self.uuid, cols=3, rows=3)
         if self._image:
             return IMG_URL.format(picture=self._image.replace('-', '/'), size='320x214')
         return IMG_URL.format(picture=DEFAULT_PLAYLIST_IMG.replace('-', '/'), size='320x214')
 
     @property
     def fanart(self):
-        if self.type == 'USER':
-            return USER_PLAYLIST_IMAGE_URL.format(width=1080, height=720, uuid=self.uuid, cols=4, rows=3)
         if self._image:
             return IMG_URL.format(picture=self._image.replace('-', '/'), size='1080x720')
         return None

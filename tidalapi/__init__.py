@@ -704,6 +704,21 @@ class User(object):
     def delete_playlist(self, playlist_id):
         return self._session.request('DELETE', 'playlists/%s' % playlist_id).ok
 
+    def rename_playlist(self, playlist, title, description=''):
+        if not isinstance(playlist, Playlist):
+            playlist = self._session.get_playlist(playlist)
+        ok = False
+        if not playlist._etag:
+            # Read Playlist to get ETag
+            playlist = self._session.get_playlist(playlist.id)
+        if playlist and playlist._etag:
+            headers = {'If-None-Match': '%s' % playlist._etag}
+            data = {'title': title, 'description': description}
+            ok = self._session.request('POST', 'playlists/%s' % playlist.id, data=data, headers=headers).ok
+        else:
+            log.debug('Got no ETag for playlist %s' & playlist.title)
+        return ok
+
     def add_playlist_entries(self, playlist=None, item_ids=[]):
         if not isinstance(playlist, Playlist):
             playlist = self._session.get_playlist(playlist)

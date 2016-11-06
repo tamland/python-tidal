@@ -26,6 +26,7 @@ logging.basicConfig(level=logging.DEBUG)
 @pytest.fixture()
 def session():
     session = tidalapi.Session()
+    session.country_code = session.local_country_code()
     # Trial Mode without login !
     # session.login('username', 'password')
     return session
@@ -79,6 +80,12 @@ def test_get_album_tracks(session):
     assert tracks[-1].duration == 338
     assert tracks[0].artist.name == 'Mala'
     assert tracks[0].album.name == 'Mala in Cuba'
+
+def test_get_album_videos(session):
+    album = session.get_album(24274814)
+    assert album.numberOfVideos > 0
+    videos = session.get_album_items(24274814, ret='videos')
+    assert isinstance(videos[0], tidalapi.Video)
 
 def test_artist_radio(session):
     tracks = session.get_artist_radio(18888)

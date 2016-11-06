@@ -86,6 +86,7 @@ class Album(BrowsableMedia):
     artists = []
     duration = -1
     numberOfTracks = 1
+    numberOfVideos = 0
     numberOfVolumes = 1
     allowStreaming = True
     streamReady = True

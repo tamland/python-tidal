@@ -226,6 +226,27 @@ class Session(object):
     def get_album_tracks(self, album_id):
         return self._map_request('albums/%s/tracks' % album_id, ret='tracks')
 
+    def get_album_items(self, album_id, ret='playlistitems'):
+        offset = 0
+        remaining = 9999
+        result = []
+        # Number of Items is limited to 100, so read multiple times if more than 100 entries are requested
+        while remaining > 0:
+            items = self._map_request('albums/%s/items' % album_id, params={'offset': offset, 'limit': 100}, ret='playlistitems')
+            if items:
+                if remaining == 9999:
+                    remaining = items[0]._totalNumberOfItems
+                remaining -= len(items)
+                result += items
+            offset += 100
+        if ret.startswith('track'):
+            # Return tracks only
+            result = [item for item in result if isinstance(item, Track)]
+        elif ret.startswith('video'):
+            # Return videos only
+            result = [item for item in result if isinstance(item, Video)]
+        return result
+
     def get_artist(self, artist_id):
         return self._map_request('artists/%s' % artist_id, ret='artist')
 

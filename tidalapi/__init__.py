@@ -231,7 +231,7 @@ def _parse_album(json_obj, artist=None, artists=None):
         'artist': artist,
         'artists': artists,
     }
-    if 'releaseDate' in json_obj:
+    if 'releaseDate' in json_obj and json_obj['releaseDate'] is not None:
         try:
             kwargs['release_date'] = datetime.datetime(*map(int, json_obj['releaseDate'].split('-')))
         except ValueError:

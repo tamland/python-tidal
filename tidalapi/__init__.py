@@ -227,6 +227,7 @@ def _parse_album(json_obj, artist=None, artists=None):
         'id': json_obj['id'],
         'name': json_obj['title'],
         'num_tracks': json_obj.get('numberOfTracks'),
+        'num_discs': json_obj.get('numberOfVolumes'),
         'duration': json_obj.get('duration'),
         'artist': artist,
         'artists': artists,

@@ -43,6 +43,7 @@ class Album(Model):
 
 
 class Artist(Model):
+    roles = []
     role = None
 
     @property
@@ -90,3 +91,5 @@ class Category(Model):
 class Role(Enum):
     main = 'MAIN'
     featured = 'FEATURED'
+    contributor = 'CONTRIBUTOR'
+    artist = 'ARTIST'

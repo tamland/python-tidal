@@ -211,7 +211,11 @@ class Session(object):
 
 
 def _parse_artist(json_obj):
-    return Artist(id=json_obj['id'], name=json_obj['name'], role=Role(json_obj['type']))
+    roles = []
+    for role in json_obj.get('artistTypes', [json_obj.get('type')]):
+            roles.append(Role(role))
+
+    return Artist(id=json_obj['id'], name=json_obj['name'], roles=roles, role=roles[0])
 
 
 def _parse_artists(json_obj):

@@ -17,6 +17,7 @@
 
 from __future__ import unicode_literals
 import logging
+import os
 import pytest
 import requests
 import tidalapi
@@ -25,7 +26,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 @pytest.fixture()
 def session():
-    return tidalapi.Session()
+    session = tidalapi.Session()
+    username = os.getenv("TIDAL_USERNAME")
+    password = os.getenv("TIDAL_PASSWORD")
+    session.login(username, password)
+    return session
 
 def test_artist(session):
     artist_id = 18888

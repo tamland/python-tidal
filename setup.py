@@ -6,7 +6,7 @@ import sys
 
 required = ['requests']
 if sys.version_info < (3,4):
-    install_requires.append('enum34')
+    required.append('enum34')
 
 long_description = ""
 with open('README.rst') as f:

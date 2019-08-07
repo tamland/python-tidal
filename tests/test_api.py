@@ -50,6 +50,10 @@ def test_get_artist_albums_other(session):
     albums = session.get_artist_albums_other(16147)
     assert any([a.name == 'Dance History 1.0' for a in albums])
 
+def test_get_artist_videos(session):
+    videos = session.get_artist_videos(3502112)
+    assert any([v.name == 'Call on Me' for v in videos])
+
 def test_album(session):
     album_id = 17927863
     album = session.get_album(album_id)
@@ -66,11 +70,35 @@ def test_get_album_tracks(session):
     assert tracks[0].name == 'Take-Off'
     assert tracks[0].track_num == 1
     assert tracks[0].duration == 56
+    assert tracks[0].artist.name == 'Lasgo'
+    assert tracks[0].album.name == 'Smile'
     assert tracks[-1].name == 'Gone'
     assert tracks[-1].track_num == 13
     assert tracks[-1].duration == 210
-    assert tracks[0].artist.name == 'Lasgo'
-    assert tracks[0].album.name == 'Smile'
+
+
+def test_get_album_videos(session):
+    videos = session.get_album_videos(108046179)
+    assert videos[0].name == 'Formation (Choreography Version)'
+    assert videos[0].track_num == 14
+    assert videos[0].duration == 262
+    assert videos[0].artist.name == 'Beyoncé'
+    assert videos[0].album.name == 'Lemonade'
+    assert videos[1].name == 'Lemonade Film'
+    assert videos[1].track_num == 15
+    assert videos[1].duration == 3955
+
+def test_get_album_items(session):
+    items = session.get_album_items(108046179)
+    assert items[0].name == 'Pray You Catch Me'
+    assert items[0].track_num == 1
+    assert items[0].duration == 196
+    assert items[0].artist.name == 'Beyoncé'
+    assert items[0].album.name == 'Lemonade'
+    assert items[-1].name == 'Lemonade Film'
+    assert items[-1].track_num == 15
+    assert items[-1].duration == 3955
+    assert items[-1].type == 'Music Video'
 
 def test_artist_radio(session):
     tracks = session.get_artist_radio(16147)
@@ -91,3 +119,11 @@ def test_album_image(session):
 def test_playlist_image(session):
     playlist = session.get_playlist('33136f5a-d93a-4469-9353-8365897aaf94')
     assert requests.get(playlist.image).status_code == 200
+
+def test_get_track_url(session):
+    track = session.get_track(108043415)
+    newurl = session.get_track_url(track.id)
+
+def test_get_video_url(session):
+    video = session.get_video(108046194)
+    newurl =  session.get_video_url(video.id)

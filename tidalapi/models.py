@@ -65,8 +65,7 @@ class Playlist(Model):
     def image(self, width=512, height=512):
         return IMG_URL.format(width=width, height=height, id=self.id, id_type='uuid')
 
-
-class Track(Model):
+class Media(Model):
     duration = -1
     track_num = -1
     disc_num = 1
@@ -76,6 +75,11 @@ class Track(Model):
     album = None
     available = True
 
+class Track(Media):
+    pass
+
+class Video(Media):
+    type = None
 
 class SearchResult(Model):
     artists = []

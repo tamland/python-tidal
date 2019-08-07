@@ -22,7 +22,7 @@ import json
 import logging
 import requests
 from collections import namedtuple
-from .models import Artist, Album, Track, Playlist, SearchResult, Category, Role
+from .models import Artist, Album, Track, Video, Playlist, SearchResult, Category, Role
 try:
     from urlparse import urljoin
 except ImportError:
@@ -39,10 +39,15 @@ class Quality(object):
     high = 'HIGH'
     low = 'LOW'
 
+class videoQuality(object):
+    high = 'HIGH'
+    medium = 'MEDIUM'
+    low = 'LOW'
 
 class Config(object):
-    def __init__(self, quality=Quality.high):
+    def __init__(self, quality=Quality.high, videoQuality=videoQuality.high):
         self.quality = quality
+        self.videoQuality = videoQuality
         self.api_location = 'https://api.tidalhifi.com/v1/'
         self.api_token = 'BI218mwp9ERZ3PFI' if self.quality == \
             Quality.lossless else '4zx46pyr9o8qZNRw',
@@ -112,11 +117,24 @@ class Session(object):
     def get_playlist_tracks(self, playlist_id):
         return self._map_request('playlists/%s/tracks' % playlist_id, ret='tracks')
 
+    def get_playlist_videos(self, playlist_id):
+        return self._map_request('playlists/%s/items' % playlist_id, ret='video')
+
+    def get_playlist_items(self, playlist_id):
+        return self._get_items('playlists/%s/items' % playlist_id, ret='items')
+
     def get_album(self, album_id):
         return self._map_request('albums/%s' % album_id, ret='album')
 
     def get_album_tracks(self, album_id):
         return self._map_request('albums/%s/tracks' % album_id, ret='tracks')
+
+    def get_album_videos(self, album_id):
+        items = self._get_items('albums/%s/items' % album_id, ret='videos')
+        return [item for item in items if isinstance(item, Video)]
+
+    def get_album_items(self, album_id):
+        return self._get_items('albums/%s/items' % album_id, ret='items')
 
     def get_artist(self, artist_id):
         return self._map_request('artists/%s' % artist_id, ret='artist')
@@ -134,6 +152,9 @@ class Session(object):
 
     def get_artist_top_tracks(self, artist_id):
         return self._map_request('artists/%s/toptracks' % artist_id, ret='tracks')
+
+    def get_artist_videos(self, artist_id):
+        return self._map_request('artists/%s/videos' % artist_id, ret='videos')
 
     def get_artist_bio(self, artist_id):
         return self.request('GET', 'artists/%s/bio' % artist_id).json()['text']
@@ -169,6 +190,9 @@ class Session(object):
     def get_track(self, track_id):
         return self._map_request('tracks/%s' % track_id, ret='track')
 
+    def get_video(self, video_id):
+        return self._map_request('videos/%s' % video_id, ret = 'video')
+
     def _map_request(self, url, params=None, ret=None):
         json_obj = self.request('GET', url, params).json()
         parse = None
@@ -177,9 +201,13 @@ class Session(object):
         elif ret.startswith('album'):
             parse = _parse_album
         elif ret.startswith('track'):
-            parse = _parse_track
+            parse = _parse_media
         elif ret.startswith('user'):
             raise NotImplementedError()
+        elif ret.startswith('video'):
+            parse = _parse_media
+        elif ret.startswith('item'):
+            parse = _parse_media
         elif ret.startswith('playlist'):
             parse = _parse_playlist
 
@@ -191,10 +219,30 @@ class Session(object):
         else:
             return list(map(parse, items))
 
+    def _get_items(self, url, ret=None):
+        remaining = 100
+        offset = 0
+        while remaining is 100:
+            items = self._map_request(url, params={'offset': offset, 'limit': 100}, ret=ret)
+            remaining = len(items)
+        return items
+
     def get_media_url(self, track_id):
         params = {'soundQuality': self._config.quality}
         r = self.request('GET', 'tracks/%s/streamUrl' % track_id, params)
         return r.json()['url']
+
+    def get_track_url(self, track_id):
+        self.get_media_url(track_id)
+
+    def get_video_url(self, video_id):
+        params = {
+            'urlusagemode': 'STREAM',
+            'videoquality': self._config.videoQuality,
+            'assetpresentation': 'FULL'
+        }
+        r = self.request('GET', 'videos/%s/urlpostpaywall' % video_id, params)
+        return r.json()['urls'][0]
 
     def search(self, field, value):
         params = {
@@ -265,11 +313,13 @@ def _parse_playlist(json_obj):
     }
     return Playlist(**kwargs)
 
-
-def _parse_track(json_obj):
+def _parse_media(json_obj):
     artist = _parse_artist(json_obj['artist'])
     artists = _parse_artists(json_obj['artists'])
-    album = _parse_album(json_obj['album'], artist, artists)
+    album = None
+    if (json_obj['album']):
+        album = _parse_album(json_obj['album'], artist, artists)
+
     kwargs = {
         'id': json_obj['id'],
         'name': json_obj['title'],
@@ -281,9 +331,13 @@ def _parse_track(json_obj):
         'artists': artists,
         'album': album,
         'available': bool(json_obj['streamReady']),
+        'type': json_obj.get('type'),
     }
-    return Track(**kwargs)
 
+    if kwargs['type'] == 'Music Video':
+        return Video(**kwargs)
+    else:
+        return Track(**kwargs)
 
 def _parse_genres(json_obj):
     image = "http://resources.wimpmusic.com/images/%s/460x306.jpg" \
@@ -332,7 +386,7 @@ class Favorites(object):
 
     def tracks(self):
         r = self._session.request('GET', self._base_url + '/tracks')
-        return [_parse_track(item['item']) for item in r.json()['items']]
+        return [_parse_media(item['item']) for item in r.json()['items']]
 
 
 class User(object):

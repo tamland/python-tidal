@@ -38,7 +38,20 @@ class Album(Model):
     release_date = None
 
     @property
-    def image(self, width=512, height=512):
+    def image(self, width=1280, height=1280):
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='albumid')
+
+    def picture(self, width, height):
+        """
+        A url to an album picture
+
+        :param width: pixel width, maximum 2000
+        :type width: int
+        :param height: pixel height, maximum 2000
+        :type height: int
+
+        Original sizes: 80x80, 160x160, 320x320, 640x640 and 1280x1280
+        """
         return IMG_URL.format(width=width, height=height, id=self.id, id_type='albumid')
 
 
@@ -47,7 +60,20 @@ class Artist(Model):
     role = None
 
     @property
-    def image(self, width=512, height=512):
+    def image(self, width=1280, height=1280):
+        return IMG_URL.format(width=height, height=height, id=self.id, id_type='artistid')
+
+    def picture(self, width, height):
+        """
+        A url to an artist picture
+
+        :param width: pixel width, maximum 2000
+        :type width: int
+        :param height: pixel height, maximum 2000
+        :type height: int
+
+        Original sizes: 80x80, 160x160, 320x320, 480x480, 640x640, 1280x1280
+        """
         return IMG_URL.format(width=width, height=height, id=self.id, id_type='artistid')
 
 
@@ -62,8 +88,23 @@ class Playlist(Model):
     duration = -1
 
     @property
-    def image(self, width=512, height=512):
+    def image(self, width=1080, height=1080):
         return IMG_URL.format(width=width, height=height, id=self.id, id_type='uuid')
+
+    def picture(self, width, height):
+        """
+        A url to a playlist picture
+
+        :param width: pixel width, maximum 2000
+        :type width: int
+        :param height: pixel height, maximum 2000
+        :type height: int
+
+        Original sizes: 160x160, 320x320, 480x480, 640x640, 750x750, 1080x1080
+
+        """
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='uuid')
+
 
 class Media(Model):
     duration = -1
@@ -75,11 +116,14 @@ class Media(Model):
     album = None
     available = True
 
+
 class Track(Media):
     pass
 
+
 class Video(Media):
     type = None
+
 
 class SearchResult(Model):
     artists = []

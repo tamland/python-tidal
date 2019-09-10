@@ -24,7 +24,7 @@ import tidalapi
 
 logging.basicConfig(level=logging.DEBUG)
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def session():
     session = tidalapi.Session()
     username = os.getenv("TIDAL_USERNAME")
@@ -108,17 +108,17 @@ def test_search(session):
     res = session.search('artist', 'lasgo')
     assert res.artists[0].name == "Lasgo"
 
-def test_artist_image(session):
+def test_artist_picture(session):
     artist = session.get_artist(16147)
-    assert requests.get(artist.image).status_code == 200
+    assert requests.get(artist.picture(640,640)).status_code == 200
 
-def test_album_image(session):
-    artist = session.get_album(17925106)
-    assert requests.get(artist.image).status_code == 200
+def test_album_picture(session):
+    album = session.get_album(17925106)
+    assert requests.get(album.picture(640, 640)).status_code == 200
 
-def test_playlist_image(session):
+def test_playlist_picture(session):
     playlist = session.get_playlist('33136f5a-d93a-4469-9353-8365897aaf94')
-    assert requests.get(playlist.image).status_code == 200
+    assert requests.get(playlist.picture(750, 750)).status_code == 200
 
 def test_get_track_url(session):
     track = session.get_track(108043415)

@@ -52,9 +52,7 @@ class Config(object):
         self.api_token = 'BI218mwp9ERZ3PFI' if self.quality == \
             Quality.lossless else '4zx46pyr9o8qZNRw',
 
-
 class Session(object):
-
     def __init__(self, config=Config()):
         self.session_id = None
         self.country_code = None

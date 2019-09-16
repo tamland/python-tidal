@@ -34,9 +34,19 @@ API Reference
     :members:
     :undoc-members:
 
+.. autoclass:: Media
+    :members:
+    :undoc-members:
+
 .. autoclass:: Track
     :members:
     :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: Video
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 .. autoclass:: Playlist
     :members:

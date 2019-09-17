@@ -1,9 +1,11 @@
 tidalapi
 ========
 
-.. image:: https://badge.fury.io/py/tidalapi.png
-    :target: http://badge.fury.io/py/tidalapi
+.. image:: https://img.shields.io/pypi/v/tidalapi.svg
+    :target: https://pypi.org/project/tidalapi
 
+.. image:: https://readthedocs.org/projects/tidalapi/badge/?version=latest
+    :target: https://tidalapi.readthedocs.io/en/latest/
 
 Unofficial Python API for TIDAL music streaming service.
 
@@ -36,4 +38,4 @@ Example usage
 Documentation
 -------------
 
-Documentation is available at http://pythonhosted.org/tidalapi/
+Documentation is available at https://tidalapi.readthedocs.io/en/latest/

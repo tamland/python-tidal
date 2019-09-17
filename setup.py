@@ -18,12 +18,14 @@ with open('HISTORY.rst') as f:
 
 setup(
     name='tidalapi',
-    version='0.6.0',
+    version='0.6.1',
     description='Unofficial API for TIDAL music streaming service.',
     long_description=long_description,
-    author='Thomas Amland, morguldir',
-    author_email='thomas.amland@googlemail.com, morguldir@protonmail.com',
-    url='https://github.com/tamland/tidalapi',
+    author='Thomas Amland',
+    author_email='thomas.amland@googlemail.com',
+    maintainer='morguldir',
+    maintainer_email='morguldir@protonmail.com',
+    url='https://github.com/tamland/python-tidal',
     license='LGPL',
     packages=['tidalapi'],
     install_requires=required,

@@ -73,7 +73,11 @@ class Session(object):
             'password': password,
         }
         r = requests.post(url, data=payload, params=params)
-        r.raise_for_status()
+
+        if not (r.ok):
+            print(r.text)
+            r.raise_for_status()
+
         body = r.json()
         self.session_id = body['sessionId']
         self.country_code = body['countryCode']

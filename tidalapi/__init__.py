@@ -50,8 +50,7 @@ class Config(object):
         self.quality = quality
         self.videoQuality = videoQuality
         self.api_location = 'https://api.tidalhifi.com/v1/'
-        self.api_token = 'kgsOOmYk3zShYrNP' if self.quality == \
-            Quality.lossless else '4zx46pyr9o8qZNRw',
+        self.api_token = 'kgsOOmYk3zShYrNP'
 
 class Session(object):
     def __init__(self, config=Config()):

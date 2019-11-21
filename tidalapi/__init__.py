@@ -60,8 +60,13 @@ class Session(object):
         self._config = config
         """:type _config: :class:`Config`"""
 
-    def load_session(self, session_id, country_code, user_id):
+    def load_session(self, session_id, country_code=None, user_id=None):
         self.session_id = session_id
+        if not user_id or not country_code:
+            request = self.request('GET', 'sessions').json()
+            country_code = request['countryCode']
+            user_id = request['userId']
+
         self.country_code = country_code
         self.user = User(self, id=user_id)
 

@@ -128,3 +128,15 @@ def test_get_track_url(session):
 def test_get_video_url(session):
     video = session.get_video(108046194)
     newurl =  session.get_video_url(video.id)
+
+def test_load_session(session):
+    """
+    Test loading a session from a session id without supplying country code and user_id
+    """
+    user_id = session.user.id
+    country_code = session.country_code
+    session_id = session.session_id
+    session = tidalapi.Session()
+    session.load_session(session_id)
+    assert user_id == session.user.id
+    assert country_code == session.country_code

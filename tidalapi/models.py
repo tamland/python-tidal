@@ -62,7 +62,7 @@ class Artist(Model):
 
     @property
     def image(self, width=1280, height=1280):
-        return IMG_URL.format(width=height, height=height, id=self.id, id_type='artistid')
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='artistid')
 
     def picture(self, width, height):
         """

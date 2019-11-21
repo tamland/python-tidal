@@ -17,12 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
+from collections import namedtuple
+from enum import Enum
 
 import datetime
 import json
 import logging
 import requests
-from collections import namedtuple
 from .models import Artist, Album, Track, Video, Playlist, SearchResult, Category, Role
 try:
     from urlparse import urljoin
@@ -32,23 +33,21 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
-Api = namedtuple('API', ['location', 'token'])
 
-
-class Quality(object):
+class Quality(Enum):
     lossless = 'LOSSLESS'
     high = 'HIGH'
     low = 'LOW'
 
-class videoQuality(object):
+class VideoQuality(Enum):
     high = 'HIGH'
     medium = 'MEDIUM'
     low = 'LOW'
 
 class Config(object):
-    def __init__(self, quality=Quality.high, videoQuality=videoQuality.high):
+    def __init__(self, quality=Quality.high, video_quality=VideoQuality.high):
         self.quality = quality
-        self.videoQuality = videoQuality
+        self.video_quality = video_quality
         self.api_location = 'https://api.tidalhifi.com/v1/'
         self.api_token = 'kgsOOmYk3zShYrNP'
 
@@ -77,13 +76,13 @@ class Session(object):
             'username': username,
             'password': password,
         }
-        r = requests.post(url, data=payload, params=params)
+        request = requests.post(url, data=payload, params=params)
 
-        if not (r.ok):
-            print(r.text)
-            r.raise_for_status()
+        if not request.ok:
+            print(request.text)
+            request.raise_for_status()
 
-        body = r.json()
+        body = request.json()
         self.session_id = body['sessionId']
         self.country_code = body['countryCode']
         self.user = User(self, id=body['userId'])
@@ -105,12 +104,12 @@ class Session(object):
         if params:
             request_params.update(params)
         url = urljoin(self._config.api_location, path)
-        r = requests.request(method, url, params=request_params, data=data)
-        log.debug("request: %s" % r.request.url)
-        r.raise_for_status()
-        if r.content:
-            log.debug("response: %s" % json.dumps(r.json(), indent=4))
-        return r
+        request = requests.request(method, url, params=request_params, data=data)
+        log.debug("request: %s", request.request.url)
+        request.raise_for_status()
+        if request.content:
+            log.debug("response: %s", json.dumps(request.json(), indent=4))
+        return request
 
     def get_user(self, user_id):
         return self._map_request('users/%s' % user_id, ret='user')
@@ -198,7 +197,7 @@ class Session(object):
         return self._map_request('tracks/%s' % track_id, ret='track')
 
     def get_video(self, video_id):
-        return self._map_request('videos/%s' % video_id, ret = 'video')
+        return self._map_request('videos/%s' % video_id, ret='video')
 
     def _map_request(self, url, params=None, ret=None):
         json_obj = self.request('GET', url, params).json()
@@ -221,16 +220,18 @@ class Session(object):
         items = json_obj.get('items')
         if items is None:
             return parse(json_obj)
-        elif len(items) > 0 and 'item' in items[0]:
+        if len(items) > 0 and 'item' in items[0]:
             return list(map(parse, [item['item'] for item in items]))
-        else:
-            return list(map(parse, items))
+        return list(map(parse, items))
 
-    def _get_items(self, url, ret=None):
+    def _get_items(self, url, ret=None, offset=0):
+        params = {
+            'offset': offset,
+            'limit': 100
+        }
         remaining = 100
-        offset = 0
-        while remaining is 100:
-            items = self._map_request(url, params={'offset': offset, 'limit': 100}, ret=ret)
+        while remaining == 100:
+            items = self._map_request(url, params=params, ret=ret)
             remaining = len(items)
         return items
 
@@ -245,11 +246,11 @@ class Session(object):
     def get_video_url(self, video_id):
         params = {
             'urlusagemode': 'STREAM',
-            'videoquality': self._config.videoQuality,
+            'videoquality': self._config.video_quality,
             'assetpresentation': 'FULL'
         }
-        r = self.request('GET', 'videos/%s/urlpostpaywall' % video_id, params)
-        return r.json()['urls'][0]
+        request = self.request('GET', 'videos/%s/urlpostpaywall' % video_id, params)
+        return request.json()['urls'][0]
 
     def search(self, field, value):
         params = {
@@ -268,7 +269,7 @@ class Session(object):
 def _parse_artist(json_obj):
     roles = []
     for role in json_obj.get('artistTypes', [json_obj.get('type')]):
-            roles.append(Role(role))
+        roles.append(Role(role))
 
     return Artist(id=json_obj['id'], name=json_obj['name'], roles=roles, role=roles[0])
 
@@ -324,7 +325,7 @@ def _parse_media(json_obj):
     artist = _parse_artist(json_obj['artist'])
     artists = _parse_artists(json_obj['artists'])
     album = None
-    if (json_obj['album']):
+    if json_obj['album']:
         album = _parse_album(json_obj['album'], artist, artists)
 
     kwargs = {
@@ -343,8 +344,7 @@ def _parse_media(json_obj):
 
     if kwargs['type'] == 'Music Video':
         return Video(**kwargs)
-    else:
-        return Track(**kwargs)
+    return Track(**kwargs)
 
 def _parse_genres(json_obj):
     image = "http://resources.wimpmusic.com/images/%s/460x306.jpg" \
@@ -392,8 +392,8 @@ class Favorites(object):
         return self._session._map_request(self._base_url + '/playlists', ret='playlists')
 
     def tracks(self):
-        r = self._session.request('GET', self._base_url + '/tracks')
-        return [_parse_media(item['item']) for item in r.json()['items']]
+        request = self._session.request('GET', self._base_url + '/tracks')
+        return [_parse_media(item['item']) for item in request.json()['items']]
 
 
 class User(object):

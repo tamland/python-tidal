@@ -33,7 +33,7 @@ def session():
     session.login(username, password)
     return session
 
-def test_artist(session):
+def test_get_artist(session):
     artist_id = 16147
     artist = session.get_artist(artist_id)
     assert artist.id == artist_id
@@ -55,7 +55,7 @@ def test_get_artist_videos(session):
     videos = session.get_artist_videos(3502112)
     assert any([v.name == 'Call on Me' for v in videos])
 
-def test_album(session):
+def test_get_album(session):
     album_id = 17927863
     album = session.get_album(album_id)
     assert album.id == album_id
@@ -76,7 +76,6 @@ def test_get_album_tracks(session):
     assert tracks[-1].name == 'Gone'
     assert tracks[-1].track_num == 13
     assert tracks[-1].duration == 210
-
 
 def test_get_album_videos(session):
     videos = session.get_album_videos(108046179)
@@ -112,22 +111,25 @@ def test_search(session):
 def test_artist_picture(session):
     artist = session.get_artist(16147)
     assert requests.get(artist.picture(640,640)).status_code == 200
+    assert requests.get(tidalapi.models.Artist.image.fget(artist, 640, 640)).status_code == 200
 
 def test_album_picture(session):
     album = session.get_album(17925106)
     assert requests.get(album.picture(640, 640)).status_code == 200
+    assert requests.get(tidalapi.models.Album.image.fget(album, 640, 640)).status_code == 200
 
 def test_playlist_picture(session):
     playlist = session.get_playlist('33136f5a-d93a-4469-9353-8365897aaf94')
     assert requests.get(playlist.picture(750, 750)).status_code == 200
+    assert requests.get(tidalapi.models.Playlist.image.fget(playlist, 750, 750)).status_code == 200
 
 def test_get_track_url(session):
     track = session.get_track(108043415)
-    newurl = session.get_track_url(track.id)
+    session.get_track_url(track.id)
 
 def test_get_video_url(session):
     video = session.get_video(108046194)
-    newurl =  session.get_video_url(video.id)
+    session.get_video_url(video.id)
 
 def test_load_session(session):
     """

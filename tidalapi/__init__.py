@@ -334,6 +334,7 @@ def _parse_media(json_obj):
         'duration': json_obj['duration'],
         'track_num': json_obj['trackNumber'],
         'disc_num': json_obj['volumeNumber'],
+        'version' : json_obj['version'],
         'popularity': json_obj['popularity'],
         'artist': artist,
         'artists': artists,

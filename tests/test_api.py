@@ -76,6 +76,7 @@ def test_get_album_tracks(session):
     assert tracks[-1].name == 'Gone'
     assert tracks[-1].track_num == 13
     assert tracks[-1].duration == 210
+    assert tracks[-1].version == 'Acoustic Version'
 
 def test_get_album_videos(session):
     videos = session.get_album_videos(108046179)

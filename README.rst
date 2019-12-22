@@ -4,8 +4,8 @@ tidalapi
 .. image:: https://img.shields.io/pypi/v/tidalapi.svg
     :target: https://pypi.org/project/tidalapi
 
-.. image:: https://readthedocs.org/projects/tidalapi/badge/?version=latest
-    :target: https://tidalapi.readthedocs.io/en/latest/
+.. image:: https://api.netlify.com/api/v1/badges/f05c0752-4565-4940-90df-d2b3fe91c84b/deploy-status
+    :target: https://tidalapi.netlify.com/
 
 Unofficial Python API for TIDAL music streaming service.
 
@@ -38,4 +38,4 @@ Example usage
 Documentation
 -------------
 
-Documentation is available at https://tidalapi.readthedocs.io/en/latest/
+Documentation is available at https://tidalapi.netlify.com

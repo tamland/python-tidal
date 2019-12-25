@@ -111,6 +111,7 @@ class Media(Model):
     duration = -1
     track_num = -1
     disc_num = 1
+    version = None
     popularity = -1
     artist = None
     artists = []

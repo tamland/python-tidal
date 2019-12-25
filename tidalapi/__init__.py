@@ -46,8 +46,8 @@ class VideoQuality(Enum):
 
 class Config(object):
     def __init__(self, quality=Quality.high, video_quality=VideoQuality.high):
-        self.quality = quality
-        self.video_quality = video_quality
+        self.quality = quality.value
+        self.video_quality = video_quality.value
         self.api_location = 'https://api.tidalhifi.com/v1/'
         self.api_token = 'kgsOOmYk3zShYrNP'
 

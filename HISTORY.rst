@@ -3,6 +3,12 @@
 History
 -------
 
+v0.6.3
+------
+
+* Fix quality options using enum names instead of values - morguldir_
+* Handle situations where tidal doesn't set the version tag - morguldir_
+
 v0.6.2
 ------
 

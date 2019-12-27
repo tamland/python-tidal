@@ -255,10 +255,10 @@ class Session(object):
         request = self.request('GET', 'videos/%s/urlpostpaywall' % video_id, params)
         return request.json()['urls'][0]
 
-    def search(self, field, value):
+    def search(self, field, value, limit=50):
         params = {
             'query': value,
-            'limit': 50,
+            'limit': limit,
         }
         if field not in ['artist', 'album', 'playlist', 'track']:
             raise ValueError('Unknown field \'%s\'' % field)

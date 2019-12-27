@@ -118,8 +118,9 @@ def test_artist_radio(session):
 
 
 def test_search(session):
-    res = session.search('artist', 'lasgo')
+    res = session.search('artist', 'lasgo', 100)
     assert res.artists[0].name == "Lasgo"
+    assert len(res.artists) == 100
 
 
 def test_artist_picture(session):

@@ -39,10 +39,12 @@ class Quality(Enum):
     high = 'HIGH'
     low = 'LOW'
 
+
 class VideoQuality(Enum):
     high = 'HIGH'
     medium = 'MEDIUM'
     low = 'LOW'
+
 
 class Config(object):
     def __init__(self, quality=Quality.high, video_quality=VideoQuality.high):
@@ -50,6 +52,7 @@ class Config(object):
         self.video_quality = video_quality.value
         self.api_location = 'https://api.tidalhifi.com/v1/'
         self.api_token = 'kgsOOmYk3zShYrNP'
+
 
 class Session(object):
     def __init__(self, config=Config()):
@@ -321,6 +324,7 @@ def _parse_playlist(json_obj):
     }
     return Playlist(**kwargs)
 
+
 def _parse_media(json_obj):
     artist = _parse_artist(json_obj['artist'])
     artists = _parse_artists(json_obj['artists'])
@@ -346,6 +350,7 @@ def _parse_media(json_obj):
     if kwargs['type'] == 'Music Video':
         return Video(**kwargs)
     return Track(**kwargs)
+
 
 def _parse_genres(json_obj):
     image = "http://resources.wimpmusic.com/images/%s/460x306.jpg" \

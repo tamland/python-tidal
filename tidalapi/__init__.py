@@ -244,7 +244,7 @@ class Session(object):
         return r.json()['url']
 
     def get_track_url(self, track_id):
-        self.get_media_url(track_id)
+        return self.get_media_url(track_id)
 
     def get_video_url(self, video_id):
         params = {

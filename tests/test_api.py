@@ -143,12 +143,12 @@ def test_playlist_picture(session):
 
 def test_get_track_url(session):
     track = session.get_track(108043415)
-    session.get_track_url(track.id)
+    assert session.get_track_url(track.id) != None
 
 
 def test_get_video_url(session):
     video = session.get_video(108046194)
-    session.get_video_url(video.id)
+    assert session.get_video_url(video.id) != None
 
 
 def test_load_session(session):

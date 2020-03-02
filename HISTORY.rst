@@ -3,6 +3,12 @@
 History
 -------
 
+v0.6.4
+------
+
+* Add parameter to search() allowing for more results (up to 300) - morguldir_
+* Fix get_track_url() not returning anything - morguldir_
+
 v0.6.3
 ------
 

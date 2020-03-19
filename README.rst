@@ -10,6 +10,12 @@ tidalapi
 Unofficial Python API for TIDAL music streaming service.
 
 
+
+0.7.0 Rewrite
+-------------
+
+Currently the project is being rewritten to make it easier to maintain and create documentation for, see https://github.com/tamland/python-tidal/projects/1 for progress. There may be breaking changes, but i might be able to keep the current usage for a deprecation period. Anyways, you should probably wait with writing pull requests until 0.7.0 has been released.
+
 Installation
 ------------
 

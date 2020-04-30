@@ -69,6 +69,7 @@ def test_get_album(session):
     assert album.name == 'Some Things'
     assert album.num_tracks == 22
     assert album.num_discs == 2
+    assert album.url == 'http://www.tidal.com/album/17927863'
     assert album.duration == 6704
     assert album.artist.name == 'Lasgo'
     assert album.artists[0].name == 'Lasgo'

@@ -289,6 +289,7 @@ def _parse_album(json_obj, artist=None, artists=None):
     kwargs = {
         'id': json_obj['id'],
         'name': json_obj['title'],
+        'url': json_obj.get('url'),
         'num_tracks': json_obj.get('numberOfTracks'),
         'num_discs': json_obj.get('numberOfVolumes'),
         'duration': json_obj.get('duration'),

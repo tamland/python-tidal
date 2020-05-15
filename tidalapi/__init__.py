@@ -51,7 +51,7 @@ class Config(object):
         self.quality = quality.value
         self.video_quality = video_quality.value
         self.api_location = 'https://api.tidalhifi.com/v1/'
-        self.api_token = 'kgsOOmYk3zShYrNP'
+        self.api_token = 'pl4Vc0hemlAXD0mN'
 
 
 class Session(object):

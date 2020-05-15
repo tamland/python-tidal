@@ -3,6 +3,11 @@
 History
 -------
 
+v0.6.5
+------
+
+* Update api token - morguldir_
+
 v0.6.4
 ------
 

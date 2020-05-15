@@ -22,7 +22,7 @@ copyright = '2014-2019, Thomas Amland, morguldir'
 author = 'Thomas Amland, morguldir'
 
 # The full version, including alpha/beta/rc tags
-release = '0.6.4'
+release = '0.6.5'
 
 
 # -- General configuration ---------------------------------------------------

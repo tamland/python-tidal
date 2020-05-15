@@ -54,7 +54,7 @@ def test_get_artist_albums_ep_single(session):
 
 def test_get_artist_albums_other(session):
     albums = session.get_artist_albums_other(16147)
-    assert any([a.name == 'Dance History 1.0' for a in albums])
+    assert any([a.name == 'Summer Hitz Collection 2' for a in albums])
 
 
 def test_get_artist_videos(session):

@@ -3,6 +3,11 @@
 History
 -------
 
+v0.6.6
+------
+
+* Update api token and slightly obfuscate it - morguldir_
+
 v0.6.5
 ------
 

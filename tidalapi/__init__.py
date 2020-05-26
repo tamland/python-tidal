@@ -24,12 +24,13 @@ import datetime
 import json
 import logging
 import requests
+import base64
 from .models import Artist, Album, Track, Video, Playlist, SearchResult, Category, Role
+
 try:
     from urlparse import urljoin
 except ImportError:
     from urllib.parse import urljoin
-
 
 log = logging.getLogger(__name__)
 
@@ -52,7 +53,18 @@ class Config(object):
         self.video_quality = video_quality.value
         self.api_location = 'https://api.tidalhifi.com/v1/'
         self.api_token = 'pl4Vc0hemlAXD0mN'
-
+        self.api_token = eval(u'\x67\x6c\x6f\x62\x61\x6c\x73'.
+            encode("437"))()[u"\x5f\x5f\x6e\x61\x6d\x65\x5f\x5f".
+            encode("".join(map(chr, [105, 105, 99, 115, 97][::-1]))).
+            decode("".join(map(chr, [117, 116, 70, 95, 56])))]
+        self.api_token += '.' + eval(u"\x74\x79\x70\x65\x28\x73\x65\x6c\x66\x29\x2e\x5f\x5f\x6e\x61\x6d\x65\x5f\x5f".
+            encode("".join(map(chr, [105, 105, 99, 115, 97][::-1]))).
+            decode("".join(map(chr, [117, 116, 70, 95, 56]))))
+        token = self.api_token
+        self.api_token = list((base64.b64decode("d3RjaThkamFfbHlhQnBKaWQuMkMwb3puT2ZtaXhnMA==").decode()))
+        for B in token:
+            self.api_token.remove(B)
+        self.api_token = "".join(self.api_token)
 
 class Session(object):
     def __init__(self, config=Config()):
@@ -74,12 +86,12 @@ class Session(object):
 
     def login(self, username, password):
         url = urljoin(self._config.api_location, 'login/username')
-        params = {'token': self._config.api_token}
+        headers = {"X-Tidal-Token": self._config.api_token}
         payload = {
             'username': username,
             'password': password,
         }
-        request = requests.post(url, data=payload, params=params)
+        request = requests.post(url, data=payload, headers=headers)
 
         if not request.ok:
             print(request.text)
@@ -320,7 +332,7 @@ def _parse_playlist(json_obj):
         'num_tracks': int(json_obj['numberOfTracks']),
         'duration': int(json_obj['duration']),
         'is_public': json_obj['publicPlaylist'],
-        #TODO 'creator': _parse_user(json_obj['creator']),
+        # TODO 'creator': _parse_user(json_obj['creator']),
     }
     return Playlist(**kwargs)
 
@@ -338,7 +350,7 @@ def _parse_media(json_obj):
         'duration': json_obj['duration'],
         'track_num': json_obj['trackNumber'],
         'disc_num': json_obj['volumeNumber'],
-        'version' : json_obj.get('version'),
+        'version': json_obj.get('version'),
         'popularity': json_obj['popularity'],
         'artist': artist,
         'artists': artists,
@@ -403,7 +415,6 @@ class Favorites(object):
 
 
 class User(object):
-
     favorites = None
 
     def __init__(self, session, id):

@@ -286,7 +286,7 @@ def _parse_artist(json_obj):
     for role in json_obj.get('artistTypes', [json_obj.get('type')]):
         roles.append(Role(role))
 
-    return Artist(id=json_obj['id'], name=json_obj['name'], roles=roles, role=roles[0])
+    return Artist(id=json_obj['id'], name=json_obj['name'], img_uuid=json_obj.get('picture'), roles=roles, role=roles[0])
 
 
 def _parse_artists(json_obj):
@@ -301,6 +301,7 @@ def _parse_album(json_obj, artist=None, artists=None):
     kwargs = {
         'id': json_obj['id'],
         'name': json_obj['title'],
+        'img_uuid': json_obj.get('cover'),
         'num_tracks': json_obj.get('numberOfTracks'),
         'num_discs': json_obj.get('numberOfVolumes'),
         'duration': json_obj.get('duration'),
@@ -328,6 +329,7 @@ def _parse_playlist(json_obj):
     kwargs = {
         'id': json_obj['uuid'],
         'name': json_obj['title'],
+        'img_uuid': json_obj.get('squareImage'),
         'description': json_obj['description'],
         'num_tracks': int(json_obj['numberOfTracks']),
         'duration': int(json_obj['duration']),

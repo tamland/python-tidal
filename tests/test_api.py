@@ -96,7 +96,7 @@ def test_get_album_videos(session):
     assert videos[0].album.name == 'Lemonade'
     assert videos[1].name == 'Lemonade Film'
     assert videos[1].track_num == 15
-    assert videos[1].duration == 3955
+    assert videos[1].duration == 3951
 
 
 def test_get_album_items(session):
@@ -108,7 +108,7 @@ def test_get_album_items(session):
     assert items[0].album.name == 'Lemonade'
     assert items[-1].name == 'Lemonade Film'
     assert items[-1].track_num == 15
-    assert items[-1].duration == 3955
+    assert items[-1].duration == 3951
     assert items[-1].type == 'Music Video'
 
 
@@ -125,8 +125,8 @@ def test_search(session):
 
 def test_artist_picture(session):
     artist = session.get_artist(16147)
-    assert requests.get(artist.picture(640,640)).status_code == 200
-    assert requests.get(tidalapi.models.Artist.image.fget(artist, 640, 640)).status_code == 200
+    assert requests.get(artist.picture(750,750)).status_code == 200
+    assert requests.get(tidalapi.models.Artist.image.fget(artist, 750, 750)).status_code == 200
 
 
 def test_album_picture(session):

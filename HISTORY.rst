@@ -3,6 +3,12 @@
 History
 -------
 
+v0.6.7
+------
+
+* Able to change limit param for base request - dmitry-ee
+* Change user.favorites.tracks() limit to 5000 - dmitry-ee
+
 v0.6.6
 ------
 

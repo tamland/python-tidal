@@ -110,11 +110,11 @@ class Session(object):
         url = urljoin(self._config.api_location, 'users/%s/subscription' % self.user.id)
         return requests.get(url, params={'sessionId': self.session_id}).ok
 
-    def request(self, method, path, params=None, data=None):
+    def request(self, method, path, params=None, data=None, limit=999):
         request_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
-            'limit': '999',
+            'limit': limit,
         }
         if params:
             request_params.update(params)
@@ -410,7 +410,7 @@ class Favorites(object):
         return self._session._map_request(self._base_url + '/playlists', ret='playlists')
 
     def tracks(self):
-        request = self._session.request('GET', self._base_url + '/tracks')
+        request = self._session.request('GET', self._base_url + '/tracks', limit=5000)
         return [_parse_media(item['item']) for item in request.json()['items']]
 
 

@@ -110,7 +110,7 @@ class Session(object):
         url = urljoin(self._config.api_location, 'users/%s/subscription' % self.user.id)
         return requests.get(url, params={'sessionId': self.session_id}).ok
 
-    def request(self, method, path, params=None, data=None):
+    def request(self, method, path, params=None, data=None, headers=None):
         request_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
@@ -119,7 +119,7 @@ class Session(object):
         if params:
             request_params.update(params)
         url = urljoin(self._config.api_location, path)
-        request = requests.request(method, url, params=request_params, data=data)
+        request = requests.request(method, url, params=request_params, data=data, headers=headers)
         log.debug("request: %s", request.request.url)
         request.raise_for_status()
         if request.content:
@@ -381,6 +381,7 @@ class Favorites(object):
     def __init__(self, session, user_id):
         self._session = session
         self._base_url = 'users/%s/favorites' % user_id
+        self._playlist_base_url = 'users/%s' % user_id
 
     def add_artist(self, artist_id):
         return self._session.request('POST', self._base_url + '/artists', data={'artistId': artist_id}).ok
@@ -413,6 +414,32 @@ class Favorites(object):
         request = self._session.request('GET', self._base_url + '/tracks')
         return [_parse_media(item['item']) for item in request.json()['items']]
 
+    def add_playlist(self, title, description):
+        result = self._session.request('POST',self._playlist_base_url + '/playlists' ,data={'title': title, 'description': description})
+        return result
+
+    def add_playlist_track (self, track_id_list, playlist_id, to_index=0):
+        #track_id_list = ["33500418"]
+        etag = self._session.request('GET','playlists/%s' % playlist_id).headers['ETag']
+        headers = {'if-none-match' : etag}
+        data = {
+            'trackIds' : ",".join(track_id_list),
+            'toIndex' : to_index
+            }
+        result = self._session.request('POST','playlists/%s/tracks' % playlist_id, data = data, headers = headers)
+        return result
+
+    def delete_playlist_item (self, item_index, playlist_id):
+        etag = self._session.request('GET','playlists/%s/tracks' % playlist_id).headers['ETag']
+        headers = {'if-none-match' : etag}
+        result = self._session.request('DELETE','playlists/%s/items/%s'%(playlist_id,item_index),headers=headers,params={'order':'INDEX','orderDirection':'ASC'})
+        return result
+
+    def delete_playlist (self, playlist_id):
+        etag = self._session.request('GET','playlists/%s' % playlist_id).headers['ETag']
+        headers = {'if-none-match' : etag}
+        result = self._session.request('DELETE','playlists/%s' % playlist_id, headers = headers)
+        return result
 
 class User(object):
     favorites = None

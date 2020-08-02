@@ -39,6 +39,9 @@ htmlcov
 output/*.html
 output/*/index.html
 
+# Pytest
+.pytest_cache
+
 # Sphinx
 docs/_build
 
@@ -47,3 +50,21 @@ docs/_build
 *.sln
 *.pyproj
 /.cache/
+
+# PyCharm / IntelliJ
+.idea
+
+# Spyder
+.spyproject
+
+# Eclipse
+.settings
+
+# Profile files
+prof/
+
+# Nextcloud
+.sync-exclude.lst
+
+# Local Netlify folder
+.netlify

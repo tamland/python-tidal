@@ -3,36 +3,94 @@
 API Reference
 =============
 
-`tidalapi`
-----------
+`tidalapi.session`
+------------------
 
-.. module:: tidalapi
+.. automodule:: tidalapi.session
 
 .. autoclass:: Session
     :members:
     :undoc-members:
 
+.. autoclass:: Config
+    :members:
+    :undoc-members:
+
+.. autoclass:: Quality
+    :members:
+    :undoc-members:
+
+.. autoclass:: VideoQuality
+    :members:
+    :undoc-members:
+
+`tidalapi.artist`
+-----------------
+
+.. automodule:: tidalapi.artist
+
+.. autoclass:: Artist
+    :members:
+    :undoc-members:
+
+
+`tidalapi.user`
+---------------
+
+.. automodule:: tidalapi.user
+
 .. autoclass:: User
     :members:
     :undoc-members:
+
+.. autoclass:: FetchedUser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: LoggedInUser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: PlaylistCreator
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 .. autoclass:: Favorites
     :members:
     :undoc-members:
 
 
-`tidalapi.models`
------------------
+`tidalapi.playlist`
+-------------------
 
-.. automodule:: tidalapi.models
+.. automodule:: tidalapi.playlist
 
-.. autoclass:: Artist
+.. autoclass:: Playlist
     :members:
     :undoc-members:
+
+.. autoclass:: UserPlaylist
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+`tidalapi.album`
+----------------
+
+.. automodule:: tidalapi.album
 
 .. autoclass:: Album
     :members:
     :undoc-members:
+
+
+`tidalapi.media`
+----------------
+
+.. automodule:: tidalapi.media
 
 .. autoclass:: Media
     :members:
@@ -48,10 +106,11 @@ API Reference
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: Playlist
-    :members:
-    :undoc-members:
+`tidalapi.genre`
+----------------
 
-.. autoclass:: SearchResult
+.. automodule:: tidalapi.genre
+
+.. autoclass:: Genre
     :members:
     :undoc-members:

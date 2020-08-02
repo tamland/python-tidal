@@ -4,7 +4,7 @@
 from setuptools import setup
 import sys
 
-required = ['requests']
+required = ['requests', 'python-dateutil']
 if sys.version_info < (3,4):
     required.append('enum34')
 
@@ -18,7 +18,7 @@ with open('HISTORY.rst') as f:
 
 setup(
     name='tidalapi',
-    version='0.6.6',
+    version='0.7.0',
     description='Unofficial API for TIDAL music streaming service.',
     long_description=long_description,
     author='Thomas Amland',

@@ -167,7 +167,7 @@ class Session(object):
             user_id = request['userId']
 
         self.country_code = country_code
-        self.user = tidalapi.User(self, user_id=user_id)
+        self.user = tidalapi.User(self, user_id=user_id).factory()
         return True
 
     def _invert_alac(self):

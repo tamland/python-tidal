@@ -59,13 +59,13 @@ class Album(object):
 
     def parse(self, json_obj, artist=None, artists=None):
         if artists is None:
-            artists = self.artist.parse_artists(json_obj['artists'])
+            artists = self.session.parse_artists(json_obj['artists'])
 
         # Sometimes the artist field is not filled, an example is 140196345
         if not 'artist' in json_obj:
             artist = artists[0]
         elif artist is None:
-            artist = self.artist.parse_artist(json_obj['artist'])
+            artist = self.session.parse_artist(json_obj['artist'])
 
         self.id = json_obj['id']
         self.name = json_obj['title']

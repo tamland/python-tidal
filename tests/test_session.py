@@ -28,6 +28,7 @@ def test_load_session(session):
     session = tidalapi.Session()
     assert session.load_session(session_id)
     assert session.check_login()
+    assert isinstance(session.user, tidalapi.LoggedInUser)
     assert session.load_session(session_id + "f") is False
 
 

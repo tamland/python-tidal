@@ -78,6 +78,24 @@ def test_video(session):
     assert [artist in artist_names for artist in ["Alan Walker", "Ava Max"]]
 
 
+def test_video_no_release_date(session):
+    video = session.video(151050672)
+    assert video.id == 151050672
+    assert video.name == "Nachbarn"
+    assert video.volume_num == 1
+    assert video.track_num == 1
+    assert video.release_date is None
+    assert video.duration == 182
+    assert video.available is True
+    assert video.explicit is False
+    assert video.type == "Music Video"
+    assert video.album is None
+
+    assert video.artist.name == "Harris & Ford"
+    assert video.artists[0].name == "Harris & Ford"
+    assert video.artists[1].name == "FiNCH ASOZiAL"
+
+
 def test_video_url(session):
     video = session.video(125506698)
     url = video.get_url()

@@ -165,7 +165,9 @@ class Video(Media):
 
     def parse_video(self, json_obj):
         Media.parse(self, json_obj)
-        self.release_date = dateutil.parser.isoparse(json_obj['releaseDate'])
+        release_date = json_obj.get('releaseDate')
+        if release_date:
+            self.release_date = dateutil.parser.isoparse(release_date)
         self.video_quality = json_obj['quality']
         self.cover = json_obj['imageId']
 

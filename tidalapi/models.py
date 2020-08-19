@@ -34,6 +34,7 @@ class Model(object):
 class Album(Model):
     artist = None
     artists = []
+    cover = None
     num_tracks = -1
     duration = -1
     release_date = None
@@ -53,7 +54,8 @@ class Album(Model):
 
         Original sizes: 80x80, 160x160, 320x320, 640x640 and 1280x1280
         """
-        return IMG_URL.format(width=width, height=height, id=self.id, id_type='albumid')
+        return "https://resources.tidal.com/images/%s/%ix%i.jpg" % (self.cover.replace('-', '/'), width, height)
+        # return IMG_URL.format(width=width, height=height, id=self.id, id_type='albumid')
 
 
 class Artist(Model):

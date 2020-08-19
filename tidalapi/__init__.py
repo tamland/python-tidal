@@ -306,6 +306,7 @@ def _parse_album(json_obj, artist=None, artists=None):
         'duration': json_obj.get('duration'),
         'artist': artist,
         'artists': artists,
+        'cover': json_obj.get('cover'),
     }
     if 'releaseDate' in json_obj and json_obj['releaseDate'] is not None:
         try:

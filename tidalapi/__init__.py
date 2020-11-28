@@ -381,6 +381,7 @@ class Favorites(object):
     def __init__(self, session, user_id):
         self._session = session
         self._base_url = 'users/%s/favorites' % user_id
+        self._playlist_url = 'users/%s' % user_id
 
     def add_artist(self, artist_id):
         return self._session.request('POST', self._base_url + '/artists', data={'artistId': artist_id}).ok
@@ -407,7 +408,7 @@ class Favorites(object):
         return self._session._map_request(self._base_url + '/albums', ret='albums')
 
     def playlists(self):
-        return self._session._map_request(self._base_url + '/playlists', ret='playlists')
+        return self._session._map_request(self._playlist_url + '/playlists', ret='playlists')
 
     def tracks(self):
         request = self._session.request('GET', self._base_url + '/tracks')

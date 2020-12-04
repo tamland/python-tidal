@@ -407,7 +407,15 @@ class Favorites(object):
         return self._session._map_request(self._base_url + '/albums', ret='albums')
 
     def playlists(self):
-        return self._session._map_request(self._base_url + '/playlists', ret='playlists')
+        favorites = self._session._map_request(self._base_url + '/playlists', ret='playlists')
+        created_playlists = self._session.get_user_playlists(self._session.user.id)
+
+        # Don't append duplicates to the return value
+        for playlist in created_playlists:
+            if not any(playlist.id == favorite.id for favorite in favorites):
+                favorites.append(playlist)
+
+        return favorites
 
     def tracks(self):
         request = self._session.request('GET', self._base_url + '/tracks')

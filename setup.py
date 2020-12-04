@@ -18,7 +18,7 @@ with open('HISTORY.rst') as f:
 
 setup(
     name='tidalapi',
-    version='0.6.6',
+    version='0.6.7',
     description='Unofficial API for TIDAL music streaming service.',
     long_description=long_description,
     author='Thomas Amland',
@@ -37,9 +37,9 @@ setup(
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
 )

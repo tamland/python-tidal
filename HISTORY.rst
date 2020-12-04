@@ -3,6 +3,12 @@
 History
 -------
 
+v0.6.7
+------
+
+* Fix wimp images not resolving - ktnrg45_
+* Made the favorite playlists function also return created playlists - morguldir_
+
 v0.6.6
 ------
 
@@ -37,3 +43,4 @@ v0.6.2
 
 .. _morguldir: https://github.com/morguldir
 .. _Husky22: https://github.com/Husky22
+.. _ktnrg45: https://github.com/ktnrg45

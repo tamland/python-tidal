@@ -39,13 +39,12 @@ def get_credentials():
 
     :return: Returns a tuple containing the username and password.
     """
-    credentials = keyring.get_credential('TIDAL', None)
+    username = os.getenv("TIDAL_USERNAME")
+    password = os.getenv("TIDAL_PASSWORD")
 
-    if credentials:
+    if not username and not password:
+        credentials = keyring.get_credential('TIDAL', None)
         username = credentials.username
         password = credentials.password
-    else:
-        username = os.getenv("TIDAL_USERNAME")
-        password = os.getenv("TIDAL_PASSWORD")
 
     return username, password

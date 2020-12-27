@@ -37,7 +37,7 @@ def test_album(session):
     assert album.video_cover is None
     assert album.explicit is False
     assert album.universal_product_number == '3610151683488'
-    assert album.popularity == 31
+    assert 0 < album.popularity < 100
     assert album.artist.name == 'Lasgo'
     assert album.artists[0].name == 'Lasgo'
 

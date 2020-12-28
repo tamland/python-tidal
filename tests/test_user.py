@@ -16,8 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# morguldir: TODO: user playlists
-
+import pytest
 import tidalapi
 from .cover import verify_image_cover
 
@@ -100,47 +99,57 @@ def test_create_playlist(session):
 
 def test_add_remove_favorite_artist(session):
     favorites = session.user.favorites
-    artist_id = 6159368
+    artist_id = 5247488
     add_remove(artist_id, favorites.add_artist, favorites.remove_artist, favorites.artists)
 
 
 def test_add_remove_favorite_album(session):
     favorites = session.user.favorites
-    album_id = 100572762
+    album_id = 32961852
     add_remove(album_id, favorites.add_album, favorites.remove_album, favorites.albums)
 
 
 def test_add_remove_favorite_playlist(session):
     favorites = session.user.favorites
-    playlist_id = "7eafb342-141a-4092-91eb-da0012da3a19"
+    playlist_id = "e676056d-fbc6-499a-be9d-7191d2d0bfee"
     add_remove(playlist_id, favorites.add_playlist, favorites.remove_playlist, favorites.playlists)
 
 
 def test_add_remove_favorite_track(session):
     favorites = session.user.favorites
-    track_id = 17491028
+    track_id = 32961853
     add_remove(track_id, favorites.add_track, favorites.remove_track, favorites.tracks)
 
 
 def test_add_remove_favorite_video(session):
     favorites = session.user.favorites
-    video_id = 125506698
+    video_id = 160850422
     add_remove(video_id, favorites.add_video, favorites.remove_video, favorites.videos)
 
 
 def add_remove(object_id, add, remove, objects):
     """
-    Add and remove an item from favorites. Adds it back if it already was in your favorites.
+    Add and remove an item from favorites. Skips the test if the item was already in your favorites.
 
     :param object_id: Identifier of the object
     :param add: Function to add object to favorites
     :param remove: Function to remove object from favorites
     :param objects: Function to list objects in favorites
     """
-    exists = any(item.id == object_id for item in objects())
+    # If the item is already favorited, we don't want to do anything with it, as it would result in the date it was
+    # favorited changing. Avoiding it also lets us make sure that we won't remove something from the favorites if
+    # the tests are cancelled.
+    exists = False
+    for item in objects():
+        if item.id == object_id:
+            exists = True
+            model = type(item).__name__
+            name = item.name
+    if exists:
+        reason = "%s '%s' is already favorited, skipping to avoid changing the date it was favorited" % (model, name)
+        pytest.skip(reason)
+
     add(object_id)
     assert any(item.id == object_id for item in objects())
     remove(object_id)
     assert any(item.id == object_id for item in objects()) is False
-    if exists:
-        add(object_id)

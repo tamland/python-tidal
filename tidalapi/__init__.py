@@ -121,7 +121,9 @@ class Session(object):
         url = urljoin(self._config.api_location, path)
         request = requests.request(method, url, params=request_params, data=data)
         log.debug("request: %s", request.request.url)
-        request.raise_for_status()
+        if not request.ok:
+            print(request.text)
+            request.raise_for_status()
         if request.content:
             log.debug("response: %s", json.dumps(request.json(), indent=4))
         return request

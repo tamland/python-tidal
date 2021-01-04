@@ -41,7 +41,7 @@ class Media(object):
     duration = -1
     available = True
     tidal_release_date = None
-    date_added = None
+    user_date_added = None
     track_num = -1
     volume_num = 1
     explicit = False
@@ -90,10 +90,9 @@ class Media(object):
         release_date = json_obj.get('streamStartDate')
         self.tidal_release_date = dateutil.parser.isoparse(release_date) if release_date else None
 
-        # When getting items from playlists they have a date added attribute
-        date_added = json_obj.get('dateAdded')
-        if date_added:
-            self.date_added = dateutil.parser.isoparse(date_added)
+        # When getting items from playlists they have a date added attribute, same with favorites.
+        user_date_added = json_obj.get('dateAdded')
+        self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
 
         self.track_num = json_obj['trackNumber']
         self.volume_num = json_obj['volumeNumber']

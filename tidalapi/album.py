@@ -45,6 +45,7 @@ class Album(object):
     explicit = True
     universal_product_number = -1
     popularity = -1
+    user_date_added = None
 
     artist = None
     artists = None
@@ -91,6 +92,9 @@ class Album(object):
 
         tidal_release_date = json_obj.get('streamStartDate')
         self.tidal_release_date = dateutil.parser.isoparse(tidal_release_date) if tidal_release_date else None
+
+        user_date_added = json_obj.get('dateAdded')
+        self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
 
         return copy.copy(self)
 

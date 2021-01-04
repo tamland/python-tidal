@@ -22,6 +22,7 @@ A module containing information and functions related to TIDAL artists.
 
 import copy
 from enum import Enum
+import dateutil.parser
 
 IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
 
@@ -32,6 +33,7 @@ class Artist(object):
     roles = None
     role = None
     picture = None
+    user_date_added = None
 
     def __init__(self, session, artist_id):
         self.session = session
@@ -62,6 +64,9 @@ class Artist(object):
             self.role = roles[0]
 
         self.picture = json_obj.get('picture')
+
+        user_date_added = json_obj.get('dateAdded')
+        self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
 
         return copy.copy(self)
 

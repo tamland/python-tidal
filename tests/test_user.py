@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+import datetime
+import dateutil.tz
 import tidalapi
 from .cover import verify_image_cover
 
@@ -149,7 +151,15 @@ def add_remove(object_id, add, remove, objects):
         reason = "%s '%s' is already favorited, skipping to avoid changing the date it was favorited" % (model, name)
         pytest.skip(reason)
 
+    current_time = datetime.datetime.now(tz=dateutil.tz.tzutc())
     add(object_id)
-    assert any(item.id == object_id for item in objects())
+    for item in objects():
+        if item.id == object_id:
+            exists = True
+            # Checks that the item was added after the function was called. TIDAL seems to be 150ms ahead some times.
+            timedelta = current_time - item.user_date_added
+            assert timedelta < datetime.timedelta(microseconds=150000)
+    assert exists
+
     remove(object_id)
     assert any(item.id == object_id for item in objects()) is False

@@ -45,6 +45,7 @@ class Playlist(object):
     last_item_added_at = None
     picture = None
     square_picture = None
+    user_date_added = None
     _etag = None
 
     def __init__(self, session, playlist_id):
@@ -89,6 +90,9 @@ class Playlist(object):
 
         last_item_added_at = json_obj.get('lastItemAddedAt')
         self.last_item_added_at = dateutil.parser.isoparse(last_item_added_at) if last_item_added_at else None
+
+        user_date_added = json_obj.get('dateAdded')
+        self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
 
         return copy.copy(self)
 

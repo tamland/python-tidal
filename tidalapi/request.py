@@ -92,7 +92,13 @@ class Requests(object):
 
         if items is None:
             return parse(json_obj)
+
         if len(items) > 0 and 'item' in items[0]:
+            # Move created date into the item json data like it is done for playlists tracks.
+            if 'created' in items[0]:
+                for item in items:
+                    item['item']['dateAdded'] = item['created']
+
             maps = map(parse, [item['item'] for item in items])
             lists = list(maps)
             return lists

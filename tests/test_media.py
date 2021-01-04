@@ -95,6 +95,10 @@ def test_video_no_release_date(session):
     assert video.artists[0].name == "Harris & Ford"
     assert video.artists[1].name == "FiNCH ASOZiAL"
 
+    # Verify that we are clearing the release_date.
+    videos = video.artists[1].get_videos()
+    assert [None] == [video.release_date for video in videos if video.name == "Nachbarn"]
+
 
 def test_video_url(session):
     video = session.video(125506698)

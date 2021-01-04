@@ -85,10 +85,10 @@ class Media(object):
         self.duration = json_obj['duration']
         self.available = bool(json_obj['streamReady'])
 
-        # Removed media does not have a release date
+        # Removed media does not have a release date.
+        self.tidal_release_date = None
         release_date = json_obj.get('streamStartDate')
-        if release_date:
-            self.tidal_release_date = dateutil.parser.isoparse(release_date)
+        self.tidal_release_date = dateutil.parser.isoparse(release_date) if release_date else None
 
         # When getting items from playlists they have a date added attribute
         date_added = json_obj.get('dateAdded')
@@ -166,8 +166,7 @@ class Video(Media):
     def parse_video(self, json_obj):
         Media.parse(self, json_obj)
         release_date = json_obj.get('releaseDate')
-        if release_date:
-            self.release_date = dateutil.parser.isoparse(release_date)
+        self.release_date = dateutil.parser.isoparse(release_date) if release_date else None
         self.video_quality = json_obj['quality']
         self.cover = json_obj['imageId']
 

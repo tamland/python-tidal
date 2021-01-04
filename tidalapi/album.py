@@ -86,14 +86,11 @@ class Album(object):
         self.artist = artist
         self.artists = artists
 
-        # Nice place to use the walrus operator when it has wider support.
         release_date = json_obj.get('releaseDate')
-        if release_date:
-            self.release_date = dateutil.parser.isoparse(release_date)
+        self.release_date = dateutil.parser.isoparse(release_date) if release_date else None
+
         tidal_release_date = json_obj.get('streamStartDate')
-        if tidal_release_date:
-            # morguldir: TODO: Improve the name of this
-            self.tidal_release_date = dateutil.parser.isoparse(tidal_release_date)
+        self.tidal_release_date = dateutil.parser.isoparse(tidal_release_date) if tidal_release_date else None
 
         return copy.copy(self)
 

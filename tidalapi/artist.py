@@ -50,7 +50,9 @@ class Artist(object):
         self.name = json_obj['name']
 
 
-        # Artists do not have roles as playlist creators..
+        # Artists do not have roles as playlist creators.
+        self.roles = None
+        self.role = None
         if json_obj.get('type') or json_obj.get('artistTypes'):
             roles = []
             for role in json_obj.get('artistTypes', [json_obj.get('type')]):

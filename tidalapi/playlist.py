@@ -85,12 +85,10 @@ class Playlist(object):
         self.square_picture = json_obj['squareImage']
 
         promoted_artists = json_obj['promotedArtists']
-        if promoted_artists:
-            self.promoted_artists = self.session.parse_artists(promoted_artists)
+        self.promoted_artists = self.session.parse_artists(promoted_artists) if promoted_artists else None
 
         last_item_added_at = json_obj.get('lastItemAddedAt')
-        if last_item_added_at:
-            self.last_item_added_at = dateutil.parser.isoparse(last_item_added_at)
+        self.last_item_added_at = dateutil.parser.isoparse(last_item_added_at) if last_item_added_at else None
 
         return copy.copy(self)
 

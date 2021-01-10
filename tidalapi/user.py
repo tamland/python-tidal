@@ -122,6 +122,24 @@ class LoggedInUser(FetchedUser):
         """
         return self.request.map_request('users/%s/playlists' % self.id, parse=self.playlist.parse)
 
+    def playlist_and_favorite_playlists(self, offset=0):
+        """
+        Get the playlists created by the user, and the playlists favorited by the user.
+        This function is limited to 50 by TIDAL, requiring pagination.
+
+        :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
+        """
+        params = {'limit': 50, 'offset': offset}
+        endpoint = 'users/%s/playlistsAndFavoritePlaylists' % self.id
+        json_obj = self.request.request('GET', endpoint, params=params).json()
+
+        # This endpoint sorts them into favorited and created playlists, but we already do that when parsing them.
+        for index, item in enumerate(json_obj['items']):
+            item['playlist']['dateAdded'] = item['created']
+            json_obj['items'][index] = item['playlist']
+
+        return self.request.map_json(json_obj, parse=self.playlist.parse)
+
     def create_playlist(self, title, description):
         data = {'title': title, 'description': description}
         json = self.request.request('POST', 'users/%s/playlists' % self.id, data=data).json()

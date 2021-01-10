@@ -40,6 +40,15 @@ def test_get_user(session):
     verify_image_cover(session, user, [100, 210, 600])
 
 
+def test_get_user_playlists(session):
+    user_playlists = session.user.playlists()
+    user_favorite_playlists = session.user.favorites.playlists()
+    user_playlists_and_favorite_playlists = session.user.playlist_and_favorite_playlists()
+    for item in user_playlists + user_favorite_playlists:
+        assert any(item.id == playlist.id for playlist in user_playlists_and_favorite_playlists)
+    assert len(user_playlists) + len(user_favorite_playlists) == len(user_playlists_and_favorite_playlists)
+
+
 def test_get_user_playlist_creator(session):
     playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     creator = playlist.creator
@@ -113,8 +122,10 @@ def test_add_remove_favorite_album(session):
 
 def test_add_remove_favorite_playlist(session):
     favorites = session.user.favorites
+    playlists_and_favorite_playlists = session.user.playlist_and_favorite_playlists
     playlist_id = "e676056d-fbc6-499a-be9d-7191d2d0bfee"
     add_remove(playlist_id, favorites.add_playlist, favorites.remove_playlist, favorites.playlists)
+    add_remove(playlist_id, favorites.add_playlist, favorites.remove_playlist, playlists_and_favorite_playlists)
 
 
 def test_add_remove_favorite_track(session):

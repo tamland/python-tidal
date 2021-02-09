@@ -31,43 +31,7 @@ class Model(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
-
-class Album(Model):
-    artist = None
-    artists = []
-    num_tracks = -1
-    duration = -1
-    release_date = None
-
-    @property
-    def image(self, width=1280, height=1280):
-        uuid = self.img_uuid.replace('-', '/')
-        return IMG_URL.format(uuid=uuid, width=width, height=height)
-
-    def picture(self, width, height):
-        """
-        A url to an album picture
-
-        :param width: pixel width, maximum 2000
-        :type width: int
-        :param height: pixel height, maximum 2000
-        :type height: int
-
-        Accepted sizes: 80x80, 160x160, 320x320, 640x640 and 1280x1280
-        """
-        uuid = self.img_uuid.replace('-', '/')
-        return IMG_URL.format(uuid=uuid, width=width, height=height)
-
-
-class Artist(Model):
-    roles = []
-    role = None
-
-    @property
-    def image(self, width=750, height=750):
-        uuid = self.img_uuid.replace('-', '/')
-        return IMG_URL.format(uuid=uuid, width=width, height=height)
-
+class ImageModel(object):
     def picture(self, width, height):
         """
         A url to an artist picture
@@ -79,11 +43,31 @@ class Artist(Model):
 
         Accepted sizes: 80x80, 160x160, 320x320, 480x480, 750x750
         """
-        uuid = self.img_uuid.replace('-', '/')
-        return IMG_URL.format(uuid=uuid, width=width, height=height)
+        if self.img_uuid is not None:
+            uuid = self.img_uuid.replace('-', '/')
+            return IMG_URL.format(uuid=uuid, width=width, height=height)
+
+class Album(Model, ImageModel):
+    artist = None
+    artists = []
+    num_tracks = -1
+    duration = -1
+    release_date = None
+
+    @property
+    def image(self, width=1280, height=1280):
+        return self.picture(width, height)
 
 
-class Playlist(Model):
+class Artist(Model, ImageModel):
+    roles = []
+    role = None
+
+    @property
+    def image(self, width=750, height=750):
+        return self.picture(width, height)
+
+class Playlist(Model, ImageModel):
     description = None
     creator = None
     type = None
@@ -95,24 +79,7 @@ class Playlist(Model):
 
     @property
     def image(self, width=1080, height=1080):
-        uuid = self.img_uuid.replace('-', '/')
-        return IMG_URL.format(uuid=uuid, width=width, height=height)
-
-    def picture(self, width, height):
-        """
-        A url to a playlist picture
-
-        :param width: pixel width, maximum 1080
-        :type width: int
-        :param height: pixel height, maximum 1080
-        :type height: int
-
-        Accepted sizes: 160x160, 320x320, 480x480, 640x640, 750x750, 1080x1080
-
-        """
-        uuid = self.img_uuid.replace('-', '/')
-        return IMG_URL.format(uuid=uuid, width=width, height=height)
-
+        return self.picture(width, height)
 
 class Media(Model):
     duration = -1

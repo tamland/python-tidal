@@ -5,7 +5,7 @@ tidalapi
     :target: https://pypi.org/project/tidalapi
 
 .. image:: https://api.netlify.com/api/v1/badges/f05c0752-4565-4940-90df-d2b3fe91c84b/deploy-status
-    :target: https://tidalapi.netlify.com/
+    :target: https://0-6-x--tidalapi.netlify.app/
 
 Unofficial Python API for TIDAL music streaming service.
 
@@ -35,7 +35,8 @@ Example usage
     import tidalapi
 
     session = tidalapi.Session()
-    session.login('username', 'password')
+    # Will run until you visit the printed url and link your account
+    session.login_oauth_simple()
     tracks = session.get_album_tracks(album_id=16909093)
     for track in tracks:
         print(track.name)
@@ -44,4 +45,4 @@ Example usage
 Documentation
 -------------
 
-Documentation is available at https://tidalapi.netlify.com
+Documentation is available at https://0-6-x--tidalapi.netlify.app/

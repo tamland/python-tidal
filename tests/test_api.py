@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 from __future__ import unicode_literals
 import logging
-import os
 import pytest
 import requests
 import tidalapi
@@ -27,11 +27,14 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @pytest.fixture(scope='session')
-def session():
+def session(request):
     session = tidalapi.Session()
-    username = os.getenv("TIDAL_USERNAME")
-    password = os.getenv("TIDAL_PASSWORD")
-    session.login(username, password)
+    login, future = session.login_oauth()
+    capmanager = request.config.pluginmanager.getplugin("capturemanager")
+    with capmanager.global_and_fixture_disabled():
+        print("Visit", login.verification_uri_complete, "to log in, the link expires in", login.expires_in, "seconds")
+    future.result()
+    assert session.check_login()
     return session
 
 
@@ -151,14 +154,36 @@ def test_get_video_url(session):
     assert session.get_video_url(video.id) != None
 
 
-def test_load_session(session):
+def test_load_oauth_session(session):
     """
     Test loading a session from a session id without supplying country code and user_id
     """
     user_id = session.user.id
     country_code = session.country_code
     session_id = session.session_id
+    token_type = session.token_type
+    access_token = session.access_token
+    refresh_token = session.refresh_token
     session = tidalapi.Session()
+    session.load_oauth_session(session_id, token_type, access_token, refresh_token)
+    assert session.check_login()
     session.load_session(session_id)
     assert user_id == session.user.id
     assert country_code == session.country_code
+
+
+def test_oauth_refresh(session):
+    access_token = session.access_token
+    expiry_time = session.expiry_time
+    refresh_token = session.refresh_token
+    assert session.token_refresh(refresh_token)
+    assert session.access_token != access_token
+    assert session.expiry_time != expiry_time
+    assert session.check_login()
+
+
+def test_simple_login(capsys):
+    session = tidalapi.Session()
+    with capsys.disabled():
+        session.login_oauth_simple()
+    assert session.check_login()

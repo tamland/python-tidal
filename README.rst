@@ -5,7 +5,7 @@ tidalapi
     :target: https://pypi.org/project/tidalapi
 
 .. image:: https://api.netlify.com/api/v1/badges/f05c0752-4565-4940-90df-d2b3fe91c84b/deploy-status
-    :target: https://tidalapi.netlify.com/
+    :target: https://0-7-x--tidalapi.netlify.com/
 
 Unofficial Python API for TIDAL music streaming service.
 
@@ -14,7 +14,8 @@ Unofficial Python API for TIDAL music streaming service.
 0.7.0 Rewrite
 -------------
 
-This is an experimental branch for the 0.7.0 rewrite. It is mostly finished, but it is missing somme documentatiand a new explore endpoint containing moods, featured items, suggestions and so on.
+This is an experimental branch for the 0.7.0 rewrite. It is mostly finished, but it is missing somme documentation
+and a new explore endpoint containing moods, featured items, suggestions and so on.
 
 Installation
 ------------
@@ -35,7 +36,8 @@ Example usage
     import tidalapi
 
     session = tidalapi.Session()
-    session.login('username', 'password')
+    # Will run until you visit the printed url and link your account
+    session.login_oauth_simple()
     album = session.album(16909093)
     tracks = album.tracks()
     for track in tracks:
@@ -45,4 +47,4 @@ Example usage
 Documentation
 -------------
 
-Documentation is available at https://tidalapi.netlify.com
+Documentation is available at https://0-7-x--tidalapi.netlify.app/

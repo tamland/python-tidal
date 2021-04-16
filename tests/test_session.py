@@ -16,20 +16,23 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import requests
 import pytest
 import tidalapi
 from tidalapi import Artist, Album, Playlist, Track, Video
-from .conftest import get_credentials
 
 
-def test_load_session(session):
+def test_load_oauth_session(session):
     session_id = session.session_id
+    token_type = session.token_type
+    access_token = session.access_token
     session = tidalapi.Session()
-    assert session.load_session(session_id)
+    assert session.load_oauth_session(session_id, token_type, access_token)
     assert session.check_login()
     assert isinstance(session.user, tidalapi.LoggedInUser)
-    assert session.load_session(session_id + "f") is False
+    assert session.load_oauth_session(session_id + "f", token_type, access_token) is False
 
 
 def test_failed_login():
@@ -39,33 +42,41 @@ def test_failed_login():
     assert session.check_login() is False
 
 
-def test_revoked_token():
-    username, password = get_credentials()
-
-    config = tidalapi.Config(alac=True)
-    config.api_token = "MbjR4DLXz1ghC4rV"
+def test_oauth_login(capsys):
+    config = tidalapi.Config(item_limit=20000)
     session = tidalapi.Session(config)
-    session.login(username, password)
-    assert session.config.alac is False
-
-
-def test_login():
-    username, password = get_credentials()
-
-    # Verify that our revoked token detection isn't interfering with normal usage
-    # Also let's us know if any of the tokens have been revoked.
-    # Set the item limit so we can test limiting it to 10000.
-    config = tidalapi.Config(alac=False, item_limit=20000)
-    session = tidalapi.Session(config)
-    session.login(username, password)
-    assert session.config.alac is False
+    login, future = session.login_oauth()
+    with capsys.disabled():
+        print("Visit", login.verification_uri_complete, "to log in, the link expires in", login.expires_in, "seconds")
+    future.result()
+    assert session.check_login()
     assert session.config.item_limit == 10000
 
-    # Go back to the ALAC token so we can use videos.
-    config = tidalapi.Config(alac=True)
+
+def test_failed_oauth_login(session):
+    client_id = session.config.client_id
+    config = tidalapi.Config()
+    config.client_id = client_id + 's'
     session = tidalapi.Session(config)
-    session.login(username, password)
-    assert session.config.alac is True
+    with pytest.raises(requests.HTTPError):
+        session.login_oauth()
+
+
+def test_oauth_login_simple(capsys):
+    session = tidalapi.Session()
+    with capsys.disabled():
+        session.login_oauth_simple()
+
+
+def test_oauth_refresh(session):
+    access_token = session.access_token
+    expiry_time = session.expiry_time
+    refresh_token = session.refresh_token
+    client_id = session.config.client_id
+    client_secret = session.config.client_secret
+    session.token_refresh(refresh_token, client_id, client_secret)
+    assert session.access_token != access_token
+    assert session.expiry_time != expiry_time
 
 
 def test_search(session):

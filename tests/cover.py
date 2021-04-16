@@ -19,7 +19,7 @@
 from io import BytesIO
 
 import pytest
-import cv2
+import ffmpeg
 from PIL import Image
 
 
@@ -62,8 +62,9 @@ def verify_video_resolution(url, width, height):
     :param width: The width of the video in pixels.
     :param height: The height of the video in pixels.
     """
-    video = cv2.VideoCapture(url)
-    assert (video.get(cv2.CAP_PROP_FRAME_WIDTH), video.get(cv2.CAP_PROP_FRAME_HEIGHT)) == (width, height)
+    probe = ffmpeg.probe(url)
+    stream = probe['streams'][-1]
+    assert (stream['width'], stream['height']) == (width, height)
 
 
 def verify_video_cover(model, resolutions):

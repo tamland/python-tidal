@@ -24,6 +24,10 @@ API Reference
     :members:
     :undoc-members:
 
+.. autoclass:: LinkLogin
+    :members:
+    :undoc-members:
+
 `tidalapi.artist`
 -----------------
 

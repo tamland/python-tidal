@@ -8,6 +8,9 @@ required = ['requests', 'python-dateutil']
 if sys.version_info < (3,4):
     required.append('enum34')
 
+if sys.version_info < (3, 0):
+    required.append('futures')
+
 long_description = ""
 with open('README.rst') as f:
     long_description += f.read()

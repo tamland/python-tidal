@@ -39,18 +39,7 @@ class Requests(object):
         self.session = session
         self.config = session.config
 
-    def request(self, method, path, params=None, data=None, headers=None):
-        """
-        Method for tidal requests.
-
-        Not meant for use outside of this library.
-
-        :param method: The type of request to make
-        :param path: The TIDAL api endpoint you want to use.
-        :param params: The parameters you want to supply with the request.
-        :param data: The data you want to supply with the request.
-        :return: The json data at specified api endpoint.
-        """
+    def basic_request(self, method, path, params=None, data=None, headers=None):
         request_params = {
             'sessionId': self.session.session_id,
             'countryCode': self.session.country_code,
@@ -62,8 +51,29 @@ class Requests(object):
             not_none = filter(lambda item: item[1] is not None, params.items())
             request_params.update(not_none)
 
+        if not headers:
+            headers = {}
+        if self.session.token_type:
+            headers['authorization'] = self.session.token_type + ' ' + self.session.access_token
+
         url = urljoin(self.session.config.api_location, path)
-        request = self.session.request_session.request(method, url, params=request_params, data=data, headers=headers)
+        return self.session.request_session.request(method, url, params=request_params, data=data, headers=headers)
+
+    def request(self, method, path, params=None, data=None, headers=None):
+        """
+        Method for tidal requests.
+
+        Not meant for use outside of this library.
+
+        :param method: The type of request to make
+        :param path: The TIDAL api endpoint you want to use.
+        :param params: The parameters you want to supply with the request.
+        :param data: The data you want to supply with the request.
+        :param headers: The headers you want to include with the request
+        :return: The json data at specified api endpoint.
+        """
+
+        request = self.basic_request(method, path, params, data, headers)
         log.debug("request: %s", request.request.url)
         request.raise_for_status()
         if request.content:

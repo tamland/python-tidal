@@ -24,7 +24,7 @@ from .cover import verify_image_cover, verify_video_cover
 def test_album(session):
     album = session.album(17927863)
     assert album.id == 17927863
-    assert album.name == 'Some Things'
+    assert album.name == 'Some Things (Deluxe)'
     assert album.duration == 6704
     assert album.available
     assert album.num_tracks == 22

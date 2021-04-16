@@ -77,7 +77,7 @@ class Playlist(object):
         self.public = bool(json_obj['publicPlaylist'])
         self.popularity = json_obj['popularity']
 
-        if self.type == 'ARTIST' and json_obj['creator'].get('id') != 0:
+        if self.type == 'ARTIST' and json_obj['creator'].get('id'):
             self.creator = self.session.parse_artist(json_obj['creator'])
         else:
             self.creator = self.session.parse_user(json_obj['creator'])

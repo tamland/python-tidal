@@ -108,22 +108,22 @@ def test_video_url(session):
 
 
 def test_live_video(session):
-    live = session.video(80820869)
-    assert live.id == 80820869
-    assert live.name == "Live fra TIDAL-kontoret"
+    live = session.video(179076073)
+    assert live.id == 179076073
+    assert live.name == "Justine Skye"
     assert live.track_num == 1
     assert live.volume_num == 1
-    assert live.release_date == datetime(2017, 11, 3, tzinfo=tz.tzutc())
-    assert live.tidal_release_date == datetime(2017, 11, 3, tzinfo=tz.tzutc())
-    assert live.duration == 61
+    assert live.release_date == datetime(2021, 4, 1, tzinfo=tz.tzutc())
+    assert live.tidal_release_date == datetime(2021, 4, 1, 18, tzinfo=tz.tzutc())
+    assert live.duration == 204
     assert live.video_quality == "MP4_1080P"
     assert live.available is True
     assert live.explicit is False
     assert live.type == 'Live'
     assert live.album is None
 
-    assert live.artist.name == "Daniel Kvammen"
-    assert live.artists[0].name == "Daniel Kvammen"
+    assert live.artist.name == "SESSIONS"
+    assert live.artists[0].name == "SESSIONS"
 
 
 def test_video_image(session):

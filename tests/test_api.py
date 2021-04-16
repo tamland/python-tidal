@@ -47,7 +47,7 @@ def test_get_artist(session):
 
 def test_get_artist_albums(session):
     albums = session.get_artist_albums(16147)
-    assert albums[0].name == 'Some Things'
+    assert albums[0].name == 'Some Things (Deluxe)'
 
 
 def test_get_artist_albums_ep_single(session):
@@ -69,7 +69,7 @@ def test_get_album(session):
     album_id = 17927863
     album = session.get_album(album_id)
     assert album.id == album_id
-    assert album.name == 'Some Things'
+    assert album.name == 'Some Things (Deluxe)'
     assert album.num_tracks == 22
     assert album.num_discs == 2
     assert album.duration == 6704

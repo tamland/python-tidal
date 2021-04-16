@@ -3,6 +3,13 @@
 History
 -------
 
+v0.6.8
+------
+
+* Support OAuth login through login_oauth_simple() and login_oauth() - morguldir_
+* Support loading an OAuth session through load_oauth_session() - morguldir_
+* Include more info when a request fails - morguldir_
+
 v0.6.7
 ------
 

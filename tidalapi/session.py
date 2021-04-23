@@ -467,16 +467,23 @@ class Session(object):
 
         return tidalapi.Playlist(session=self, playlist_id=playlist_id).factory()
 
-    def track(self, track_id=None):
+    def track(self, track_id=None, with_album=False):
         """
         Function to create a Track object with access to the session instance in a smoother way.
         Calls :class:`tidalapi.Track(session=session, track_id=track_id) <.Track>` internally
 
         :param track_id: (Optional) The TIDAL id of the Track. You may want access to the methods without an id.
+        :param with_album: (Optional) Whether to fetch album for the track or not
         :return: Returns a :class:`.Track` object that has access to the session instance used.
         """
 
-        return tidalapi.Track(session=self, media_id=track_id)
+        item = tidalapi.Track(session=self, media_id=track_id)
+        if item.album and with_album:
+            album = self.album(item.album.id)
+            if album:
+                item.album = album
+
+        return item
 
     def video(self, video_id=None):
         """

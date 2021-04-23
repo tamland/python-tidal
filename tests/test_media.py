@@ -57,6 +57,15 @@ def test_track_url(session):
     assert 'audio.tidal.com' in track.get_url()
 
 
+def test_track_with_album(session):
+    track_id = 142278122
+    track = session.track(track_id)
+    print(track.album)
+    assert track.album.duration is None
+    track = session.track(track_id, True)
+    assert track.album.duration == 221
+
+
 def test_video(session):
     video = session.video(125506698)
 

@@ -19,6 +19,8 @@
 import copy
 import dateutil.parser
 
+DEFAULT_ALBUM_IMAGE = "https://tidal.com/browse/assets/images/defaultImages/defaultAlbumImage.png"
+
 
 class Album(object):
     """
@@ -141,7 +143,7 @@ class Album(object):
         params = {'offset': offset, 'limit': limit}
         return self.requests.map_request('albums/%s/items' % self.id, params=params, parse=self.session.parse_media)
 
-    def image(self, dimensions):
+    def image(self, dimensions, default=DEFAULT_ALBUM_IMAGE):
         """
         A url to an album image cover
 
@@ -151,6 +153,9 @@ class Album(object):
 
         Valid resolutions: 80x80, 160x160, 320x320, 640x640, 1280x1280
         """
+        if not self.cover:
+            return default
+
         if dimensions not in [80, 160, 320, 640, 1280]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 

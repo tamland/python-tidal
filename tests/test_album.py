@@ -20,6 +20,7 @@ import datetime
 import pytest
 from dateutil import tz
 
+import tidalapi
 from .cover import verify_image_cover, verify_video_cover
 
 
@@ -90,3 +91,9 @@ def test_no_release_date(session):
     assert album.release_date is None
     assert album.tidal_release_date
     assert album.available_release_date == datetime.datetime(year=2021, month=3, day=9, tzinfo=tz.tzutc())
+
+
+def test_no_cover(session):
+    album = session.album(82804683)
+    assert album.cover is None
+    assert album.image(1280) == tidalapi.album.DEFAULT_ALBUM_IMAGE

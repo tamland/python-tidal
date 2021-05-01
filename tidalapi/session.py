@@ -257,7 +257,10 @@ class Session(object):
         if not request.ok and json['userMessage'].startswith("The token has expired.") and refresh_token:
             log.debug("The access token has expired, trying to refresh it.")
             refreshed = self.token_refresh(refresh_token, self.config.client_id, self.config.client_secret)
-            if not refreshed:
+            if refreshed:
+                request = self.request.basic_request('GET', 'sessions')
+                json = request.json()
+            else:
                 return False
 
         self.country_code = json['countryCode']

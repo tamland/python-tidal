@@ -173,11 +173,8 @@ class Session(object):
 
         request = self.basic_request('GET', 'sessions')
         json = request.json()
-        if not request.ok and json['userMessage'].startswith("The token has expired.") and refresh_token:
-            log.debug("The access token has expired, trying to refresh it.")
-            refreshed = self.token_refresh(refresh_token)
-            if not refreshed:
-                return False
+        if not request.ok:
+            return False
 
         self.country_code = json['countryCode']
         self.user = User(self, id=json['userId'])
@@ -297,7 +294,7 @@ class Session(object):
         request = requests.post(url, params)
         json = request.json()
         if not request.ok:
-            log.debug("The refresh token has expired, a new login is required.")
+            log.warning("The refresh token has expired, a new login is required.")
             return False
         self.access_token = json['access_token']
         self.expiry_time = datetime.datetime.now() + datetime.timedelta(seconds=json['expires_in'])
@@ -325,6 +322,12 @@ class Session(object):
             headers['authorization'] = self.token_type + ' ' + self.access_token
         url = urljoin(self._config.api_location, path)
         request = requests.request(method, url, params=request_params, data=data, headers=headers)
+        if not request.ok and request.json()['userMessage'].startswith("The token has expired.") and self.refresh_token:
+            log.debug("The access token has expired, trying to refresh it.")
+            refreshed = self.token_refresh(self.refresh_token)
+            if refreshed:
+                return self.basic_request(method, path, params, data, headers)
+
         return request
 
     def request(self, method, path, params=None, data=None, headers=None):

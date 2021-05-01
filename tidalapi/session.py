@@ -254,11 +254,8 @@ class Session(object):
 
         request = self.request.basic_request('GET', 'sessions')
         json = request.json()
-        if not request.ok and json['userMessage'].startswith("The token has expired.") and refresh_token:
-            log.debug("The access token has expired, trying to refresh it.")
-            refreshed = self.token_refresh(refresh_token, self.config.client_id, self.config.client_secret)
-            if not refreshed:
-                return False
+        if not request.ok:
+            return False
 
         self.country_code = json['countryCode']
         self.user = tidalapi.User(self, user_id=json['userId']).factory()
@@ -273,8 +270,6 @@ class Session(object):
         :param password: The password to your TIDAL account
         :return: Returns true if we think the login was successful.
         """
-        log.warning("Test")
-
         url = urljoin(self.config.api_location, 'login/username')
         headers = {"X-Tidal-Token": self.config.api_token}
         payload = {
@@ -372,27 +367,25 @@ class Session(object):
 
         raise TimeoutError('You took too long to log in')
 
-    def token_refresh(self, refresh_token, client_id, client_secret):
+    def token_refresh(self, refresh_token):
         """
         Retrieves a new access token using the specified parameters, updating the current access token
 
         :param refresh_token: The refresh token retrieved when using the OAuth login.
-        :param client_id: The client id retrieved from the OAuth login
-        :param client_secret: The client secret retrieved from the oauth login
         :return: True if we believe the token was successfully refreshed, otherwise False
         """
         url = 'https://auth.tidal.com/v1/oauth2/token'
         params = {
             'grant_type': 'refresh_token',
             'refresh_token': refresh_token,
-            'client_id': client_id,
-            'client_secret': client_secret
+            'client_id': self.config.client_id,
+            'client_secret': self.config.client_secret
         }
 
         request = self.request_session.post(url, params)
         json = request.json()
         if not request.ok:
-            log.debug("The refresh token has expired, a new login is required.")
+            log.warning("The refresh token has expired, a new login is required.")
             return False
         self.access_token = json['access_token']
         self.expiry_time = datetime.datetime.now() + datetime.timedelta(seconds=json['expires_in'])

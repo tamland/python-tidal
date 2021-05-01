@@ -72,9 +72,7 @@ def test_oauth_refresh(session):
     access_token = session.access_token
     expiry_time = session.expiry_time
     refresh_token = session.refresh_token
-    client_id = session.config.client_id
-    client_secret = session.config.client_secret
-    session.token_refresh(refresh_token, client_id, client_secret)
+    session.token_refresh(refresh_token)
     assert session.access_token != access_token
     assert session.expiry_time != expiry_time
 

@@ -57,7 +57,16 @@ class Requests(object):
             headers['authorization'] = self.session.token_type + ' ' + self.session.access_token
 
         url = urljoin(self.session.config.api_location, path)
-        return self.session.request_session.request(method, url, params=request_params, data=data, headers=headers)
+        request = self.session.request_session.request(method, url, params=request_params, data=data, headers=headers)
+
+        refresh_token = self.session.refresh_token
+        if not request.ok and request.json()['userMessage'].startswith("The token has expired.") and refresh_token:
+            log.debug("The access token has expired, trying to refresh it.")
+            refreshed = self.session.token_refresh(refresh_token)
+            if refreshed:
+                request = self.basic_request(method, url, params, data, headers)
+
+        return request
 
     def request(self, method, path, params=None, data=None, headers=None):
         """

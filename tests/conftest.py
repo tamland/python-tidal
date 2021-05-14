@@ -30,7 +30,7 @@ import tidalapi
 def session(request):
     logging.basicConfig(level=logging.DEBUG)
     access_token, refresh_token, session_id, token_type = get_credentials()
-    config = tidalapi.Config(quality=tidalapi.Quality.lossless)
+    config = tidalapi.Config(quality=tidalapi.Quality.master)
     tidal_session = tidalapi.Session(config)
 
     if access_token and tidal_session.load_oauth_session(session_id, token_type, access_token, refresh_token):

@@ -149,9 +149,13 @@ class Track(Media):
         return self.requests.map_request('tracks/%s' % media_id, parse=parse)
 
     def get_url(self):
-        params = {'soundQuality': self.session.config.quality}
-        request = self.requests.request('GET', 'tracks/%s/streamUrl' % self.id, params)
-        return request.json()['url']
+        params = {
+            'urlusagemode': 'STREAM',
+            'audioquality' : self.session.config.quality,
+            'assetpresentation': 'FULL',
+        }
+        request = self.requests.request('GET', 'tracks/%s/urlpostpaywall' % self.id, params)
+        return request.json()['urls'][0]
 
 
 class Video(Media):

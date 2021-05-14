@@ -56,7 +56,6 @@ class Quality(Enum):
     lossless = 'LOSSLESS'
     high = 'HIGH'
     low = 'LOW'
-    # Not implemented
     master = 'HI_RES'
 
 
@@ -126,10 +125,10 @@ class Config(object):
         token2 = token
         token = token[:9]
         token += tok
-        tok2 = "".join(([chr(ord(x)+2) for x in token[:-7]]))
+        tok2 = "".join(([chr(ord(x)+1) for x in token[:-7]]))
         token = token[8:]
         token = tok2 + token
-        self.api_token = list((base64.b64decode("UHZ6a2RmMGNFbnhjTnJWa0gua0R5cFpvTGdpalloTg==").decode()))
+        self.api_token = list((base64.b64decode("OHVTakVlWmJXbWFiNHFKajEuTkRWcENvNWdVajVoWQ==").decode()))
         for word in token:
             self.api_token.remove(word)
         self.api_token = "".join(self.api_token)
@@ -139,14 +138,14 @@ class Config(object):
             save = True
             string = "".encode('ISO-8859-1')
             token2 = token2.encode('ISO-8859-1')
-        tok = string.join(([chr(ord(x) + 20) for x in token2[:-7]]))
+        tok = string.join(([chr(ord(x) + 26) for x in token2[:-7]]))
         token2 = token2[8:]
         token2 = tok + token2
-        tok2 = string.join(([chr(ord(x)+22) for x in token2[-6:]]))
+        tok2 = string.join(([chr(ord(x)+23) for x in token2[-6:]]))
         token2 = token2[:9]
         token2 += tok2
-        self.client_id = list((base64.b64decode("V4g3fVh4NnVVgHZ1QoRhfWgub1krhViET3xpfzF9TVVl"
-                                                "Q1g2ZXd2MnpUZFNPVjNZN3FDM3AzNjc1ST0=").decode('ISO-8859-1')))
+        self.client_id = list((base64.b64decode("b453g1V+WXtEhmt7eIpkg2QuelorhjmFRn2AcH52R1gy"
+                                                "NERseEVDTnRGRU1CeGlwVTBsQmZyYnE2MD0=").decode('ISO-8859-1')))
         if save:
             token2.decode('ISO-8859-1').encode('utf-16')
             self.client_id = [x.encode('ISO-8859-1') for x in self.client_id]

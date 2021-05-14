@@ -122,6 +122,6 @@ def test_invalid_search(session):
 
 def test_config(session):
     assert session.config.item_limit == 1000
-    assert session.config.quality == tidalapi.Quality.lossless.value
+    assert session.config.quality == tidalapi.Quality.master.value
     assert session.config.video_quality == tidalapi.VideoQuality.high.value
     assert session.config.alac is True

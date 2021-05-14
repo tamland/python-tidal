@@ -52,8 +52,8 @@ def test_track(session):
 
 
 def test_track_url(session):
-    session.config = tidalapi.Config(quality=tidalapi.Quality.lossless)
-    track = session.track(134858527)
+    session.config = tidalapi.Config(quality=tidalapi.Quality.master)
+    track = session.track(142278122)
     assert 'audio.tidal.com' in track.get_url()
 
 

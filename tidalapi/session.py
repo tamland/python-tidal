@@ -256,32 +256,28 @@ class Session(object):
         self.user = tidalapi.User(self, user_id=user_id).factory()
         return True
 
-    def load_oauth_session(self, session_id, token_type, access_token, refresh_token=None):
+    def load_oauth_session(self, token_type, access_token, refresh_token=None, expiry_time=None):
         """
         Login to TIDAL using details from a previous OAuth login, automatically
         refreshes expired access tokens if refresh_token is supplied as well.
 
         :param token_type: The type of token, e.g. Bearer
-        :param session_id: The TIDAL session id, has to be a UUID
         :param access_token: The access token received from an oauth login or refresh
         :param refresh_token: (Optional) A refresh token that lets you get a new access token after it has expired
+        :param expiry_time: (Optional) The datetime the access token will expire
         :return: True if we believe the log in was successful, otherwise false.
         """
-        try:
-            uuid.UUID(session_id)
-        except ValueError:
-            log.error("Session id did not have a valid UUID format")
-            return False
-        self.session_id = session_id
         self.token_type = token_type
         self.access_token = access_token
         self.refresh_token = refresh_token
+        self.expiry_time = expiry_time
 
-        request = self.request.basic_request('GET', 'sessions')
+        request = self.request.request('GET', 'sessions')
         json = request.json()
         if not request.ok:
             return False
 
+        self.session_id = json['sessionId']
         self.country_code = json['countryCode']
         self.user = tidalapi.User(self, user_id=json['userId']).factory()
 

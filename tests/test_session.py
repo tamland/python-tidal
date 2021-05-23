@@ -25,14 +25,13 @@ from tidalapi import Artist, Album, Playlist, Track, Video
 
 
 def test_load_oauth_session(session):
-    session_id = session.session_id
     token_type = session.token_type
     access_token = session.access_token
+    expiry_time = session.expiry_time
     session = tidalapi.Session()
-    assert session.load_oauth_session(session_id, token_type, access_token)
+    assert session.load_oauth_session(token_type, access_token, expiry_time)
     assert session.check_login()
     assert isinstance(session.user, tidalapi.LoggedInUser)
-    assert session.load_oauth_session(session_id + "f", token_type, access_token) is False
 
 
 def test_failed_login():

@@ -98,6 +98,28 @@ class Album(object):
 
         return copy.copy(self)
 
+    @property
+    def year(self):
+        """
+        Convenience function to get the year using :class:`available_release_date`
+
+        :return: An :any:`python:int` containing the year the track was released
+        """
+        return self.available_release_date.year if self.available_release_date else None
+
+    @property
+    def available_release_date(self):
+        """
+        Get the release date if it's available, otherwise get the day it was released on TIDAL
+
+        :return: A :any:`python:datetime.datetime` object with the release date, or the tidal release date, can be None
+        """
+        if self.release_date:
+            return self.release_date
+        if self.tidal_release_date:
+            return self.tidal_release_date
+        return None
+
     def tracks(self, limit=None, offset=0):
         """
         Returns the tracks in classes album.

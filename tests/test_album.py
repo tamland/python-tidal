@@ -18,6 +18,8 @@
 
 import datetime
 import pytest
+from dateutil import tz
+
 from .cover import verify_image_cover, verify_video_cover
 
 
@@ -81,3 +83,10 @@ def test_image_cover(session):
 
 def test_video_cover(session):
     verify_video_cover(session.album(108043414), [80, 160, 320, 640, 1280])
+
+
+def test_no_release_date(session):
+    album = session.album(174114082)
+    assert album.release_date is None
+    assert album.tidal_release_date
+    assert album.available_release_date == datetime.datetime(year=2021, month=3, day=9, tzinfo=tz.tzutc())

@@ -181,7 +181,7 @@ class UserPlaylist(Playlist):
         self.requests.request('DELETE', self._base_url % self.id)
 
     def add(self, media_ids):
-        data = {'onDupes': 'SKIP', 'trackIds': ','.join(map(str, media_ids))}
+        data = {'onDupes': 'SKIP','onArtifactNotFound': 'SKIP','trackIds': ','.join(map(str, media_ids))}
         params = {'limit': 100}
         headers = {'If-None-Match': self._etag}
         self.requests.request('POST', self._base_url % self.id + '/items', params=params, data=data, headers=headers)

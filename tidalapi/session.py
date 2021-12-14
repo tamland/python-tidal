@@ -39,9 +39,9 @@ import tidalapi.album
 import tidalapi.genre
 
 try:
-    from urlparse import urljoin
+    from urlparse import urljoin, urlparse
 except ImportError:
-    from urllib.parse import urljoin
+    from urllib.parse import urljoin, urlparse
 
 log = logging.getLogger('__NAME__')
 
@@ -263,29 +263,86 @@ class Session(object):
 
     def login(self, username, password):
         """
-        Logs in to the TIDAL api.
+        Logs in to the TIDAL api with Username and Password. Uses OAuth.
 
         :param username: The TIDAL username
         :param password: The password to your TIDAL account
         :return: Returns true if we think the login was successful.
         """
-        url = urljoin(self.config.api_location, 'login/username')
-        headers = {"X-Tidal-Token": self.config.api_token}
-        payload = {
-            'username': username,
-            'password': password,
-            'clientUniqueKey': format(random.getrandbits(64), '02x')
+        def check_request(request):
+            if not request.ok:
+                log.error("Login failed: %s", request.text)
+            return request.ok
+
+        session = requests.Session()
+        login, future = self.login_oauth()
+
+        url = "https://{}".format(login.verification_uri_complete)
+        user_agent = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/96.0.4664.93 Safari/537.36"
+        )
+        session.headers["accept-language"] = "en-US,en;q=0.8"
+        session.headers["user-agent"] = user_agent
+        session.headers["accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        request = session.get(url)
+        if not check_request(request):
+            return False
+
+        parsed = urlparse(request.url)
+        domain = parsed.netloc
+        query = parsed.query
+        origin = "{}://{}".format(parsed.scheme, domain)
+        session.headers["x-csrf-token"] = session.cookies.get("_csrf-token", domain=domain)
+        session.headers["accept"] = "application/json, text/plain, */*"
+        session.headers["origin"] = origin
+        url = "{}/api/email?{}".format(origin, query)
+        data = {
+            "email": username,
+            "recaptchaResponse": "",
         }
-        request = self.request_session.post(url, data=payload, headers=headers)
+        request = session.post(url, json=data)
+        if not check_request(request):
+            return False
 
-        if not request.ok:
-            log.error("Login failed: %s", request.text)
-            request.raise_for_status()
+        session.headers["x-csrf-token"] = session.cookies.get("_csrf-token", domain=domain)
+        data = {
+            "email": username,
+            "password": password,
+        }
+        url = "{}/api/email/user/existing?{}".format(origin, query)
+        request = session.post(url, json=data)
+        if not check_request(request):
+            return False
+        log.info("Login Authorized Successfully")
 
-        body = request.json()
-        self.session_id = body['sessionId']
-        self.country_code = body['countryCode']
-        self.user = tidalapi.User(self, user_id=body['userId']).factory()
+        session.headers["accept"] = (
+            "text/html,application/xhtml+xml,application/xml;"
+            "q=0.9,image/avif,image/webp,image/apng,*/*;"
+            "q=0.8,application/signed-exchange;v=b3;q=0.9"
+        )
+        session.headers.pop("x-csrf-token")
+        session.headers.pop("origin")
+        redirect_uri = request.json()["redirectUri"]
+        request = session.get(redirect_uri)
+        if not check_request(request):
+            return False
+
+        parsed = urlparse(request.url)
+        domain = parsed.netloc
+        origin = "{}://{}".format(parsed.scheme, domain)
+        session.headers["x-csrf-token"] = session.cookies.get("_csrf-token", domain=domain)
+        session.headers["accept"] = "application/json, text/plain, */*"
+        session.headers["origin"] = origin
+        data = {"deviceCode": login.user_code}
+        url = "{}/api/device/link".format(origin)
+        request = session.post(url, json=data)
+        if not check_request(request):
+            return False
+
+        session.close()
+        log.info("Link Login Successful")
         return True
 
     def login_oauth_simple(self, function=print):

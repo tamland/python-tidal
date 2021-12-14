@@ -343,6 +343,7 @@ class Session(object):
 
         session.close()
         log.info("Link Login Successful")
+        future.result()  # Wait for future to finish.
         return True
 
     def login_oauth_simple(self, function=print):

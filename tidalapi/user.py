@@ -169,6 +169,7 @@ class PlaylistCreator(User):
 class Favorites(object):
     """
     An object containing a users favourites.
+    This is the "music library" of the user labled "my collection" by Tidal
     """
     def __init__(self, session, user_id):
         self.session = session
@@ -296,7 +297,8 @@ class Favorites(object):
 
     def tracks(self, limit=None, offset=0):
         """
-        Get the users favorite tracks
+        Get the users favorite tracks part of the "my collection" tab
+        
 
         :return: A :class:`list` of :class:`~tidalapi.track.Track` objects containing all of the favorite tracks.
         """

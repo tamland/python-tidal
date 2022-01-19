@@ -94,7 +94,7 @@ def test_get_album_videos(session):
     videos = session.get_album_videos(108046179)
     assert videos[0].name == 'Formation (Choreography Version)'
     assert videos[0].track_num == 14
-    assert videos[0].duration == 262
+    assert videos[0].duration == 261
     assert videos[0].artist.name == 'Beyoncé'
     assert videos[0].album.name == 'Lemonade'
     assert videos[1].name == 'Lemonade Film'

@@ -288,7 +288,7 @@ class Session(object):
             'grant_type': 'refresh_token',
             'refresh_token': refresh_token,
             'client_id': self._config.client_id,
-            'client_secret': self._config.client_id
+            'client_secret': self._config.client_secret
         }
 
         request = requests.post(url, params)

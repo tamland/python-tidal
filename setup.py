@@ -21,7 +21,7 @@ with open('HISTORY.rst') as f:
 
 setup(
     name='tidalapi',
-    version='0.6.8',
+    version='0.6.9',
     description='Unofficial API for TIDAL music streaming service.',
     long_description=long_description,
     author='Thomas Amland',

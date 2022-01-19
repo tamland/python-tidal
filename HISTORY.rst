@@ -3,6 +3,12 @@
 History
 -------
 
+v0.6.9
+------
+
+* Update the client secret - morguldir_
+* Fix token_refresh() not correctly including the client secret - morguldir_
+
 v0.6.8
 ------
 

@@ -86,14 +86,14 @@ class Config(object):
             decode("".join(map(chr, [117, 116, 70, 95, 56]))))
         token = self.api_token
         self.api_token = list((base64.b64decode("d3RjaThkamFfbHlhQnBKaWQuMkMwb3puT2ZtaXhnMA==").decode()))
-        tok = "".join(([chr(ord(x)+1) for x in token[-6:]]))
+        tok = "".join(([chr(ord(x) - 2) for x in token[-6:]]))
         token2 = token
         token = token[:9]
         token += tok
         tok2 = "".join(([chr(ord(x)-2) for x in token[:-7]]))
         token = token[8:]
         token = tok2 + token
-        self.api_token = list((base64.b64decode("OHJTZ0ViWl9XamFfNG5KZzEuTkRWcENvNWdVajVoWQ==").decode()))
+        self.api_token = list((base64.b64decode("enJVZzRiWF9IalZfVm5rZ2MuMkF0bURsUGRvZzRldA==").decode()))
         for word in token:
             self.api_token.remove(word)
         self.api_token = "".join(self.api_token)
@@ -109,8 +109,8 @@ class Config(object):
         tok2 = string.join(([chr(ord(x)+24) for x in token2[-6:]]))
         token2 = token2[:9]
         token2 += tok2
-        self.client_id = list((base64.b64decode("b4x3gVV8WXlEhGt5eIhkgWQuelsrhzmGRn5wgXZ/R1gy"
-                                                "NERseEVDTnRGRU1CeGlwVTBsQmZyYnE2MD0=").decode('ISO-8859-1')))
+        self.client_id = list((base64.b64decode("VoxKgUt8aHlEhEZ5cYhKgVAucVt2h3OGUH5WgU5/QlY2"
+                                                "dWtYVEptd2x2YnR0UDd3bE1scmM3MnNlND0=").decode('ISO-8859-1')))
         if save:
             token2.decode('ISO-8859-1').encode('utf-16')
             self.client_id = [x.encode('ISO-8859-1') for x in self.client_id]

@@ -465,9 +465,13 @@ class Session(object):
         return items
 
     def get_media_url(self, track_id):
-        params = {'soundQuality': self._config.quality}
-        r = self.request('GET', 'tracks/%s/streamUrl' % track_id, params)
-        return r.json()['url']
+        params = {
+            'urlusagemode': 'STREAM',
+            'audioquality': self._config.quality,
+            'assetpresentation': 'FULL'
+        }
+        request = self.request('GET', 'tracks/%s/urlpostpaywall' % track_id, params)
+        return request.json()['urls'][0]
 
     def get_track_url(self, track_id):
         return self.get_media_url(track_id)

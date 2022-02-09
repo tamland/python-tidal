@@ -100,10 +100,10 @@ def test_create_playlist(session):
 
     playlist.add(playlist.id for playlist in playlist_tracks)
     playlist._reparse()
-    playlist.remove_by_id(43490214)
+    playlist.remove_by_id(199477058)
     playlist._reparse()
 
-    assert all(playlist.id != 43490214 for playlist in playlist.tracks(limit=250))
+    assert all(playlist.id != 199477058 for playlist in playlist.tracks(limit=250))
 
     playlist.delete()
 

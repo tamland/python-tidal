@@ -87,12 +87,15 @@ def test_get_top_tracks(session):
 
 def test_get_videos_release_date(session):
     artist = session.artist(9341252)
+
     videos = [
-        session.video(127497892),
-        session.video(122532198),
-        session.video(112061133),
+        session.video(182251637),
+        session.video(162651673),
+        session.video(117439611),
         session.video(106471970),
-        session.video(151050672)
+        session.video(104059079),
+        session.video(151050672),
+        session.video(144150464)
     ]
 
     find_ids(videos, artist.get_videos)

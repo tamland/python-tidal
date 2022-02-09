@@ -31,7 +31,7 @@ def test_album(session):
     assert album.num_videos == 0
     assert album.num_volumes == 2
     assert album.release_date == datetime.datetime(2011, 9, 22)
-    assert album.copyright == 'Sinuz Recordings (a Division Of Hitt Bvba)'
+    assert album.copyright == 'Sinuz Recordings (a division of HITT bv)'
     assert album.version == 'Deluxe'
     assert album.cover == '30d83a8c-1db6-439d-84b4-dbfb6f03c44c'
     assert album.video_cover is None

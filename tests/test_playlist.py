@@ -30,9 +30,9 @@ def test_playlist(session):
     assert playlist.id == "7eafb342-141a-4092-91eb-da0012da3a19"
     assert playlist.name == "JAY-Z's Year End Picks 2019"
     assert playlist.num_tracks == 40
-    assert playlist.description == 'JAY-Z shares his favorite Hip-Hop and R&B songs from the year.'
+    assert playlist.description == 'JAY-Z shares his favorite Hip-Hop and R&B songs from the year. (Photo: Ravie B.)'
     assert playlist.duration == 8008
-    assert playlist.last_updated == datetime.datetime(2020, 3, 25, 10, 36, 2, 603000, tzinfo=tz.tzutc())
+    assert playlist.last_updated == datetime.datetime(2021, 12, 9, 17, 13, 40, 932000, tzinfo=tz.tzutc())
 
     assert playlist.created == datetime.datetime(2019, 12, 19, 17, 15, 5, 500000, tzinfo=tz.tzutc())
     assert playlist.type == 'ARTIST'
@@ -97,7 +97,7 @@ def test_get_tracks(session):
         items.extend(new_items)
 
     assert len(items) >= 5288
-    assert items[0].id == 59178976
+    assert items[0].id == 199477058
     assert items[5287].id == 92035253
 
 

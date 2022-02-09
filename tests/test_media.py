@@ -34,7 +34,7 @@ def test_track(session):
     assert track.name == 'Alone, Pt. II'
     assert track.duration == 179
     assert track.replay_gain == -10.4
-    assert track.peak == 0.988647
+    assert track.peak == 0.999923
     assert track.available is True
     assert track.tidal_release_date == datetime(2019, 12, 27, 0, 0, tzinfo=tz.tzutc())
     assert track.track_num == 1
@@ -43,7 +43,7 @@ def test_track(session):
     assert track.copyright == "(P) 2019 MER under exclusive license to Sony Music Entertainment Sweden AB"
     assert track.isrc == "NOG841907010"
     assert track.explicit is False
-    assert track.audio_quality == tidalapi.Quality.lossless
+    assert track.audio_quality == tidalapi.Quality.master
     assert track.album.name == "Alone, Pt. II"
 
     assert track.artist.name == "Alan Walker"
@@ -93,7 +93,7 @@ def test_video_no_release_date(session):
 
     assert video.artist.name == "Harris & Ford"
     assert video.artists[0].name == "Harris & Ford"
-    assert video.artists[1].name == "FiNCH ASOZiAL"
+    assert video.artists[1].name == "FiNCH"
 
     # Verify that we are clearing the release_date.
     videos = video.artists[1].get_videos()

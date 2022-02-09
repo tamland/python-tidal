@@ -3,6 +3,11 @@
 History
 -------
 
+v0.6.10
+-------
+ * Update the client secret - 1nikolas_
+ * Use a track url endpoint compatible with the new secret - morguldir_
+
 v0.6.9
 ------
 
@@ -57,3 +62,4 @@ v0.6.2
 .. _morguldir: https://github.com/morguldir
 .. _Husky22: https://github.com/Husky22
 .. _ktnrg45: https://github.com/ktnrg45
+.. _1nikolas: https://github.com/1nikolas

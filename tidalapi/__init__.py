@@ -344,16 +344,16 @@ class Session(object):
         return self._map_request('users/%s' % user_id, ret='user')
 
     def get_user_playlists(self, user_id):
-        return self._map_request('users/%s/playlists' % user_id, ret='playlists')
+        return self._get_items('users/%s/playlists' % user_id, ret='playlists')
 
     def get_playlist(self, playlist_id):
         return self._map_request('playlists/%s' % playlist_id, ret='playlist')
 
     def get_playlist_tracks(self, playlist_id):
-        return self._map_request('playlists/%s/tracks' % playlist_id, ret='tracks')
+        return self._get_items('playlists/%s/tracks' % playlist_id, ret='tracks')
 
     def get_playlist_videos(self, playlist_id):
-        return self._map_request('playlists/%s/items' % playlist_id, ret='video')
+        return self._get_items('playlists/%s/items' % playlist_id, ret='video')
 
     def get_playlist_items(self, playlist_id):
         return self._get_items('playlists/%s/items' % playlist_id, ret='items')
@@ -362,7 +362,7 @@ class Session(object):
         return self._map_request('albums/%s' % album_id, ret='album')
 
     def get_album_tracks(self, album_id):
-        return self._map_request('albums/%s/tracks' % album_id, ret='tracks')
+        return self._get_items('albums/%s/tracks' % album_id, ret='tracks')
 
     def get_album_videos(self, album_id):
         items = self._get_items('albums/%s/items' % album_id, ret='videos')
@@ -375,27 +375,27 @@ class Session(object):
         return self._map_request('artists/%s' % artist_id, ret='artist')
 
     def get_artist_albums(self, artist_id):
-        return self._map_request('artists/%s/albums' % artist_id, ret='albums')
+        return self._get_items('artists/%s/albums' % artist_id, ret='albums')
 
     def get_artist_albums_ep_singles(self, artist_id):
         params = {'filter': 'EPSANDSINGLES'}
-        return self._map_request('artists/%s/albums' % artist_id, params, ret='albums')
+        return self._get_items('artists/%s/albums' % artist_id, params, ret='albums')
 
     def get_artist_albums_other(self, artist_id):
         params = {'filter': 'COMPILATIONS'}
-        return self._map_request('artists/%s/albums' % artist_id, params, ret='albums')
+        return self._get_items('artists/%s/albums' % artist_id, params, ret='albums')
 
     def get_artist_top_tracks(self, artist_id):
         return self._map_request('artists/%s/toptracks' % artist_id, ret='tracks')
 
     def get_artist_videos(self, artist_id):
-        return self._map_request('artists/%s/videos' % artist_id, ret='videos')
+        return self._get_items('artists/%s/videos' % artist_id, ret='videos')
 
     def get_artist_bio(self, artist_id):
         return self.request('GET', 'artists/%s/bio' % artist_id).json()['text']
 
     def get_artist_similar(self, artist_id):
-        return self._map_request('artists/%s/similar' % artist_id, ret='artists')
+        return self._get_items('artists/%s/similar' % artist_id, ret='artists')
 
     def get_artist_radio(self, artist_id):
         return self._map_request('artists/%s/radio' % artist_id, params={'limit': 100}, ret='tracks')
@@ -417,7 +417,7 @@ class Session(object):
         return map(_parse_genres, self.request('GET', 'genres').json())
 
     def get_genre_items(self, genre_id, content_type):
-        return self._map_request('/'.join(['genres', genre_id, content_type]), ret=content_type)
+        return self._get_items('/'.join(['genres', genre_id, content_type]), ret=content_type)
 
     def get_track_radio(self, track_id):
         return self._map_request('tracks/%s/radio' % track_id, params={'limit': 100}, ret='tracks')
@@ -453,15 +453,22 @@ class Session(object):
             return list(map(parse, [item['item'] for item in items]))
         return list(map(parse, items))
 
-    def _get_items(self, url, ret=None, offset=0):
+    def _get_items(self, url, params=None, ret=None):
         params = {
-            'offset': offset,
-            'limit': 100
+            'offset': 0,
+            'limit': 100,
+            **(params or {}),
         }
-        remaining = 100
-        while remaining == 100:
-            items = self._map_request(url, params=params, ret=ret)
-            remaining = len(items)
+
+        items = []
+        remaining = params['limit']
+        while remaining == params['limit']:
+            page = self._map_request(url, params=params, ret=ret)
+            if page:
+                items += page
+            remaining = len(page)
+            params['offset'] += len(page)
+            log.info(f'Retrieved {len(items)} items from URL {url}')
         return items
 
     def get_media_url(self, track_id):

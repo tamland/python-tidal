@@ -23,6 +23,7 @@ from enum import Enum
 import datetime
 import json
 import logging
+from typing import List
 import requests
 import base64
 from .models import Artist, Album, Track, Video, Playlist, SearchResult, Category, Role
@@ -157,6 +158,13 @@ class Session(object):
     def get_album_items(self, album_id):
         return self._get_items('albums/%s/items' % album_id, ret='items')
 
+    def get_album_similar(self, album_id):
+        tmp: str = self._config.api_location
+        self._config.api_location = "https://listen.tidal.com/v1/"
+        val: List = self._map_request('pages/album' , ret='albums_similar', params={"albumId": album_id, "deviceType": "BROWSER"})
+        self._config.api_location = tmp
+        return val
+
     def get_artist(self, artist_id):
         return self._map_request('artists/%s' % artist_id, ret='artist')
 
@@ -233,6 +241,13 @@ class Session(object):
             parse = _parse_playlist
 
         items = json_obj.get('items')
+        if ret.startswith('albums_similar'):
+            items = json_obj.get("rows")
+            if items is not None:
+                items = items[2]["modules"][0]["pagedList"]["items"]
+                for it in items:
+                    if "artist" not in it:
+                        it["artist"] = it["artists"][0]
         if items is None:
             return parse(json_obj)
         if len(items) > 0 and 'item' in items[0]:

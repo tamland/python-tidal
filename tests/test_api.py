@@ -19,6 +19,7 @@
 from __future__ import unicode_literals
 import logging
 import os
+from typing import List
 import pytest
 import requests
 import tidalapi
@@ -35,34 +36,34 @@ def session():
     return session
 
 
-def test_get_artist(session):
+def test_get_artist(session: tidalapi.Session):
     artist_id = 16147
     artist = session.get_artist(artist_id)
     assert artist.id == artist_id
     assert artist.name == 'Lasgo'
 
 
-def test_get_artist_albums(session):
+def test_get_artist_albums(session: tidalapi.Session):
     albums = session.get_artist_albums(16147)
     assert albums[0].name == 'Some Things'
 
 
-def test_get_artist_albums_ep_single(session):
+def test_get_artist_albums_ep_single(session: tidalapi.Session):
     albums = session.get_artist_albums_ep_singles(16147)
     assert any([a.name == 'Feeling Alive' for a in albums])
 
 
-def test_get_artist_albums_other(session):
+def test_get_artist_albums_other(session: tidalapi.Session):
     albums = session.get_artist_albums_other(16147)
     assert any([a.name == 'Summer Hitz Collection 2' for a in albums])
 
 
-def test_get_artist_videos(session):
+def test_get_artist_videos(session: tidalapi.Session):
     videos = session.get_artist_videos(3502112)
     assert any([v.name == 'Call on Me' for v in videos])
 
 
-def test_get_album(session):
+def test_get_album(session: tidalapi.Session):
     album_id = 17927863
     album = session.get_album(album_id)
     assert album.id == album_id
@@ -74,7 +75,7 @@ def test_get_album(session):
     assert album.artists[0].name == 'Lasgo'
 
 
-def test_get_album_tracks(session):
+def test_get_album_tracks(session: tidalapi.Session):
     tracks = session.get_album_tracks(17925106)
     assert tracks[0].name == 'Take-Off'
     assert tracks[0].track_num == 1
@@ -87,7 +88,7 @@ def test_get_album_tracks(session):
     assert tracks[-1].version == 'Acoustic Version'
 
 
-def test_get_album_videos(session):
+def test_get_album_videos(session: tidalapi.Session):
     videos = session.get_album_videos(108046179)
     assert videos[0].name == 'Formation (Choreography Version)'
     assert videos[0].track_num == 14
@@ -99,7 +100,7 @@ def test_get_album_videos(session):
     assert videos[1].duration == 3955
 
 
-def test_get_album_items(session):
+def test_get_album_items(session: tidalapi.Session):
     items = session.get_album_items(108046179)
     assert items[0].name == 'Pray You Catch Me'
     assert items[0].track_num == 1
@@ -111,6 +112,15 @@ def test_get_album_items(session):
     assert items[-1].duration == 3955
     assert items[-1].type == 'Music Video'
 
+def test_get_album_similar(session: tidalapi.Session):
+    album_id: int = 209813264
+    albums: List[tidalapi.Album] = session.get_album_similar(album_id)
+    assert albums[0].id == 211911358
+    assert albums[0].name == 'Headful of Sugar'
+    assert albums[0].num_tracks == 11
+    assert albums[0].duration == 2106
+    assert albums[0].artist.name == 'Sunflower Bean'
+    assert albums[0].artists[0].name == 'Sunflower Bean'
 
 def test_artist_radio(session):
     tracks = session.get_artist_radio(16147)

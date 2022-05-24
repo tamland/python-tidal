@@ -25,6 +25,7 @@ import concurrent.futures
 import datetime
 import json
 import logging
+import re
 import requests
 import base64
 import time
@@ -552,6 +553,14 @@ def _parse_featured_playlist(json_obj):
 
 def _parse_datetime(dt):
     if dt:
+        if isinstance(dt, datetime.datetime):
+            return dt
+
+        # Fix UTC offset format
+        m = re.match(r'(.*\+)(\d{2})(\d{2})$', dt)
+        if m:
+            dt = '{}{}:{}'.format(m.group(1), m.group(2), m.group(3))
+
         return datetime.datetime.fromisoformat(dt)
 
 

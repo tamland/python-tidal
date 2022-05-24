@@ -550,6 +550,11 @@ def _parse_featured_playlist(json_obj):
     return Playlist(**kwargs)
 
 
+def _parse_datetime(dt):
+    if dt:
+        return datetime.datetime.fromisoformat(dt)
+
+
 def _parse_playlist(json_obj):
     kwargs = {
         'id': json_obj['uuid'],
@@ -559,6 +564,8 @@ def _parse_playlist(json_obj):
         'num_tracks': int(json_obj['numberOfTracks']),
         'duration': int(json_obj['duration']),
         'is_public': json_obj['publicPlaylist'],
+        'created': _parse_datetime(json_obj.get('created')),
+        'last_updated': _parse_datetime(json_obj.get('lastUpdated')),
         # TODO 'creator': _parse_user(json_obj['creator']),
     }
     return Playlist(**kwargs)

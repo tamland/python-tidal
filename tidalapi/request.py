@@ -60,11 +60,26 @@ class Requests(object):
         request = self.session.request_session.request(method, url, params=request_params, data=data, headers=headers)
 
         refresh_token = self.session.refresh_token
-        if not request.ok and request.json()['userMessage'].startswith("The token has expired.") and refresh_token:
-            log.debug("The access token has expired, trying to refresh it.")
-            refreshed = self.session.token_refresh(refresh_token)
-            if refreshed:
-                request = self.basic_request(method, url, params, data, headers)
+        if not request.ok:
+            json_resp = None
+            try:
+                json_resp = request.json()
+            except json.JSONDecodeError:
+                log.warning(
+                    'Got invalid JSON from the API. HTTP status: %d',
+                    request.status_code
+                )
+                log.debug('Invalid JSON response\n%s', request.text)
+
+            if (
+                json_resp and
+                json_resp['userMessage'].startswith("The token has expired.")
+                and refresh_token
+            ):
+                log.debug("The access token has expired, trying to refresh it.")
+                refreshed = self.session.token_refresh(refresh_token)
+                if refreshed:
+                    request = self.basic_request(method, url, params, data, headers)
 
         return request
 

@@ -22,6 +22,8 @@ A module containing functions relating to TIDAL api requests.
 
 import json
 import logging
+import requests
+
 try:
     from urlparse import urljoin
 except ImportError:
@@ -60,26 +62,21 @@ class Requests(object):
         request = self.session.request_session.request(method, url, params=request_params, data=data, headers=headers)
 
         refresh_token = self.session.refresh_token
-        if not request.ok:
+        if not request.ok and refresh_token:
             json_resp = None
             try:
                 json_resp = request.json()
-            except json.JSONDecodeError:
-                log.warning(
-                    'Got invalid JSON from the API. HTTP status: %d',
-                    request.status_code
-                )
-                log.debug('Invalid JSON response\n%s', request.text)
+            except requests.JSONDecodeError:
+                pass
 
-            if (
-                json_resp and
-                json_resp['userMessage'].startswith("The token has expired.")
-                and refresh_token
-            ):
+            if json_resp and json_resp.get('userMessage', '').startswith("The token has expired."):
                 log.debug("The access token has expired, trying to refresh it.")
                 refreshed = self.session.token_refresh(refresh_token)
                 if refreshed:
                     request = self.basic_request(method, url, params, data, headers)
+            else:
+                log.warning('HTTP error on %d', request.status_code)
+                log.debug('Response text\n%s', request.text)
 
         return request
 

@@ -149,6 +149,5 @@ class Requests(object):
             items = self.map_request(url, params=params, parse=parse)
             remaining = len(items)
             params['offset'] += 100
-            for item in items:
-                item_list.append(item)
+            item_list.extend(items or [])
         return item_list

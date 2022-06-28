@@ -62,8 +62,8 @@ def test_video(session):
 
     assert video.id == 125506698
     assert video.name == "Alone, Pt. II"
-    assert video.track_num == 1
-    assert video.volume_num == 1
+    assert video.track_num == 0
+    assert video.volume_num == 0
     assert video.release_date == datetime(2019, 12, 26, tzinfo=tz.tzutc())
     assert video.tidal_release_date == datetime(2019, 12, 27, 9, tzinfo=tz.tzutc())
     assert video.duration == 237

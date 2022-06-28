@@ -46,7 +46,7 @@ def test_get_user_playlists(session):
     user_playlists_and_favorite_playlists = session.user.playlist_and_favorite_playlists()
     for item in user_playlists + user_favorite_playlists:
         assert any(item.id == playlist.id for playlist in user_playlists_and_favorite_playlists)
-    assert len(user_playlists) + len(user_favorite_playlists) == len(user_playlists_and_favorite_playlists)
+    assert len(user_playlists + user_favorite_playlists) - 1 == len(user_playlists_and_favorite_playlists)
 
 
 def test_get_user_playlist_creator(session):

@@ -124,9 +124,9 @@ def test_get_similar(session):
 
 
 def test_get_radio(session):
-    artist = session.artist(4822757)
+    artist = session.artist(19275)
     radio = artist.get_radio()
-    assert len(radio) == 99
+    assert len(radio) == 100
     assert radio[0].artist.name == artist.name
 
 

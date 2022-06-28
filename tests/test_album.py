@@ -25,7 +25,7 @@ def test_album(session):
     album = session.album(17927863)
     assert album.id == 17927863
     assert album.name == 'Some Things (Deluxe)'
-    assert album.duration == 6704
+    assert album.duration == 6712
     assert album.available
     assert album.num_tracks == 22
     assert album.num_videos == 0

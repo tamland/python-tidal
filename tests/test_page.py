@@ -103,3 +103,10 @@ def test_moods(session):
     first = next(iter(moods))
     assert first.title == 'Workout'
     assert isinstance(next(iter(first.get())), tidalapi.Playlist)
+
+
+def test_mixes(session):
+    mixes = session.mixes()
+    first = next(iter(mixes))
+    assert first.title == "My Daily Discovery"
+    assert len(first.items()) == 10

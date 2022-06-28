@@ -13,6 +13,8 @@ from .user import Favorites, User, LoggedInUser, FetchedUser, PlaylistCreator
 
 from .media import Track, Video
 
+from .mix import Mix
+
 from .genre import Genre
 
 from .page import Page

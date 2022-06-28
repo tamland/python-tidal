@@ -37,6 +37,7 @@ import tidalapi.media
 import tidalapi.artist
 import tidalapi.album
 import tidalapi.genre
+import tidalapi.mix
 
 try:
     from urlparse import urljoin
@@ -49,7 +50,8 @@ SearchTypes = [tidalapi.artist.Artist,
                tidalapi.album.Album,
                tidalapi.media.Track,
                tidalapi.media.Video,
-               tidalapi.playlist.Playlist]
+               tidalapi.playlist.Playlist,
+               None]
 
 
 class Quality(Enum):
@@ -197,6 +199,7 @@ class Session(object):
         self.parse_track = self.track().parse_track
         self.parse_video = self.video().parse_video
         self.parse_media = self.track().parse_media
+        self.parse_mix = self.mix().parse
 
         self.parse_user = tidalapi.User(self, None).parse
         self.page = tidalapi.Page(self, None)
@@ -207,9 +210,10 @@ class Session(object):
         # Same index, which means you can get the index of the model, and then get the text using that index.
         # There probably is a better way to do this, but this was sadly the most readable way i found of doing it.
         self.type_conversions = {
-            'identifier': ['artists', 'albums', 'tracks', 'videos', 'playlists'],
+            'identifier': ['artists', 'albums', 'tracks', 'videos', 'playlists', 'mixs'],
             'type': SearchTypes,
-            'parse': [self.parse_artist, self.parse_album, self.parse_track, self.parse_video, self.parse_playlist]
+            'parse': [self.parse_artist, self.parse_album, self.parse_track,
+                      self.parse_video, self.parse_playlist, self.parse_mix]
         }
 
     def convert_type(self, search, search_type='identifier', output='identifier', case=Case.lower, suffix=True):
@@ -524,6 +528,17 @@ class Session(object):
 
         return tidalapi.Album(session=self, album_id=album_id)
 
+    def mix(self, mix_id=None):
+        """
+        Function to create a mix object with access to the session instance smoothly
+        Calls :class:`tidalapi.Mix(session=session, mix_id=mix_id) <.Album>` internally
+
+        :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
+        :return: Returns a :class:`.Mix` object that has access to the session instance used.
+        """
+
+        return tidalapi.Mix(session=self, mix_id=mix_id)
+
     def get_user(self, user_id=None):
         """
         Function to create a User object with access to the session instance in a smoother way.
@@ -582,3 +597,11 @@ class Session(object):
         :return: A :class:`.Page` object with the :class:`.PageLinks` list from the moods page
         """
         return self.page.get("pages/moods")
+
+    def mixes(self):
+        """
+        Retrieves the current users mixes, as seen on https://listen.tidal.com/view/pages/my_collection_my_mixes
+
+        :return: A list of :class:`.Mix`
+        """
+        return self.page.get("pages/my_collection_my_mixes")

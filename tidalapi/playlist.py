@@ -81,12 +81,6 @@ class Playlist(object):
         self.public = None if public is None else bool(public)
         self.popularity = json_obj.get('popularity')
 
-        creator = json_obj.get('creator')
-        if self.type == 'ARTIST' and creator and creator.get('id'):
-            self.creator = self.session.parse_artist(creator)
-        else:
-            self.creator = self.session.parse_user(creator) if creator else None
-
         self.type = json_obj['type']
         self.picture = json_obj['image']
         self.square_picture = json_obj['squareImage']
@@ -99,6 +93,12 @@ class Playlist(object):
 
         user_date_added = json_obj.get('dateAdded')
         self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
+
+        creator = json_obj.get('creator')
+        if self.type == 'ARTIST' and creator and creator.get('id'):
+            self.creator = self.session.parse_artist(creator)
+        else:
+            self.creator = self.session.parse_user(creator) if creator else None
 
         return copy.copy(self)
 

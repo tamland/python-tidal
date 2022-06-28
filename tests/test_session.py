@@ -42,6 +42,7 @@ def test_failed_login():
     assert session.check_login() is False
 
 
+@pytest.mark.interactive
 def test_oauth_login(capsys):
     config = tidalapi.Config(item_limit=20000)
     session = tidalapi.Session(config)
@@ -62,6 +63,7 @@ def test_failed_oauth_login(session):
         session.login_oauth()
 
 
+@pytest.mark.interactive
 def test_oauth_login_simple(capsys):
     session = tidalapi.Session()
     with capsys.disabled():

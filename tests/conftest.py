@@ -29,6 +29,10 @@ import tidalapi
 @pytest.fixture(scope='session')
 def session(request):
     logging.basicConfig(level=logging.DEBUG)
+    return login(request)
+
+
+def login(request):
     access_token, refresh_token, session_id, token_type = get_credentials()
     config = tidalapi.Config(quality=tidalapi.Quality.master)
     tidal_session = tidalapi.Session(config)
@@ -80,3 +84,15 @@ def get_credentials():
     session_id = info[2]
     token_type = info[3]
     return access_key, refresh_key, session_id, token_type
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--interactive"):
+        return
+    for item in items:
+        if "interactive" in item.keywords:
+            item.add_marker(pytest.mark.skip(reason="Skipping interactive tests"))
+
+
+def pytest_addoption(parser):
+    parser.addoption("--interactive", action="store_true", default=False, help="Run tests that require user input")

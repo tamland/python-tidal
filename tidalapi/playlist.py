@@ -71,17 +71,23 @@ class Playlist(object):
         self.num_videos = int(json_obj['numberOfVideos'])
         self.description = json_obj['description']
         self.duration = int(json_obj['duration'])
-        self.last_updated = dateutil.parser.isoparse(json_obj['lastUpdated'])
-        self.created = dateutil.parser.isoparse(json_obj['created'])
-        self.type = json_obj['type']
-        self.public = bool(json_obj['publicPlaylist'])
-        self.popularity = json_obj['popularity']
 
-        if self.type == 'ARTIST' and json_obj['creator'].get('id'):
-            self.creator = self.session.parse_artist(json_obj['creator'])
+        # These can be missing on from the /pages endpoints
+        last_updated = json_obj.get('lastUpdated')
+        self.last_updated = dateutil.parser.isoparse(last_updated) if last_updated else None
+        created = json_obj.get('created')
+        self.created = dateutil.parser.isoparse(created) if created else None
+        public = json_obj.get('publicPlaylist')
+        self.public = bool(public) if public else None
+        self.popularity = json_obj.get('popularity')
+
+        creator = json_obj.get('creator')
+        if self.type == 'ARTIST' and creator and creator.get('id'):
+            self.creator = self.session.parse_artist(creator)
         else:
-            self.creator = self.session.parse_user(json_obj['creator'])
+            self.creator = self.session.parse_user(creator) if creator else None
 
+        self.type = json_obj['type']
         self.picture = json_obj['image']
         self.square_picture = json_obj['squareImage']
 

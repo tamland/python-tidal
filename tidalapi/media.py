@@ -130,11 +130,13 @@ class Track(Media):
     def parse_track(self, json_obj):
         Media.parse(self, json_obj)
         self.replay_gain = json_obj['replayGain']
-        self.peak = json_obj['peak']
-        self.isrc = json_obj['isrc']
+        # Tracks from the pages endpoints might not actually exist
+        if 'peak' in json_obj and 'isrc' in json_obj:
+            self.peak = json_obj['peak']
+            self.isrc = json_obj['isrc']
+            self.copyright = json_obj['copyright']
         self.audio_quality = tidalapi.Quality(json_obj['audioQuality'])
         self.version = json_obj['version']
-        self.copyright = json_obj['copyright']
 
         return copy.copy(self)
 
@@ -170,8 +172,9 @@ class Video(Media):
         Media.parse(self, json_obj)
         release_date = json_obj.get('releaseDate')
         self.release_date = dateutil.parser.isoparse(release_date) if release_date else None
-        self.video_quality = json_obj['quality']
         self.cover = json_obj['imageId']
+        # Videos found in the /pages endpoints don't have quality
+        self.video_quality = json_obj.get('quality')
 
         return copy.copy(self)
 

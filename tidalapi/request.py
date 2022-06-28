@@ -106,7 +106,7 @@ class Requests(object):
         return self.map_json(json_obj, parse=parse)
 
     @classmethod
-    def map_json(cls, json_obj, parse=None):
+    def map_json(cls, json_obj, parse=None, session=None):
         items = json_obj.get('items')
 
         if items is None:
@@ -118,8 +118,12 @@ class Requests(object):
                 for item in items:
                     item['item']['dateAdded'] = item['created']
 
-            maps = map(parse, [item['item'] for item in items])
-            lists = list(maps)
+            lists = []
+            for item in items:
+                if session is not None:
+                    parse = session.convert_type(item['type'].lower() + 's', output='parse')
+                lists.append(parse(item['item']))
+
             return lists
         return list(map(parse, items))
 

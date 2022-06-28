@@ -156,6 +156,12 @@ class Config(object):
         self.client_id = self.api_token
 
 
+class Case(Enum):
+    pascal = id
+    scream = id
+    lower = id
+
+
 class Session(object):
     """
     Object for interacting with the TIDAL api and
@@ -193,6 +199,8 @@ class Session(object):
         self.parse_media = self.track().parse_media
 
         self.parse_user = tidalapi.User(self, None).parse
+        self.page = tidalapi.Page(self, None)
+        self.parse_page = self.page.parse
 
         # Dictionary to convert between models from this library, to the text they, and to the parsing function.
         # It also helps in converting the other way around. All the information about artist is stored at the
@@ -203,6 +211,20 @@ class Session(object):
             'type': SearchTypes,
             'parse': [self.parse_artist, self.parse_album, self.parse_track, self.parse_video, self.parse_playlist]
         }
+
+    def convert_type(self, search, search_type='identifier', output='identifier', case=Case.lower, suffix=True):
+        index = self.type_conversions[search_type].index(search)
+        result = self.type_conversions[output][index]
+
+        if output == 'identifier':
+            if suffix is False:
+                result = result.strip('s')
+            if case == Case.scream:
+                result = result.lower()
+            elif case == Case.pascal:
+                result = result[0].upper() + result[1:]
+
+        return result
 
     def load_session(self, session_id, country_code=None, user_id=None):
         """
@@ -412,8 +434,7 @@ class Session(object):
         for model in models:
             if model not in SearchTypes:
                 raise ValueError("Tried to search for an invalid type")
-            index = self.type_conversions['type'].index(model)
-            types.append(self.type_conversions['identifier'][index])
+            types.append(self.convert_type(model, 'type'))
 
         params = {
             'query': query,
@@ -434,9 +455,9 @@ class Session(object):
 
         # Find the type of the top hit so we can parse it
         if json_obj['topHit']:
-            index = self.type_conversions['identifier'].index(json_obj['topHit']['type'].lower())
-            parse_top_hit = self.type_conversions['parse'][index]
-            result['top_hit'] = self.request.map_json(json_obj['topHit']['value'], parse_top_hit)
+            top_type = json_obj['topHit']['type'].lower()
+            parse = self.convert_type(top_type, output='parse')
+            result['top_hit'] = self.request.map_json(json_obj['topHit']['value'], parse)
         else:
             result['top_hit'] = None
 
@@ -513,3 +534,51 @@ class Session(object):
         """
 
         return tidalapi.User(session=self, user_id=user_id).factory()
+
+    def home(self):
+        """
+        Retrieves the Home page, as seen on https://listen.tidal.com
+
+        :return: A :class:`.Page` object with the :class:`.PageCategory` list from the home page
+        """
+        return self.page.get("pages/home")
+
+    def explore(self):
+        """
+        Retrieves the Explore page, as seen on https://listen.tidal.com/view/pages/explore
+
+        :return: A :class:`.Page` object with the :class:`.PageCategory` list from the explore page
+        """
+        return self.page.get("pages/explore")
+
+    def videos(self):
+        """
+        Retrieves the :class:`Videos<.Video>` page, as seen on https://listen.tidal.com/view/pages/videos
+
+        :return: A :class:`.Page` object with a :class:`<.PageCategory>` list from the videos page
+        """
+        return self.page.get("pages/videos")
+
+    def genres(self):
+        """
+        Retrieves the global Genre page, as seen on https://listen.tidal.com/view/pages/genre_page
+
+        :return: A :class:`.Page` object with the :class:`.PageCategory` list from the genre page
+        """
+        return self.page.get("pages/genre_page")
+
+    def local_genres(self):
+        """
+        Retrieves the local Genre page, as seen on https://listen.tidal.com/view/pages/genre_page_local
+
+        :return: A :class:`.Page` object with the :class:`.PageLinks` list from the local genre page
+        """
+        return self.page.get("pages/genre_page_local")
+
+    def moods(self):
+        """
+        Retrieves the mood page, as seen on https://listen.tidal.com/view/pages/moods
+
+        :return: A :class:`.Page` object with the :class:`.PageLinks` list from the moods page
+        """
+        return self.page.get("pages/moods")

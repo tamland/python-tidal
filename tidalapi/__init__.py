@@ -15,6 +15,8 @@ from .media import Track, Video
 
 from .genre import Genre
 
+from .page import Page
+
 from .request import Requests
 
 __version__ = "0.7.0"

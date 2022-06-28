@@ -78,7 +78,7 @@ class Playlist(object):
         created = json_obj.get('created')
         self.created = dateutil.parser.isoparse(created) if created else None
         public = json_obj.get('publicPlaylist')
-        self.public = bool(public) if public else None
+        self.public = None if public is None else bool(public)
         self.popularity = json_obj.get('popularity')
 
         creator = json_obj.get('creator')

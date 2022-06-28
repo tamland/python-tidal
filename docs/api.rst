@@ -118,3 +118,52 @@ API Reference
 .. autoclass:: Genre
     :members:
     :undoc-members:
+
+`tidalapi.page`
+---------------
+
+.. automodule:: tidalapi.page
+
+.. autoclass:: Page
+    :members:
+    :undoc-members:
+
+.. autoclass:: PageCategory
+    :members:
+    :undoc-members:
+
+.. autoclass:: FeaturedItems
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: PageLinks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: ItemList
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: PageItem
+    :members:
+    :undoc-members:
+
+.. autoclass:: PageLink
+    :members:
+    :undoc-members:
+
+`tidalapi.mix`
+---------------
+
+.. automodule:: tidalapi.mix
+
+.. autoclass:: MixType
+    :members:
+    :undoc-members:
+
+.. autoclass:: Mix
+    :members:
+    :undoc-members:

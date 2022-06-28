@@ -7,8 +7,8 @@ Indices and tables
 ==================
 
 .. toctree::
-    genindex
-    py-modindex
+    pages
     api
     history
-
+    genindex
+    py-modindex

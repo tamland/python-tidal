@@ -72,15 +72,21 @@ class Page(object):
 
         return copy.copy(self)
 
-    def get(self, endpoint):
+    def get(self, endpoint, params=None):
         """
         Retrieve a page from the specified endpoint, overwrites the calling page
 
+        :param params: Parameter to retrieve the page with
         :param endpoint: The endpoint you want to retrieve
         :return: A copy of the new :class:`.Page` at the requested endpoint
         """
         url = endpoint
-        params = {'deviceType': "BROWSER"}
+
+        if params is None:
+            params = {}
+        if "deviceType" not in params:
+            params["deviceType"] = "BROWSER"
+
         json_obj = self.request.request('GET', url, params=params).json()
         return self.parse(json_obj)
 
@@ -115,12 +121,24 @@ class PageCategory(object):
             category = ItemList(self.session)
         elif category_type == 'MIX_HEADER':
             return self.session.parse_mix(json_obj['mix'])
+        elif category_type == 'ARTIST_HEADER':
+            result = self.session.parse_artist(json_obj['artist'])
+            result.bio = json_obj['bio']
+            return result
         elif category_type == 'HIGHLIGHT_MODULE':
             category = ItemList(self.session)
         elif category_type == 'MIXED_TYPES_LIST':
             category = ItemList(self.session)
         elif category_type == 'TEXT_BLOCK':
             category = TextBlock(self.session)
+        elif category_type == 'ITEM_LIST_WITH_ROLES':
+            category = ItemList(self.session)
+        elif category_type == 'ARTICLE_LIST':
+            json_obj['items'] = json_obj['pagedList']['items']
+            category = LinkList(self.session)
+        elif category_type == 'SOCIAL':
+            json_obj['items'] = json_obj['socialProfiles']
+            category = LinkList(self.session)
         else:
             raise NotImplementedError('PageType {} not implemented'.format(category_type))
 
@@ -204,6 +222,10 @@ class ItemList(PageCategory):
             # Unwrap subtitle, maybe add a field for it later
             json_obj[list_key] = {'items': [x['item'] for x in json_obj['highlights']]}
         elif item_type == 'MIXED_TYPES_LIST':
+            session = self.session
+        elif item_type == 'ITEM_LIST_WITH_ROLES':
+            for item in json_obj[list_key]['items']:
+                item['item']['artistRoles'] = item['roles']
             session = self.session
         else:
             raise NotImplementedError("PageType {} not implemented".format(item_type))
@@ -300,5 +322,21 @@ class TextBlock(object):
         self.text = json_obj['text']
         self.icon = json_obj['icon']
         self.items = [self.text]
+
+        return copy.copy(self)
+
+
+class LinkList(PageCategory):
+    """
+    A list of items containing links, e.g. social links or articles
+    """
+    items = None
+    title = None
+    description = None
+
+    def parse(self, json_obj):
+        self.items = json_obj['items']
+        self.title = json_obj['title']
+        self.description = json_obj['description']
 
         return copy.copy(self)

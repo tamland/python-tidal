@@ -110,3 +110,12 @@ def test_mixes(session):
     first = next(iter(mixes))
     assert first.title == "My Daily Discovery"
     assert len(first.items()) == 10
+
+
+def test_artist_page(session):
+    page = session.artist(3503597).page()
+    for category in page.categories:
+        if hasattr(category, "title") and category.title == "Influencers":
+            for artist in category.items:
+                assert artist.page()
+    assert page

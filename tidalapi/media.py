@@ -47,6 +47,8 @@ class Media(object):
     explicit = False
     popularity = -1
     artist = None
+    #: For the artist credit page
+    artist_roles = None
     artists = None
     album = None
     type = None
@@ -102,6 +104,8 @@ class Media(object):
         self.artists = artists
         self.album = album
         self.type = json_obj.get('type')
+
+        self.artist_roles = json_obj.get('artistRoles')
 
     def parse_media(self, json_obj):
         """

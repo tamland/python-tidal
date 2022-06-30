@@ -3,7 +3,7 @@ from .session import Quality
 from .session import Config
 from .session import Session
 
-from .playlist import Playlist
+from .playlist import Playlist, UserPlaylist
 
 from .album import Album
 

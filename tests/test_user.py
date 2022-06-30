@@ -94,6 +94,7 @@ def test_create_playlist(session):
     assert playlist.description == "testing1234"
 
     assert any([playlist.id == user_playlist.id for user_playlist in session.user.playlists()])
+    assert any([isinstance(user_playlist, tidalapi.UserPlaylist)] for user_playlist in session.user.playlists())
 
     long_playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     playlist_tracks = long_playlist.tracks(limit=250)

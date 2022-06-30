@@ -46,7 +46,7 @@ def login(request):
             tidal_session.access_token,
             tidal_session.refresh_token,
             tidal_session.token_type,
-            tidal_session.expiry_time
+            str(tidal_session.expiry_time)
         ]
         if not isinstance(keyring.get_keyring(), keyring.backends.fail.Keyring):
             keyring.set_password('TIDAL Access Token', tidal_session.user.email, ':'.join(info))

@@ -108,6 +108,10 @@ class Playlist(object):
 
         return self
 
+    def parse_factory(self, json_obj):
+        self.parse(json_obj)
+        return copy.copy(self.factory())
+
     def tracks(self, limit=None, offset=0):
         """
         Gets the playlists̈́' tracks from TIDAL.

@@ -14,8 +14,7 @@ Unofficial Python API for TIDAL music streaming service.
 0.7.0 Rewrite
 -------------
 
-This is an experimental branch for the 0.7.0 rewrite. It is mostly finished, but it is missing somme documentation
-and a new explore endpoint containing moods, featured items, suggestions and so on.
+This is the development branch for the 0.7.0 rewrite. See https://github.com/tamland/python-tidal/issues/109 for more details
 
 Installation
 ------------

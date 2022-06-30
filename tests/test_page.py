@@ -75,7 +75,7 @@ def test_get_video_items(session):
     for item in mix.items():
         assert isinstance(item, tidalapi.Video)
 
-    assert len(mix.items()) == 50
+    assert len(mix.items()) >= 25
 
 
 def test_page_links(session):

@@ -33,6 +33,7 @@ class MixType(Enum):
     track = 'TRACK_MIX'
     artist = 'ARTIST_MIX'
     songwriter = 'SONGWRITER_MIX'
+    producter = 'PRODUCER_MIX'
     history_alltime = 'HISTORY_ALLTIME_MIX'
     history_monthly = 'HISTORY_MONTHLY_MIX'
     history_yearly = 'HISTORY_YEARLY_MIX'

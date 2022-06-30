@@ -97,7 +97,7 @@ class PageCategory(object):
     description = ""
     session = None
     requests = None
-    _more = []
+    _more = None
 
     def __init__(self, session):
         self.session = session
@@ -112,26 +112,28 @@ class PageCategory(object):
         }
 
     def parse(self, json_obj):
+        result = None
         category_type = json_obj['type']
-        if category_type == 'PAGE_LINKS_CLOUD' or category_type == 'PAGE_LINKS':
+        if category_type in ('PAGE_LINKS_CLOUD', 'PAGE_LINKS'):
             category = PageLinks(self.session)
-        elif category_type == 'FEATURED_PROMOTIONS' or category_type == 'MULTIPLE_TOP_PROMOTIONS':
+        elif category_type in ('FEATURED_PROMOTIONS', 'MULTIPLE_TOP_PROMOTIONS'):
             category = FeaturedItems(self.session)
         elif category_type in self.item_types.keys():
             category = ItemList(self.session)
         elif category_type == 'MIX_HEADER':
-            return self.session.parse_mix(json_obj['mix'])
+            result = self.session.parse_mix(json_obj['mix'])
         elif category_type == 'ARTIST_HEADER':
             result = self.session.parse_artist(json_obj['artist'])
             result.bio = json_obj['bio']
-            return result
+        elif category_type == 'ALBUM_HEADER':
+            result = self.session.parse_album(json_obj['album'])
         elif category_type == 'HIGHLIGHT_MODULE':
             category = ItemList(self.session)
         elif category_type == 'MIXED_TYPES_LIST':
             category = ItemList(self.session)
         elif category_type == 'TEXT_BLOCK':
             category = TextBlock(self.session)
-        elif category_type == 'ITEM_LIST_WITH_ROLES':
+        elif category_type in ('ITEM_LIST_WITH_ROLES', 'ALBUM_ITEMS'):
             category = ItemList(self.session)
         elif category_type == 'ARTICLE_LIST':
             json_obj['items'] = json_obj['pagedList']['items']
@@ -141,6 +143,9 @@ class PageCategory(object):
             category = LinkList(self.session)
         else:
             raise NotImplementedError('PageType {} not implemented'.format(category_type))
+
+        if result:
+            return result
 
         return category.parse(json_obj)
 
@@ -221,7 +226,7 @@ class ItemList(PageCategory):
             session = self.session
             # Unwrap subtitle, maybe add a field for it later
             json_obj[list_key] = {'items': [x['item'] for x in json_obj['highlights']]}
-        elif item_type == 'MIXED_TYPES_LIST':
+        elif item_type in ('MIXED_TYPES_LIST', 'ALBUM_ITEMS'):
             session = self.session
         elif item_type == 'ITEM_LIST_WITH_ROLES':
             for item in json_obj[list_key]['items']:

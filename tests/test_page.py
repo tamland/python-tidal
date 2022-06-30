@@ -119,3 +119,12 @@ def test_artist_page(session):
             for artist in category.items:
                 assert artist.page()
     assert page
+
+
+def test_album_page(session):
+    page = session.album(108043414).page()
+    for category in page.categories:
+        if hasattr(category, "title") and category.title == "Related Albums":
+            for item in category.items:
+                assert item.page()
+    assert page

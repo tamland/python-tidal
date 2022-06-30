@@ -178,3 +178,11 @@ class Album(object):
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 
         return self.session.config.video_url % (self.video_cover.replace('-', '/'), dimensions, dimensions)
+
+    def page(self):
+        """
+        Retrieve the album page as seen on https://listen.tidal.com/album/$id
+
+        :return: A :class:`Page` containing the different categories, e.g. similar artists and albums
+        """
+        return self.session.page.get("pages/album", params={"albumId": self.id})

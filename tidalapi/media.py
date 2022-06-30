@@ -163,6 +163,37 @@ class Track(Media):
         request = self.requests.request('GET', 'tracks/%s/urlpostpaywall' % self.id, params)
         return request.json()['urls'][0]
 
+    def lyrics(self):
+        """
+        Retrieves the lyrics for a song
+
+        :return: A :class:`Lyrics` object containing the lyrics
+        :raises: A :class:`requests.HTTPError` if there aren't any lyrics
+        """
+        return self.requests.map_request('tracks/%s/lyrics' % self.id, parse=Lyrics().parse)
+
+
+class Lyrics(object):
+    track_id = -1
+    provider = ""
+    provider_track_id = -1
+    provider_lyrics_id = -1
+    text = ""
+    #: Contains timestamps as well
+    subtitles = ""
+    right_to_left = False
+
+    def parse(self, json_obj):
+        self.track_id = json_obj['trackId']
+        self.provider = json_obj['lyricsProvider']
+        self.provider_track_id = json_obj['providerCommontrackId']
+        self.provider_lyrics_id = json_obj['providerLyricsId']
+        self.text = json_obj['lyrics']
+        self.subtitles = json_obj['subtitles']
+        self.right_to_left = bool(json_obj['isRightToLeft'])
+
+        return copy.copy(self)
+
 
 class Video(Media):
     """

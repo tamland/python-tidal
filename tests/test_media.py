@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+
+import requests
 from dateutil import tz
 import pytest
 import tidalapi
@@ -55,6 +57,28 @@ def test_track_url(session):
     session.config = tidalapi.Config(quality=tidalapi.Quality.master)
     track = session.track(142278122)
     assert 'audio.tidal.com' in track.get_url()
+
+
+def test_lyrics(session):
+    track = session.track(56480040)
+    lyrics = track.lyrics()
+    assert "Think we're there" in lyrics.text
+    assert "Think we're there" in lyrics.subtitles
+    assert lyrics.right_to_left is False
+
+
+def test_no_lyrics(session):
+    track = session.track(115105969)
+    with pytest.raises(requests.HTTPError) as exception:
+        track.lyrics()
+
+    assert exception.value.response.status_code == 404
+
+
+def test_right_to_left(session):
+    lyrics = session.track(95948697).lyrics()
+    assert lyrics.right_to_left
+    assert "أديني جيت" in lyrics.text
 
 
 def test_track_with_album(session):

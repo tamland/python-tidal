@@ -186,3 +186,11 @@ class Album(object):
         :return: A :class:`Page` containing the different categories, e.g. similar artists and albums
         """
         return self.session.page.get("pages/album", params={"albumId": self.id})
+
+    def similar(self):
+        """
+        Retrieve albums similar to the current one
+
+        :return: A :any:`list` of similar albums
+        """
+        return self.requests.map_request('albums/%s/similar' % self.id, parse=self.session.parse_album)

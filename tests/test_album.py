@@ -97,3 +97,9 @@ def test_no_cover(session):
     album = session.album(82804683)
     assert album.cover is None
     assert album.image(1280) == tidalapi.album.DEFAULT_ALBUM_IMAGE
+
+
+def test_similar(session):
+    album = session.album(108043414)
+    for alb in album.similar():
+        assert isinstance(alb.similar()[0], tidalapi.Album)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2019-2020 morguldir
+# Copyright (C) 2019-2022 morguldir
 # Copyright (C) 2014 Thomas Amland
 #
 # This program is free software: you can redistribute it and/or modify

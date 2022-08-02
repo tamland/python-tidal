@@ -103,3 +103,9 @@ def test_similar(session):
     album = session.album(108043414)
     for alb in album.similar():
         assert isinstance(alb.similar()[0], tidalapi.Album)
+
+
+def test_review(session):
+    album = session.album(199142349)
+    review = album.review()
+    assert "Kanye West" in review

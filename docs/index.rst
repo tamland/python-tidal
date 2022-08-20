@@ -7,7 +7,10 @@ Indices and tables
 ==================
 
 .. toctree::
+    config
+    login
     pages
+    playlist
     api
     history
     genindex

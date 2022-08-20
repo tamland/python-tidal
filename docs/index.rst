@@ -13,5 +13,6 @@ Indices and tables
     playlist
     api
     history
+    migration
     genindex
     py-modindex

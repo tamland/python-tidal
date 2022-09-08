@@ -17,11 +17,11 @@ with open('README.rst') as f:
 
 with open('HISTORY.rst') as f:
     long_description += '\n\n'
-    long_description += f.read() .replace('.. :changelog:', '')
+    long_description += f.read().replace('.. :changelog:', '')
 
 setup(
     name='tidalapi',
-    version='0.7.0rc1',
+    version='0.7.0',
     description='Unofficial API for TIDAL music streaming service.',
     long_description=long_description,
     author='Thomas Amland',

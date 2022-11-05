@@ -22,7 +22,7 @@ copyright = '2014-2022, Thomas Amland, morguldir'
 author = 'Thomas Amland, morguldir'
 
 # The full version, including alpha/beta/rc tags
-release = '0.7.0rc1'
+release = '0.7.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -37,7 +37,8 @@ extensions = [
     'sphinx.ext.doctest'
 ]
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
+                       'requests': ('https://requests.readthedocs.io/en/latest', None)}
 
 autodoc_member_order = 'bysource'
 

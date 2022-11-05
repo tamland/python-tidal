@@ -194,3 +194,13 @@ class Album(object):
         :return: A :any:`list` of similar albums
         """
         return self.requests.map_request('albums/%s/similar' % self.id, parse=self.session.parse_album)
+
+    def review(self) -> str:
+        """
+        Retrieve the album review
+
+        :return: A :class:`str` containing the album review, with wimp links
+        :raises: :class:`requests.HTTPError` if there isn't a review yet
+        """
+        # morguldir: TODO: Add parsing of wimplinks?
+        return self.requests.request('GET', 'albums/%s/review' % self.id).json()['text']

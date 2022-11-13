@@ -205,6 +205,12 @@ class UserPlaylist(Playlist):
         headers = {'If-None-Match': self._etag}
         self.requests.request('DELETE', (self._base_url + '/items/%i') % (self.id, index), headers=headers)
 
+    def remove_by_indices(self, indices):
+        headers = {'If-None-Match': self._etag}
+        track_index_string = ",".join([str(x) for x in indices])
+        self.requests.request('DELETE', (self._base_url + '/tracks/%s') % (self.id, track_index_string),
+                                 headers=headers)
+
     def _calculate_id(self, media_id):
         i = 0
         while i < self.num_tracks:

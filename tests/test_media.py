@@ -89,6 +89,13 @@ def test_track_with_album(session):
     track = session.track(track_id, True)
     assert track.album.duration == 221
 
+def test_track_streaming(session):
+    track = session.track(62392768)
+    stream = track.stream()
+    assert stream.audio_mode == 'STEREO'
+    assert stream.audio_quality == 'HIGH'
+
+
 
 def test_video(session):
     video = session.video(125506698)

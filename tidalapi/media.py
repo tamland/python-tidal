@@ -172,6 +172,42 @@ class Track(Media):
         """
         return self.requests.map_request('tracks/%s/lyrics' % self.id, parse=Lyrics().parse)
 
+    def stream(self):
+        """
+        Retrieves the track streaming object, allowing for audio transmission.
+
+        :return: A :class:`Stream` object which holds audio file properties and parameters needed for streaming via `MPEG-DASH` protocol.
+        """
+        params = {
+            'playbackmode': 'STREAM',
+            'audioquality' : self.session.config.quality,
+            'assetpresentation': 'FULL',
+        }
+        return self.requests.map_request('GET', 'tracks/%s/playbackinfopostpaywall' % self.id, params, parse=Stream().parse)
+
+class Stream(object):
+    """
+    An object that stores the audio file properties and parameters needed for streaming via `MPEG-DASH` protocol.
+    
+    The `manifest` attribute holds the MPD file content encoded in base64.
+    """
+    track_id = -1
+    audio_mode = ""
+    audio_quality = "LOW"
+    manifest_mime_type = ""
+    manifest_hash = ""
+    manifest = ""
+
+    def parse(self, json_obj):
+        self.track_id = json_obj['trackId']
+        self.audio_mode = json_obj["audioMode"]
+        self.audio_quality = json_obj["audioQuality"]
+        self.manifest_mime_type = json_obj["manifestMimeType"]
+        self.manifest_hash = json_obj["manifestHash"]
+        self.manifest = json_obj["manifest"]
+
+        return copy.copy(self)
+
 
 class Lyrics(object):
     track_id = -1

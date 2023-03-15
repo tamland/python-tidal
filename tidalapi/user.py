@@ -74,7 +74,7 @@ class FetchedUser(User):
         self.id = json_obj['id']
         self.first_name = json_obj['firstName']
         self.last_name = json_obj['lastName']
-        self.picture_id = json_obj['picture']
+        self.picture_id = json_obj.get('picture', '')
 
         return copy(self)
 

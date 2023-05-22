@@ -354,7 +354,7 @@ class Session(object):
     def _process_link_login(self, json):
         json = self._wait_for_link_login(json)
         self.access_token = json['access_token']
-        self.expiry_time = datetime.datetime.now() + datetime.timedelta(seconds=json['expires_in'])
+        self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=json['expires_in'])
         self.refresh_token = json['refresh_token']
         self.token_type = json['token_type']
         session = self.request.request('GET', 'sessions')
@@ -409,7 +409,7 @@ class Session(object):
             log.warning("The refresh token has expired, a new login is required.")
             return False
         self.access_token = json['access_token']
-        self.expiry_time = datetime.datetime.now() + datetime.timedelta(seconds=json['expires_in'])
+        self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=json['expires_in'])
         self.token_type = json['token_type']
         return True
 

@@ -172,6 +172,14 @@ class Track(Media):
         """
         return self.requests.map_request('tracks/%s/lyrics' % self.id, parse=Lyrics().parse)
 
+    def get_track_radio(self):
+        """
+        Queries TIDAL for the track radio, which is a mix of tracks that are similar to this track.
+
+        :return: A list of :class:`Tracks <tidalapi.media.Track>`
+        """
+        params = {'limit': 100}
+        return self.requests.map_request('tracks/%s/radio' % self.id, params=params, parse=self.session.parse_track)
 
 class Lyrics(object):
     track_id = -1

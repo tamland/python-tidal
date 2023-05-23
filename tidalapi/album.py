@@ -34,6 +34,7 @@ class Album(object):
     name = None
     cover = None
     video_cover = None
+    type = None
 
     duration = -1
     available = False
@@ -74,6 +75,9 @@ class Album(object):
         self.name = json_obj['title']
         self.cover = json_obj['cover']
         self.video_cover = json_obj['videoCover']
+
+        if "type" in json_obj:
+            self.type = json_obj["type"]
 
         self.duration = json_obj.get('duration')
         self.available = json_obj.get('streamReady')

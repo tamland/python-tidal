@@ -115,7 +115,7 @@ def test_album_type_album(session):
     album = session.album(17927863)
     assert album.type == "ALBUM"    
 
-def test_album_type_album(session):
+def test_album_type_single(session):
     album = session.album(239638071)
     assert album.type == "SINGLE"
     

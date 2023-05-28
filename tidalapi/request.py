@@ -22,10 +22,11 @@ A module containing functions relating to TIDAL api requests.
 
 import json
 import logging
+from typing import Any
 import requests
 
 try:
-    from urlparse import urljoin
+    from urlparse import urljoin # type: ignore
 except ImportError:
     from urllib.parse import urljoin
 
@@ -156,7 +157,7 @@ class Requests(object):
             'limit': 100
         }
         remaining = 100
-        item_list = []
+        item_list: list[Any] = []
         while remaining == 100:
             items = self.map_request(url, params=params, parse=parse)
             remaining = len(items)

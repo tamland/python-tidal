@@ -243,5 +243,6 @@ class Video(Media):
     def image(self, width=1080, height=720):
         if (width, height) not in [(160, 107), (480, 320), (750, 500), (1080, 720)]:
             raise ValueError("Invalid resolution {} x {}".format(width, height))
-
+        if not self.cover:
+            raise AttributeError("No cover image")
         return self.session.config.image_url % (self.cover.replace('-', '/'), width, height)

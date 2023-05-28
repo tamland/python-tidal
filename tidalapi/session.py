@@ -25,6 +25,7 @@ import base64
 import logging
 import random
 import time
+from typing import Any, Callable, Literal, Optional, TypeAlias, TypedDict, Union, cast, no_type_check
 import uuid
 from enum import Enum
 
@@ -40,13 +41,13 @@ import tidalapi.genre
 import tidalapi.mix
 
 try:
-    from urlparse import urljoin
+    from urlparse import urljoin  # type: ignore
 except ImportError:
     from urllib.parse import urljoin
 
 log = logging.getLogger('__NAME__')
 
-SearchTypes = [tidalapi.artist.Artist,
+SearchTypes: list[Optional[Any]] = [tidalapi.artist.Artist,
                tidalapi.album.Album,
                tidalapi.media.Track,
                tidalapi.media.Video,
@@ -97,6 +98,7 @@ class Config(object):
     IMPORTANT: ALAC=false will mean that video streams turn into audio-only streams.
                Additionally, num_videos will turn into num_tracks in playlists.
     """
+    @no_type_check
     def __init__(self, quality=Quality.high, video_quality=VideoQuality.high, item_limit=1000, alac=True):
         self.quality = quality.value
         self.video_quality = video_quality.value
@@ -163,6 +165,12 @@ class Case(Enum):
     scream = id
     lower = id
 
+class TypeConversions(TypedDict):
+    identifier: list[str]
+    type: list[Union[object, None]]
+    parse: list[Callable]
+
+TypeConversionKeys: TypeAlias = Literal['identifier', 'type', 'parse']
 
 class Session(object):
     """
@@ -209,18 +217,19 @@ class Session(object):
         # It also helps in converting the other way around. All the information about artist is stored at the
         # Same index, which means you can get the index of the model, and then get the text using that index.
         # There probably is a better way to do this, but this was sadly the most readable way i found of doing it.
-        self.type_conversions = {
+        self.type_conversions: TypeConversions = {
             'identifier': ['artists', 'albums', 'tracks', 'videos', 'playlists', 'mixs'],
             'type': SearchTypes,
             'parse': [self.parse_artist, self.parse_album, self.parse_track,
                       self.parse_video, self.parse_playlist, self.parse_mix]
         }
 
-    def convert_type(self, search, search_type='identifier', output='identifier', case=Case.lower, suffix=True):
+    def convert_type(self, search, search_type: TypeConversionKeys = 'identifier', output: TypeConversionKeys ='identifier', case=Case.lower, suffix=True):
         index = self.type_conversions[search_type].index(search)
         result = self.type_conversions[output][index]
 
         if output == 'identifier':
+            result = cast(str, result)
             if suffix is False:
                 result = result.strip('s')
             if case == Case.scream:
@@ -292,7 +301,7 @@ class Session(object):
         :return: Returns true if we think the login was successful.
         """
         url = urljoin(self.config.api_location, 'login/username')
-        headers = {"X-Tidal-Token": self.config.api_token}
+        headers: dict[str, str] = {"X-Tidal-Token": self.config.api_token}
         payload = {
             'username': username,
             'password': password,

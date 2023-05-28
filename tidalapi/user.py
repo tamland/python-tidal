@@ -24,6 +24,7 @@ A module containing classes and functions related to tidal users.
 """
 
 from copy import copy
+from typing import Optional, Union
 import dateutil.parser
 
 
@@ -50,7 +51,7 @@ class User(object):
 
     def parse(self, json_obj):
         if "username" in json_obj:
-            user = LoggedInUser(self.session, json_obj["id"])
+            user: Union[LoggedInUser, FetchedUser, PlaylistCreator] = LoggedInUser(self.session, json_obj["id"])
 
         elif "firstName" in json_obj:
             user = FetchedUser(self.session, json_obj["id"])
@@ -66,9 +67,9 @@ class User(object):
 
 
 class FetchedUser(User):
-    first_name = None
-    last_name = None
-    picture_id = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    picture_id: Optional[str] = None
 
     def parse(self, json_obj):
         self.id = json_obj["id"]
@@ -81,6 +82,9 @@ class FetchedUser(User):
     def image(self, dimensions):
         if dimensions not in [100, 210, 600]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
+
+        if self.picture_id is None:
+            raise AttributeError("No picture available")
 
         return self.session.config.image_url % (
             self.picture_id.replace("-", "/"),

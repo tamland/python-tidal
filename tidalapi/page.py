@@ -20,6 +20,10 @@ Module for parsing TIDAL's pages format found at https://listen.tidal.com/v1/pag
 """
 
 import copy
+from typing import TYPE_CHECKING, Any, Iterator, Optional, Union, cast
+
+if TYPE_CHECKING:
+    import tidalapi
 
 class Page(object):
     """
@@ -29,8 +33,8 @@ class Page(object):
     However it is an iterable that goes through all the visible items on the page as well, in the natural reading order
     """
     title = ""
-    categories = None
-    _categories_iter = None
+    categories: Optional[list[Any]] = None
+    _categories_iter: Optional[Iterator[Any]] = None
 
     def __init__(self, session, title):
         self.request = session.request
@@ -39,6 +43,8 @@ class Page(object):
         self.page_category = PageCategory(session)
 
     def __iter__(self):
+        if self.categories is None:
+            raise AttributeError("No categories found")
         self._categories_iter = iter(self.categories)
         self._category = next(self._categories_iter)
         self._items_iter = iter(self._category.items)
@@ -50,6 +56,8 @@ class Page(object):
         try:
             item = next(self._items_iter)
         except StopIteration:
+            if self._categories_iter is None:
+                raise AttributeError("No categories found")
             self._category = next(self._categories_iter)
             self._items_iter = iter(self._category.items)
             return self.__next__()
@@ -94,12 +102,11 @@ class Page(object):
 class PageCategory(object):
     type = None
     title = None
-    description = ""
-    session = None
+    description: Optional[str] = ""
     requests = None
-    _more = None
+    _more: Optional[dict[str, dict[str, str]]] = None
 
-    def __init__(self, session):
+    def __init__(self, session: 'tidalapi.session.Session'):
         self.session = session
         self.request = session.request
         self.item_types = {
@@ -115,18 +122,19 @@ class PageCategory(object):
         result = None
         category_type = json_obj['type']
         if category_type in ('PAGE_LINKS_CLOUD', 'PAGE_LINKS'):
-            category = PageLinks(self.session)
+            category: Union[PageLinks, FeaturedItems, ItemList, TextBlock, LinkList] = PageLinks(self.session)
         elif category_type in ('FEATURED_PROMOTIONS', 'MULTIPLE_TOP_PROMOTIONS'):
             category = FeaturedItems(self.session)
         elif category_type in self.item_types.keys():
             category = ItemList(self.session)
         elif category_type == 'MIX_HEADER':
-            result = self.session.parse_mix(json_obj['mix'])
+            return self.session.parse_mix(json_obj['mix'])
         elif category_type == 'ARTIST_HEADER':
             result = self.session.parse_artist(json_obj['artist'])
             result.bio = json_obj['bio']
+            return result
         elif category_type == 'ALBUM_HEADER':
-            result = self.session.parse_album(json_obj['album'])
+            return self.session.parse_album(json_obj['album'])
         elif category_type == 'HIGHLIGHT_MODULE':
             category = ItemList(self.session)
         elif category_type == 'MIXED_TYPES_LIST':
@@ -144,9 +152,6 @@ class PageCategory(object):
         else:
             raise NotImplementedError('PageType {} not implemented'.format(category_type))
 
-        if result:
-            return result
-
         return category.parse(json_obj)
 
     def show_more(self):
@@ -162,7 +167,7 @@ class FeaturedItems(PageCategory):
     """
     Items that have been featured by TIDAL
     """
-    items = None
+    items: Optional[list['PageItem']] = None
 
     def __init__(self, session):
         super(FeaturedItems, self).__init__(session)
@@ -182,7 +187,7 @@ class PageLinks(PageCategory):
     """
     A list of :class:`.PageLink` to other parts of TIDAL
     """
-    items = None
+    items: Optional[list['PageLink']] = None
 
     def parse(self, json_obj):
         """
@@ -246,17 +251,15 @@ class PageLink(object):
     """
     title = None
     icon = None
-    api_path = None
     image_id = None
-    session = None
     requests = None
 
-    def __init__(self, session, json_obj):
+    def __init__(self, session: 'tidalapi.session.Session', json_obj):
         self.session = session
         self.request = session.request
         self.title = json_obj['title']
         self.icon = json_obj['icon']
-        self.api_path = json_obj['apiPath']
+        self.api_path = cast(str, json_obj['apiPath'])
         self.image_id = json_obj['imageId']
 
     def get(self):

@@ -38,7 +38,6 @@ class MixType(Enum):
     history_monthly = 'HISTORY_MONTHLY_MIX'
     history_yearly = 'HISTORY_YEARLY_MIX'
 
-
 class Mix(object):
     """
     A mix from TIDAL, e.g. the listen.tidal.com/view/pages/my_collection_my_mixes
@@ -52,6 +51,7 @@ class Mix(object):
     mix_type = None
     content_behaviour = ""
     short_subtitle = ""
+    images = None
     _retrieved = False
     _items = None
 
@@ -93,6 +93,7 @@ class Mix(object):
         self.mix_type = MixType(json_obj['mixType'])
         self.content_behaviour = json_obj['contentBehavior']
         self.short_subtitle = json_obj['shortSubtitle']
+        self.images = json_obj['images']
 
         return copy.copy(self)
 
@@ -106,3 +107,25 @@ class Mix(object):
             self.get(self.id)
 
         return self._items
+    
+    def image(self, dimensions):
+        """
+        A URL to a Mix picture
+
+        :param dimensions: The width and height that want from the image
+        :type dimensions: int
+        :return: A url to the image
+
+        Original sizes: 320x320, 640x640, 1500x1500
+        """
+
+        if dimensions not in [320, 640, 1500]:
+            raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
+        
+        if dimensions == 320:
+            return self.images["SMALL"]["url"]
+        elif dimensions == 640:
+            return self.images["MEDIUM"]['url']
+        elif dimensions == 1500:
+            return self.images["LARGE"]['url']
+        

@@ -24,12 +24,11 @@ import datetime
 import base64
 import logging
 import random
+import requests
 import time
 from typing import Any, Callable, Literal, Optional, TypeAlias, TypedDict, Union, cast, no_type_check
 import uuid
 from enum import Enum
-
-import requests
 
 import tidalapi.playlist
 import tidalapi.request
@@ -40,10 +39,7 @@ import tidalapi.album
 import tidalapi.genre
 import tidalapi.mix
 
-try:
-    from urlparse import urljoin  # type: ignore
-except ImportError:
-    from urllib.parse import urljoin
+from urllib.parse import urljoin
 
 log = logging.getLogger('__NAME__')
 

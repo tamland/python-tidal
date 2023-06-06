@@ -129,6 +129,7 @@ class Track(Media):
     isrc = None
     audio_quality = None
     version = None
+    full_name = None
     copyright = None
 
     def parse_track(self, json_obj):
@@ -141,6 +142,11 @@ class Track(Media):
             self.copyright = json_obj['copyright']
         self.audio_quality = tidalapi.Quality(json_obj['audioQuality'])
         self.version = json_obj['version']
+
+        if self.version is not None:
+            self.full_name = (f"{json_obj['title']} ({json_obj['version']})")
+        else:
+            self.full_name = json_obj['title']
 
         return copy.copy(self)
 

@@ -112,7 +112,7 @@ class Mix(object):
         """
         A URL to a Mix picture
 
-        :param dimensions: The width and height that want from the image
+        :param dimensions: The width and height the requested image should be
         :type dimensions: int
         :return: A url to the image
 

@@ -178,3 +178,24 @@ def test_video_image(session):
 
     with pytest.raises(AssertionError):
         verify_image_resolution(session, video.image(1080, 720), 1270, 1270)
+
+
+def test_full_name_track_1(session):
+    track = session.track(149119714)
+    assert track.name == "Fibonacci Progressions (Keemiyo Remix)"
+    assert track.version == None
+    assert track.full_name == "Fibonacci Progressions (Keemiyo Remix)"
+
+def test_full_name_track_2(session):
+    track = session.track(78495659)
+    assert track.name == "Bullitt"
+    assert track.version == "Bonus Track"
+    assert track.full_name == "Bullitt (Bonus Track)"
+
+def test_full_name_track_3(session):
+    track = session.track(98849340)
+    assert track.name == "Magical place (feat. IOVA)"
+    assert track.version == "Dj Dark & MD Dj Remix"
+    assert track.full_name == "Magical place (feat. IOVA) (Dj Dark & MD Dj Remix)"
+
+

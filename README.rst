@@ -40,6 +40,8 @@ Example usage
     tracks = album.tracks()
     for track in tracks:
         print(track.name)
+        for artist in track.artists:
+            print(' by: ', artist.name)
 
 
 Documentation

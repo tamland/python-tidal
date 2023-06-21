@@ -3,6 +3,13 @@
 History
 =======
 
+v0.7.1
+------
+* Quick fix for "got key error 'picture'" error. - BlackLight_
+* Bring back Radio support - bjesus_
+* Added function for multiple deletions at once bloedboemmel_
+* Use UTC instead of local time for expiry_time lutzbuerkle_
+
 v0.7.0
 ------
 
@@ -90,3 +97,5 @@ v0.6.2
 .. _BlackLight: https://github.com/BlackLight
 .. _lutzbuerkle: https://github.com/lutzbuerkle
 .. _retired-guy: https://github.com/retired-guy
+.. _bjesus: https://github.com/bjesus
+.. _bloedboemmel: https://github.com/bloedboemmel

@@ -198,7 +198,7 @@ class Track(Media):
             'audioquality' : self.session.config.quality,
             'assetpresentation': 'FULL',
         }
-        return self.requests.map_request('GET', 'tracks/%s/playbackinfopostpaywall' % self.id, params, parse=Stream().parse)
+        return self.requests.map_request('tracks/%s/playbackinfopostpaywall' % self.id, params, parse=Stream().parse)
 
       
 class Stream(object):

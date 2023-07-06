@@ -111,7 +111,7 @@ class LoggedInUser(FetchedUser):
         self.created = dateutil.parser.isoparse(json_obj["created"])
         self.newsletter = json_obj["newsletter"]
         self.accepted_eula = json_obj["acceptedEULA"]
-        self.gender = json_obj["gender"]
+        self.gender = json_obj.get("gender", "not specified")
         self.date_of_birth = json_obj["dateOfBirth"]
         self.facebook_uid = json_obj["facebookUid"]
         self.apple_uid = json_obj["appleUid"]

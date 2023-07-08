@@ -75,10 +75,6 @@ class Album(object):
         self.name = json_obj['title']
         self.cover = json_obj['cover']
         self.video_cover = json_obj['videoCover']
-
-        if "type" in json_obj:
-            self.type = json_obj["type"]
-
         self.duration = json_obj.get('duration')
         self.available = json_obj.get('streamReady')
         self.num_tracks = json_obj.get('numberOfTracks')
@@ -89,6 +85,7 @@ class Album(object):
         self.explicit = json_obj.get('explicit')
         self.universal_product_number = json_obj.get('upc')
         self.popularity = json_obj.get('popularity')
+        self.type = json_obj.get("type")
 
         self.artist = artist
         self.artists = artists

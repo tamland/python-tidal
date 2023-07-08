@@ -65,10 +65,12 @@ class Genre(object):
         :param model: The tidalapi model you want returned. See :class:`Genre`
         :return:
         """
-        type_index = self.session.type_conversions['type'].index(model)
-        name = self.session.type_conversions['identifier'][type_index]
-        parse = self.session.type_conversions['parse'][type_index]
+        type_relations = next(
+            x for x in self.session.type_conversions if x.type == model
+        )
+        name = type_relations.identifier
+        parse = type_relations.parse
         if getattr(self, name):
-            location = 'genres/{0}/{1}'.format(self.path, name)
+            location = "genres/{0}/{1}".format(self.path, name)
             return self.requests.map_request(location, parse=parse)
         raise TypeError("This genre does not contain {0}".format(name))

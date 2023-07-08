@@ -20,6 +20,7 @@ A module containing functions relating to TIDAL mixes.
 """
 import copy
 from enum import Enum
+from typing import Optional
 
 
 class MixType(Enum):
@@ -123,6 +124,9 @@ class Mix(object):
 
         if dimensions not in [320, 640, 1500]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
+
+        if not self.images:
+            raise ValueError("No images present.")
 
         if dimensions == 320:
             return self.images["SMALL"]["url"]

@@ -21,6 +21,7 @@ A module containing things related to TIDAL playlists.
 """
 
 import copy
+from typing import Optional
 import dateutil.parser
 
 
@@ -39,12 +40,12 @@ class Playlist(object):
     last_updated = None
     created = None
     type = None
-    public = False
+    public: Optional[bool] = False
     popularity = -1
     promoted_artists = None
     last_item_added_at = None
-    picture = None
-    square_picture = None
+    picture: Optional[str] = None
+    square_picture: Optional[str] = None
     user_date_added = None
     _etag = None
 
@@ -151,7 +152,8 @@ class Playlist(object):
 
         if dimensions not in [160, 320, 480, 640, 750, 1080]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
-
+        if self.square_picture is None:
+            raise AttributeError("No picture available")
         return self.session.config.image_url % (self.square_picture.replace('-', '/'), dimensions, dimensions)
 
     def wide_image(self, width=1080, height=720):
@@ -168,7 +170,8 @@ class Playlist(object):
 
         if (width, height) not in [(160, 107), (480, 320), (750, 500), (1080, 720)]:
             raise ValueError("Invalid resolution {} x {}".format(width, height))
-
+        if self.picture is None:
+            raise AttributeError("No picture available")
         return self.session.config.image_url % (self.picture.replace('-', '/'), width, height)
 
 

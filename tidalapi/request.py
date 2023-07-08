@@ -23,11 +23,8 @@ A module containing functions relating to TIDAL api requests.
 import json
 import logging
 import requests
-
-try:
-    from urlparse import urljoin
-except ImportError:
-    from urllib.parse import urljoin
+from typing import Any, List
+from urllib.parse import urljoin
 
 log = logging.getLogger(__name__)
 
@@ -43,9 +40,9 @@ class Requests(object):
 
     def basic_request(self, method, path, params=None, data=None, headers=None):
         request_params = {
-            'sessionId': self.session.session_id,
-            'countryCode': self.session.country_code,
-            'limit': self.config.item_limit,
+            "sessionId": self.session.session_id,
+            "countryCode": self.session.country_code,
+            "limit": self.config.item_limit,
         }
 
         if params:
@@ -56,10 +53,14 @@ class Requests(object):
         if not headers:
             headers = {}
         if self.session.token_type:
-            headers['authorization'] = self.session.token_type + ' ' + self.session.access_token
+            headers["authorization"] = (
+                self.session.token_type + " " + self.session.access_token
+            )
 
         url = urljoin(self.session.config.api_location, path)
-        request = self.session.request_session.request(method, url, params=request_params, data=data, headers=headers)
+        request = self.session.request_session.request(
+            method, url, params=request_params, data=data, headers=headers
+        )
 
         refresh_token = self.session.refresh_token
         if not request.ok and refresh_token:
@@ -69,14 +70,16 @@ class Requests(object):
             except requests.JSONDecodeError:
                 pass
 
-            if json_resp and json_resp.get('userMessage', '').startswith("The token has expired."):
+            if json_resp and json_resp.get("userMessage", "").startswith(
+                "The token has expired."
+            ):
                 log.debug("The access token has expired, trying to refresh it.")
                 refreshed = self.session.token_refresh(refresh_token)
                 if refreshed:
                     request = self.basic_request(method, url, params, data, headers)
             else:
-                log.warning('HTTP error on %d', request.status_code)
-                log.debug('Response text\n%s', request.text)
+                log.warning("HTTP error on %d", request.status_code)
+                log.debug("Response text\n%s", request.text)
 
         return request
 
@@ -113,28 +116,30 @@ class Requests(object):
         :param parse: The method used to parse the data at the url
         :return: The object(s) at the url, with the same type as the class of the parse method.
         """
-        json_obj = self.request('GET', url, params).json()
+        json_obj = self.request("GET", url, params).json()
 
         return self.map_json(json_obj, parse=parse)
 
     @classmethod
     def map_json(cls, json_obj, parse=None, session=None):
-        items = json_obj.get('items')
+        items = json_obj.get("items")
 
         if items is None:
             return parse(json_obj)
 
-        if len(items) > 0 and 'item' in items[0]:
+        if len(items) > 0 and "item" in items[0]:
             # Move created date into the item json data like it is done for playlists tracks.
-            if 'created' in items[0]:
+            if "created" in items[0]:
                 for item in items:
-                    item['item']['dateAdded'] = item['created']
+                    item["item"]["dateAdded"] = item["created"]
 
             lists = []
             for item in items:
                 if session is not None:
-                    parse = session.convert_type(item['type'].lower() + 's', output='parse')
-                lists.append(parse(item['item']))
+                    parse = session.convert_type(
+                        item["type"].lower() + "s", output="parse"
+                    )
+                lists.append(parse(item["item"]))
 
             return lists
         return list(map(parse, items))
@@ -148,18 +153,15 @@ class Requests(object):
 
         :param url: TIDAL api endpoint where you get the objects.
         :param parse: The method that parses the data in the url
-        :return: A list of the object used for the parse argument.
+        item_List: List[Any] = []
         """
 
-        params = {
-            'offset': 0,
-            'limit': 100
-        }
+        params = {"offset": 0, "limit": 100}
         remaining = 100
-        item_list = []
+        item_list: list[Any] = []
         while remaining == 100:
             items = self.map_request(url, params=params, parse=parse)
             remaining = len(items)
-            params['offset'] += 100
+            params["offset"] += 100
             item_list.extend(items or [])
         return item_list

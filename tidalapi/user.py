@@ -92,13 +92,7 @@ class FetchedUser(User):
 class LoggedInUser(FetchedUser):
     username = None
     email = None
-    created = None
-    newsletter = None
-    accepted_eula = None
-    gender = None
-    date_of_birth = None
-    facebook_uid = None
-    apple_uid = None
+    user_data = None
 
     def __init__(self, session, user_id):
         super(LoggedInUser, self).__init__(session, user_id)
@@ -108,13 +102,7 @@ class LoggedInUser(FetchedUser):
         super(LoggedInUser, self).parse(json_obj)
         self.username = json_obj["username"]
         self.email = json_obj["email"]
-        self.created = dateutil.parser.isoparse(json_obj["created"])
-        self.newsletter = json_obj["newsletter"]
-        self.accepted_eula = json_obj["acceptedEULA"]
-        self.gender = json_obj.get("gender", "not specified")
-        self.date_of_birth = json_obj["dateOfBirth"]
-        self.facebook_uid = json_obj["facebookUid"]
-        self.apple_uid = json_obj["appleUid"]
+        self.user_data = json_obj
 
         return copy(self)
 

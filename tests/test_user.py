@@ -27,8 +27,7 @@ def test_user(session):
     assert isinstance(session.user, tidalapi.LoggedInUser)
     user = session.get_user(session.user.id)
     assert isinstance(user, tidalapi.LoggedInUser)
-    assert '@' in user.email
-    assert user.accepted_eula
+    assert "@" in user.email
 
 
 def test_get_user(session):

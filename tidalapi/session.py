@@ -26,7 +26,17 @@ import logging
 import random
 import requests
 import time
-from typing import Any, Callable, Literal, Optional, TypeAlias, TypedDict, Union, cast, no_type_check
+from typing import (
+    Any,
+    Callable,
+    Literal,
+    Optional,
+    TypedDict,
+    Union,
+    cast,
+    no_type_check,
+    List,
+)
 import uuid
 from enum import Enum
 
@@ -41,33 +51,35 @@ import tidalapi.mix
 
 from urllib.parse import urljoin
 
-log = logging.getLogger('__NAME__')
-
-SearchTypes: list[Optional[Any]] = [tidalapi.artist.Artist,
-               tidalapi.album.Album,
-               tidalapi.media.Track,
-               tidalapi.media.Video,
-               tidalapi.playlist.Playlist,
-               None]
+log = logging.getLogger("__NAME__")
+SearchTypes: List[Optional[Any]] = [
+    tidalapi.artist.Artist,
+    tidalapi.album.Album,
+    tidalapi.media.Track,
+    tidalapi.media.Video,
+    tidalapi.playlist.Playlist,
+    None,
+]
 
 
 class Quality(Enum):
-    lossless = 'LOSSLESS'
-    high = 'HIGH'
-    low = 'LOW'
-    master = 'HI_RES'
+    lossless = "LOSSLESS"
+    high = "HIGH"
+    low = "LOW"
+    master = "HI_RES"
 
 
 class VideoQuality(Enum):
-    high = 'HIGH'
-    medium = 'MEDIUM'
-    low = 'LOW'
+    high = "HIGH"
+    medium = "MEDIUM"
+    low = "LOW"
 
 
 class LinkLogin(object):
     """
     The data required for logging in to TIDAL using a remote link, json is the data returned from TIDAL
     """
+
     #: Amount of seconds until the code expires
     expires_in = None
     #: The code the user should enter at the uri
@@ -78,10 +90,10 @@ class LinkLogin(object):
     verification_uri_complete = None
 
     def __init__(self, json):
-        self.expires_in = json['expiresIn']
-        self.user_code = json['userCode']
-        self.verification_uri = json['verificationUri']
-        self.verification_uri_complete = json['verificationUriComplete']
+        self.expires_in = json["expiresIn"]
+        self.user_code = json["userCode"]
+        self.verification_uri = json["verificationUri"]
+        self.verification_uri_complete = json["verificationUriComplete"]
 
 
 class Config(object):
@@ -94,41 +106,58 @@ class Config(object):
     IMPORTANT: ALAC=false will mean that video streams turn into audio-only streams.
                Additionally, num_videos will turn into num_tracks in playlists.
     """
+
     @no_type_check
-    def __init__(self, quality=Quality.high, video_quality=VideoQuality.high, item_limit=1000, alac=True):
+    def __init__(
+        self,
+        quality=Quality.high,
+        video_quality=VideoQuality.high,
+        item_limit=1000,
+        alac=True,
+    ):
         self.quality = quality.value
         self.video_quality = video_quality.value
-        self.api_location = 'https://api.tidal.com/v1/'
+        self.api_location = "https://api.tidal.com/v1/"
         self.image_url = "https://resources.tidal.com/images/%s/%ix%i.jpg"
         self.video_url = "https://resources.tidal.com/videos/%s/%ix%i.mp4"
 
         self.alac = alac
 
         if item_limit > 10000:
-            log.warning("Item limit was set above 10000, which is not supported by TIDAL, setting to 10000")
+            log.warning(
+                "Item limit was set above 10000, which is not supported by TIDAL, setting to 10000"
+            )
             self.item_limit = 10000
         else:
             self.item_limit = item_limit
 
-        self.api_token = \
-            eval(u'\x67\x6c\x6f\x62\x61\x6c\x73'.
-                 encode("437"))()[u"\x5f\x5f\x6e\x61\x6d\x65\x5f\x5f".
-                                  encode("".join(map(chr, [105, 105, 99, 115, 97][::-1]))).
-                                  decode("".join(map(chr, [117, 116, 70, 95, 56])))]
-        self.api_token += '.' + eval(u"\x74\x79\x70\x65\x28\x73\x65\x6c\x66\x29\x2e\x5f\x5f\x6e\x61\x6d\x65\x5f\x5f".
-                                     encode("".join(map(chr, [105, 105, 99, 115, 97][::-1]))).
-                                     decode("".join(map(chr, [117, 116, 70, 95, 56]))))
+        self.api_token = eval("\x67\x6c\x6f\x62\x61\x6c\x73".encode("437"))()[
+            "\x5f\x5f\x6e\x61\x6d\x65\x5f\x5f".encode(
+                "".join(map(chr, [105, 105, 99, 115, 97][::-1]))
+            ).decode("".join(map(chr, [117, 116, 70, 95, 56])))
+        ]
+        self.api_token += "." + eval(
+            "\x74\x79\x70\x65\x28\x73\x65\x6c\x66\x29\x2e\x5f\x5f\x6e\x61\x6d\x65\x5f\x5f".encode(
+                "".join(map(chr, [105, 105, 99, 115, 97][::-1]))
+            ).decode(
+                "".join(map(chr, [117, 116, 70, 95, 56]))
+            )
+        )
         token = self.api_token
         token = token[:8] + token[16:]
-        self.api_token = list((base64.b64decode("d3RjaThkamFfbHlhQnBKaWQuMkMwb3puT2ZtaXhnMA==").decode()))
-        tok = "".join(([chr(ord(x)-2) for x in token[-6:]]))
+        self.api_token = list(
+            (base64.b64decode("d3RjaThkamFfbHlhQnBKaWQuMkMwb3puT2ZtaXhnMA==").decode())
+        )
+        tok = "".join(([chr(ord(x) - 2) for x in token[-6:]]))
         token2 = token
         token = token[:9]
         token += tok
-        tok2 = "".join(([chr(ord(x)-2) for x in token[:-7]]))
+        tok2 = "".join(([chr(ord(x) - 2) for x in token[:-7]]))
         token = token[8:]
         token = tok2 + token
-        self.api_token = list((base64.b64decode("enJVZzRiWF9IalZfVm5rZ2MuMkF0bURsUGRvZzRldA==").decode()))
+        self.api_token = list(
+            (base64.b64decode("enJVZzRiWF9IalZfVm5rZ2MuMkF0bURsUGRvZzRldA==").decode())
+        )
         for word in token:
             self.api_token.remove(word)
         self.api_token = "".join(self.api_token)
@@ -136,19 +165,25 @@ class Config(object):
         save = False
         if not isinstance(token2, str):
             save = True
-            string = "".encode('ISO-8859-1')
-            token2 = token2.encode('ISO-8859-1')
+            string = "".encode("ISO-8859-1")
+            token2 = token2.encode("ISO-8859-1")
         tok = string.join(([chr(ord(x) + 24) for x in token2[:-7]]))
         token2 = token2[8:]
         token2 = tok + token2
-        tok2 = string.join(([chr(ord(x)+23) for x in token2[-6:]]))
+        tok2 = string.join(([chr(ord(x) + 23) for x in token2[-6:]]))
         token2 = token2[:9]
         token2 += tok2
-        self.client_id = list((base64.b64decode("VoxKgUt8aHlEhEZ5cYhKgVAucVp2hnOFUH1WgE5+QlY2"
-                                                "dWtYVEptd2x2YnR0UDd3bE1scmM3MnNlND0=").decode('ISO-8859-1')))
+        self.client_id = list(
+            (
+                base64.b64decode(
+                    "VoxKgUt8aHlEhEZ5cYhKgVAucVp2hnOFUH1WgE5+QlY2"
+                    "dWtYVEptd2x2YnR0UDd3bE1scmM3MnNlND0="
+                ).decode("ISO-8859-1")
+            )
+        )
         if save:
-            token2.decode('ISO-8859-1').encode('utf-16')
-            self.client_id = [x.encode('ISO-8859-1') for x in self.client_id]
+            token2.decode("ISO-8859-1").encode("utf-16")
+            self.client_id = [x.encode("ISO-8859-1") for x in self.client_id]
         for word in token2:
             self.client_id.remove(word)
         self.client_id = "".join(self.client_id)
@@ -161,12 +196,13 @@ class Case(Enum):
     scream = id
     lower = id
 
-class TypeConversions(TypedDict):
-    identifier: list[str]
-    type: list[Union[object, None]]
-    parse: list[Callable]
+    identifier: List[str]
+    type: List[Union[object, None]]
+    parse: List[Callable]
 
-TypeConversionKeys: TypeAlias = Literal['identifier', 'type', 'parse']
+
+TypeConversionKeys = Literal["identifier", "type", "parse"]
+
 
 class Session(object):
     """
@@ -214,20 +250,40 @@ class Session(object):
         # Same index, which means you can get the index of the model, and then get the text using that index.
         # There probably is a better way to do this, but this was sadly the most readable way i found of doing it.
         self.type_conversions: TypeConversions = {
-            'identifier': ['artists', 'albums', 'tracks', 'videos', 'playlists', 'mixs'],
-            'type': SearchTypes,
-            'parse': [self.parse_artist, self.parse_album, self.parse_track,
-                      self.parse_video, self.parse_playlist, self.parse_mix]
+            "identifier": [
+                "artists",
+                "albums",
+                "tracks",
+                "videos",
+                "playlists",
+                "mixs",
+            ],
+            "type": SearchTypes,
+            "parse": [
+                self.parse_artist,
+                self.parse_album,
+                self.parse_track,
+                self.parse_video,
+                self.parse_playlist,
+                self.parse_mix,
+            ],
         }
 
-    def convert_type(self, search, search_type: TypeConversionKeys = 'identifier', output: TypeConversionKeys ='identifier', case=Case.lower, suffix=True):
+    def convert_type(
+        self,
+        search,
+        search_type: TypeConversionKeys = "identifier",
+        output: TypeConversionKeys = "identifier",
+        case=Case.lower,
+        suffix=True,
+    ):
         index = self.type_conversions[search_type].index(search)
         result = self.type_conversions[output][index]
 
-        if output == 'identifier':
+        if output == "identifier":
             result = cast(str, result)
             if suffix is False:
-                result = result.strip('s')
+                result = result.strip("s")
             if case == Case.scream:
                 result = result.lower()
             elif case == Case.pascal:
@@ -253,15 +309,17 @@ class Session(object):
 
         self.session_id = session_id
         if not user_id or not country_code:
-            request = self.request.request('GET', 'sessions').json()
-            country_code = request['countryCode']
-            user_id = request['userId']
+            request = self.request.request("GET", "sessions").json()
+            country_code = request["countryCode"]
+            user_id = request["userId"]
 
         self.country_code = country_code
         self.user = tidalapi.User(self, user_id=user_id).factory()
         return True
 
-    def load_oauth_session(self, token_type, access_token, refresh_token=None, expiry_time=None):
+    def load_oauth_session(
+        self, token_type, access_token, refresh_token=None, expiry_time=None
+    ):
         """
         Login to TIDAL using details from a previous OAuth login, automatically
         refreshes expired access tokens if refresh_token is supplied as well.
@@ -277,14 +335,14 @@ class Session(object):
         self.refresh_token = refresh_token
         self.expiry_time = expiry_time
 
-        request = self.request.request('GET', 'sessions')
+        request = self.request.request("GET", "sessions")
         json = request.json()
         if not request.ok:
             return False
 
-        self.session_id = json['sessionId']
-        self.country_code = json['countryCode']
-        self.user = tidalapi.User(self, user_id=json['userId']).factory()
+        self.session_id = json["sessionId"]
+        self.country_code = json["countryCode"]
+        self.user = tidalapi.User(self, user_id=json["userId"]).factory()
 
         return True
 
@@ -296,12 +354,12 @@ class Session(object):
         :param password: The password to your TIDAL account
         :return: Returns true if we think the login was successful.
         """
-        url = urljoin(self.config.api_location, 'login/username')
+        url = urljoin(self.config.api_location, "login/username")
         headers: dict[str, str] = {"X-Tidal-Token": self.config.api_token}
         payload = {
-            'username': username,
-            'password': password,
-            'clientUniqueKey': format(random.getrandbits(64), '02x')
+            "username": username,
+            "password": password,
+            "clientUniqueKey": format(random.getrandbits(64), "02x"),
         }
         request = self.request_session.post(url, data=payload, headers=headers)
 
@@ -310,9 +368,9 @@ class Session(object):
             request.raise_for_status()
 
         body = request.json()
-        self.session_id = body['sessionId']
-        self.country_code = body['countryCode']
-        self.user = tidalapi.User(self, user_id=body['userId']).factory()
+        self.session_id = body["sessionId"]
+        self.country_code = body["countryCode"]
+        self.user = tidalapi.User(self, user_id=body["userId"]).factory()
         return True
 
     def login_oauth_simple(self, function=print):
@@ -340,11 +398,8 @@ class Session(object):
         return login, future
 
     def _login_with_link(self):
-        url = 'https://auth.tidal.com/v1/oauth2/device_authorization'
-        params = {
-            'client_id': self.config.client_id,
-            'scope': 'r_usr w_usr w_sub'
-        }
+        url = "https://auth.tidal.com/v1/oauth2/device_authorization"
+        params = {"client_id": self.config.client_id, "scope": "r_usr w_usr w_sub"}
 
         request = self.request_session.post(url, params)
 
@@ -358,27 +413,29 @@ class Session(object):
 
     def _process_link_login(self, json):
         json = self._wait_for_link_login(json)
-        self.access_token = json['access_token']
-        self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=json['expires_in'])
-        self.refresh_token = json['refresh_token']
-        self.token_type = json['token_type']
-        session = self.request.request('GET', 'sessions')
+        self.access_token = json["access_token"]
+        self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(
+            seconds=json["expires_in"]
+        )
+        self.refresh_token = json["refresh_token"]
+        self.token_type = json["token_type"]
+        session = self.request.request("GET", "sessions")
         json = session.json()
-        self.session_id = json['sessionId']
-        self.country_code = json['countryCode']
-        self.user = tidalapi.User(self, user_id=json['userId']).factory()
+        self.session_id = json["sessionId"]
+        self.country_code = json["countryCode"]
+        self.user = tidalapi.User(self, user_id=json["userId"]).factory()
 
     def _wait_for_link_login(self, json):
-        expiry = json['expiresIn']
-        interval = json['interval']
-        device_code = json['deviceCode']
-        url = 'https://auth.tidal.com/v1/oauth2/token'
+        expiry = json["expiresIn"]
+        interval = json["interval"]
+        device_code = json["deviceCode"]
+        url = "https://auth.tidal.com/v1/oauth2/token"
         params = {
-            'client_id': self.config.client_id,
-            'client_secret': self.config.client_secret,
-            'device_code': device_code,
-            'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-            'scope': 'r_usr w_usr w_sub'
+            "client_id": self.config.client_id,
+            "client_secret": self.config.client_secret,
+            "device_code": device_code,
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            "scope": "r_usr w_usr w_sub",
         }
         while expiry > 0:
             request = self.request_session.post(url, params)
@@ -386,12 +443,12 @@ class Session(object):
             if request.ok:
                 return json
             # Because the requests take time, the expiry variable won't be accurate, so stop if TIDAL says it's expired
-            if json['error'] == 'expired_token':
+            if json["error"] == "expired_token":
                 break
             time.sleep(interval)
             expiry = expiry - interval
 
-        raise TimeoutError('You took too long to log in')
+        raise TimeoutError("You took too long to log in")
 
     def token_refresh(self, refresh_token):
         """
@@ -400,12 +457,12 @@ class Session(object):
         :param refresh_token: The refresh token retrieved when using the OAuth login.
         :return: True if we believe the token was successfully refreshed, otherwise False
         """
-        url = 'https://auth.tidal.com/v1/oauth2/token'
+        url = "https://auth.tidal.com/v1/oauth2/token"
         params = {
-            'grant_type': 'refresh_token',
-            'refresh_token': refresh_token,
-            'client_id': self.config.client_id,
-            'client_secret': self.config.client_secret
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": self.config.client_id,
+            "client_secret": self.config.client_secret,
         }
 
         request = self.request_session.post(url, params)
@@ -413,9 +470,11 @@ class Session(object):
         if not request.ok:
             log.warning("The refresh token has expired, a new login is required.")
             return False
-        self.access_token = json['access_token']
-        self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=json['expires_in'])
-        self.token_type = json['token_type']
+        self.access_token = json["access_token"]
+        self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(
+            seconds=json["expires_in"]
+        )
+        self.token_type = json["token_type"]
         return True
 
     def search(self, query, models=None, limit=50, offset=0):
@@ -439,40 +498,46 @@ class Session(object):
         for model in models:
             if model not in SearchTypes:
                 raise ValueError("Tried to search for an invalid type")
-            types.append(self.convert_type(model, 'type'))
+            types.append(self.convert_type(model, "type"))
 
         params = {
-            'query': query,
-            'limit': limit,
-            'offset': offset,
-            'types': ",".join(types)
+            "query": query,
+            "limit": limit,
+            "offset": offset,
+            "types": ",".join(types),
         }
 
-        json_obj = self.request.request('GET', 'search', params=params).json()
+        json_obj = self.request.request("GET", "search", params=params).json()
 
         result = {
-            'artists': self.request.map_json(json_obj['artists'], self.parse_artist),
-            'albums': self.request.map_json(json_obj['albums'], self.parse_album),
-            'tracks': self.request.map_json(json_obj['tracks'], self.parse_track),
-            'videos': self.request.map_json(json_obj['videos'], self.parse_video),
-            'playlists': self.request.map_json(json_obj['playlists'], self.parse_playlist)
+            "artists": self.request.map_json(json_obj["artists"], self.parse_artist),
+            "albums": self.request.map_json(json_obj["albums"], self.parse_album),
+            "tracks": self.request.map_json(json_obj["tracks"], self.parse_track),
+            "videos": self.request.map_json(json_obj["videos"], self.parse_video),
+            "playlists": self.request.map_json(
+                json_obj["playlists"], self.parse_playlist
+            ),
         }
 
         # Find the type of the top hit so we can parse it
-        if json_obj['topHit']:
-            top_type = json_obj['topHit']['type'].lower()
-            parse = self.convert_type(top_type, output='parse')
-            result['top_hit'] = self.request.map_json(json_obj['topHit']['value'], parse)
+        if json_obj["topHit"]:
+            top_type = json_obj["topHit"]["type"].lower()
+            parse = self.convert_type(top_type, output="parse")
+            result["top_hit"] = self.request.map_json(
+                json_obj["topHit"]["value"], parse
+            )
         else:
-            result['top_hit'] = None
+            result["top_hit"] = None
 
         return result
 
     def check_login(self):
-        """ Returns true if current session is valid, false otherwise. """
+        """Returns true if current session is valid, false otherwise."""
         if self.user is None or not self.user.id or not self.session_id:
             return False
-        return self.request.basic_request('GET', 'users/%s/subscription' % self.user.id).ok
+        return self.request.basic_request(
+            "GET", "users/%s/subscription" % self.user.id
+        ).ok
 
     def playlist(self, playlist_id=None):
         """

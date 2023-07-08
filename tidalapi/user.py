@@ -92,7 +92,7 @@ class FetchedUser(User):
 class LoggedInUser(FetchedUser):
     username = None
     email = None
-    user_data = None
+    profile_metadata = None
 
     def __init__(self, session, user_id):
         super(LoggedInUser, self).__init__(session, user_id)
@@ -102,7 +102,7 @@ class LoggedInUser(FetchedUser):
         super(LoggedInUser, self).parse(json_obj)
         self.username = json_obj["username"]
         self.email = json_obj["email"]
-        self.user_data = json_obj
+        self.profile_metadata = json_obj
 
         return copy(self)
 

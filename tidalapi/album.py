@@ -26,12 +26,10 @@ DEFAULT_ALBUM_IMAGE = (
 
 
 class Album(object):
-    """
-    Contains information about a TIDAL album.
+    """Contains information about a TIDAL album.
 
-    If the album is created from a media object, this object will only contain
-    the id, name, cover and video cover. TIDAL does this to reduce the network load.
-
+    If the album is created from a media object, this object will only contain the id,
+    name, cover and video cover. TIDAL does this to reduce the network load.
     """
 
     id = None
@@ -122,10 +120,12 @@ class Album(object):
 
     @property
     def available_release_date(self):
-        """
-        Get the release date if it's available, otherwise get the day it was released on TIDAL
+        """Get the release date if it's available, otherwise get the day it was released
+        on TIDAL.
 
-        :return: A :any:`python:datetime.datetime` object with the release date, or the tidal release date, can be None
+        :return: A
+        :any:`python:datetime.datetime` object with the release date, or the tidal
+            release date, can be None
         """
         if self.release_date:
             return self.release_date
@@ -134,12 +134,12 @@ class Album(object):
         return None
 
     def tracks(self, limit=None, offset=0):
-        """
-        Returns the tracks in classes album.
+        """Returns the tracks in classes album.
 
         :param limit: The amount of items you want returned.
         :param offset: The position of the first item you want to include.
-        :return: A list of the :class:`Tracks <.Track>` in the album.
+        :return: A list of the
+        :class:`Tracks <.Track>` in the album.
         """
         params = {"limit": limit, "offset": offset}
         return self.requests.map_request(
@@ -147,8 +147,7 @@ class Album(object):
         )
 
     def items(self, limit=100, offset=0):
-        """
-        Gets the first 100 tracks and videos in the album from TIDAL.
+        """Gets the first 100 tracks and videos in the album from TIDAL.
 
         :param offset: The index you want to start retrieving items from
         :return: A list of :class:`Tracks<.Track>` and :class:`Videos`<.Video>`
@@ -159,8 +158,7 @@ class Album(object):
         )
 
     def image(self, dimensions, default=DEFAULT_ALBUM_IMAGE):
-        """
-        A url to an album image cover
+        """A url to an album image cover.
 
         :param dimensions: The width and height that you want from the image
         :type dimensions: int
@@ -181,8 +179,7 @@ class Album(object):
         )
 
     def video(self, dimensions):
-        """
-        Creates a url to an mp4 video cover for the album.
+        """Creates a url to an mp4 video cover for the album.
 
         Valid resolutions: 80x80, 160x160, 320x320, 640x640, 1280x1280
 
@@ -211,8 +208,7 @@ class Album(object):
         return self.session.page.get("pages/album", params={"albumId": self.id})
 
     def similar(self):
-        """
-        Retrieve albums similar to the current one
+        """Retrieve albums similar to the current one.
 
         :return: A :any:`list` of similar albums
         """
@@ -221,8 +217,7 @@ class Album(object):
         )
 
     def review(self) -> str:
-        """
-        Retrieve the album review
+        """Retrieve the album review.
 
         :return: A :class:`str` containing the album review, with wimp links
         :raises: :class:`requests.HTTPError` if there isn't a review yet

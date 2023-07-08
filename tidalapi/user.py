@@ -15,9 +15,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-A module containing classes and functions related to tidal users.
+"""A module containing classes and functions related to tidal users.
 
 :class:`User` is a class with user information.
 :class:`Favorites` is class with a users favorites.
@@ -30,13 +28,14 @@ import dateutil.parser
 
 
 class User(object):
-    """
-    A class containing various information about a TIDAL user.
+    """A class containing various information about a TIDAL user.
 
-    The attributes of this class are pretty varied. ID is the only attribute you can rely on being set.
-    If you initialized a specific user, you will get id, first_name, last_name, and picture_id.
-    If parsed as a playlist creator, you will get an ID and a name, if the creator isn't an artist, name will be 'user'.
-    If the parsed user is the one logged in, for example in session.user, you will get the remaining attributes, and id.
+    The attributes of this class are pretty varied. ID is the only attribute you can
+    rely on being set. If you initialized a specific user, you will get id, first_name,
+    last_name, and picture_id. If parsed as a playlist creator, you will get an ID and a
+    name, if the creator isn't an artist, name will be 'user'. If the parsed user is the
+    one logged in, for example in session.user, you will get the remaining attributes,
+    and id.
     """
 
     id = -1
@@ -126,8 +125,7 @@ class LoggedInUser(FetchedUser):
         return copy(self)
 
     def playlists(self):
-        """
-        Get the playlists created by the user.
+        """Get the playlists created by the user.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
         """
@@ -136,9 +134,8 @@ class LoggedInUser(FetchedUser):
         )
 
     def playlist_and_favorite_playlists(self, offset=0):
-        """
-        Get the playlists created by the user, and the playlists favorited by the user.
-        This function is limited to 50 by TIDAL, requiring pagination.
+        """Get the playlists created by the user, and the playlists favorited by the
+        user. This function is limited to 50 by TIDAL, requiring pagination.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
         """
@@ -182,9 +179,7 @@ class PlaylistCreator(User):
 
 
 class Favorites(object):
-    """
-    An object containing a users favourites.
-    """
+    """An object containing a users favourites."""
 
     def __init__(self, session, user_id):
         self.session = session
@@ -192,8 +187,7 @@ class Favorites(object):
         self.base_url = "users/%s/favorites" % user_id
 
     def add_album(self, album_id):
-        """
-        Adds an album to the users favorites.
+        """Adds an album to the users favorites.
 
         :param album_id: TIDAL's identifier of the album.
         :return: A boolean indicating whether the request was successful or not.
@@ -203,8 +197,7 @@ class Favorites(object):
         ).ok
 
     def add_artist(self, artist_id):
-        """
-        Adds an artist to the users favorites.
+        """Adds an artist to the users favorites.
 
         :param artist_id: TIDAL's identifier of the artist
         :return: A boolean indicating whether the request was successful or not.
@@ -214,10 +207,9 @@ class Favorites(object):
         ).ok
 
     def add_playlist(self, playlist_id):
-        """
-        Adds a playlist to the users favorites.
+        """Adds a playlist to the users favorites.
 
-        :param playlist_id:  TIDAL's identifier of the playlist.
+        :param playlist_id: TIDAL's identifier of the playlist.
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request(
@@ -225,8 +217,7 @@ class Favorites(object):
         ).ok
 
     def add_track(self, track_id):
-        """
-        Adds a track to the users favorites.
+        """Adds a track to the users favorites.
 
         :param track_id: TIDAL's identifier of the track.
         :return: A boolean indicating whether the request was successful or not.
@@ -236,8 +227,7 @@ class Favorites(object):
         ).ok
 
     def add_video(self, video_id):
-        """
-        Adds a video to the users favorites.
+        """Adds a video to the users favorites.
 
         :param video_id: TIDAL's identifier of the video.
         :return: A boolean indicating whether the request was successful or not.
@@ -251,8 +241,7 @@ class Favorites(object):
         ).ok
 
     def remove_artist(self, artist_id):
-        """
-        Removes a track from the users favorites.
+        """Removes a track from the users favorites.
 
         :param artist_id: TIDAL's identifier of the artist.
         :return: A boolean indicating whether the request was successful or not.
@@ -262,8 +251,7 @@ class Favorites(object):
         ).ok
 
     def remove_album(self, album_id):
-        """
-        Removes an album from the users favorites.
+        """Removes an album from the users favorites.
 
         :param album_id: TIDAL's identifier of the album
         :return: A boolean indicating whether the request was successful or not.
@@ -273,8 +261,7 @@ class Favorites(object):
         ).ok
 
     def remove_playlist(self, playlist_id):
-        """
-        Removes a playlist from the users favorites.
+        """Removes a playlist from the users favorites.
 
         :param playlist_id: TIDAL's identifier of the playlist.
         :return: A boolean indicating whether the request was successful or not.
@@ -284,8 +271,7 @@ class Favorites(object):
         ).ok
 
     def remove_track(self, track_id):
-        """
-        Removes a track from the users favorites.
+        """Removes a track from the users favorites.
 
         :param track_id: TIDAL's identifier of the track.
         :return: A boolean indicating whether the request was successful or not.
@@ -295,20 +281,17 @@ class Favorites(object):
         ).ok
 
     def remove_video(self, video_id):
-        """
-        Removes a video from the users favorites.
+        """Removes a video from the users favorites.
 
         :param video_id: TIDAL's identifier of the video.
         :return: A boolean indicating whether the request was successful or not.
-
         """
         return self.requests.request(
             "DELETE", self.base_url + "/videos/%s" % video_id
         ).ok
 
     def artists(self, limit=None, offset=0):
-        """
-        Get the users favorite artists
+        """Get the users favorite artists.
 
         :return: A :class:`list` of :class:`~tidalapi.artist.Artist` objects containing the favorite artists.
         """
@@ -318,8 +301,7 @@ class Favorites(object):
         )
 
     def albums(self, limit=None, offset=0):
-        """
-        Get the users favorite albums
+        """Get the users favorite albums.
 
         :return: A :class:`list` of :class:`~tidalapi.album.Album` objects containing the favorite albums.
         """
@@ -329,8 +311,7 @@ class Favorites(object):
         )
 
     def playlists(self, limit=None, offset=0):
-        """
-        Get the users favorite playlists
+        """Get the users favorite playlists.
 
         :return: A :class:`list` :class:`~tidalapi.playlist.Playlist` objects containing the favorite playlists.
         """
@@ -342,8 +323,7 @@ class Favorites(object):
         )
 
     def tracks(self, limit=None, offset=0):
-        """
-        Get the users favorite tracks
+        """Get the users favorite tracks.
 
         :return: A :class:`list` of :class:`~tidalapi.track.Track` objects containing all of the favorite tracks.
         """
@@ -353,8 +333,7 @@ class Favorites(object):
         )
 
     def videos(self):
-        """
-        Get the users favorite videos
+        """Get the users favorite videos.
 
         :return: A :class:`list` of :class:`~tidalapi.media.Video` objects containing all the favorite videos
         """

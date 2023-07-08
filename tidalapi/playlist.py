@@ -15,10 +15,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-A module containing things related to TIDAL playlists.
-"""
+"""A module containing things related to TIDAL playlists."""
 
 import copy
 from typing import Optional
@@ -27,9 +24,8 @@ import dateutil.parser
 
 
 class Playlist(object):
-    """
-    An object containing various data about a playlist and methods to work with them.
-    """
+    """An object containing various data about a playlist and methods to work with
+    them."""
 
     id = None
     name = None
@@ -61,11 +57,11 @@ class Playlist(object):
             self.parse(request.json())
 
     def parse(self, json_obj):
-        """
-        Parses a playlist from tidal, replaces the current playlist object.
+        """Parses a playlist from tidal, replaces the current playlist object.
 
         :param json_obj: Json data returned from api.tidal.com containing a playlist
-        :return: Returns a copy of the original :exc:'Playlist': object
+        :return: Returns a copy of the original
+        :exc: 'Playlist': object
         """
         self.id = json_obj["uuid"]
         self.name = json_obj["title"]
@@ -123,12 +119,12 @@ class Playlist(object):
         return copy.copy(self.factory())
 
     def tracks(self, limit=None, offset=0):
-        """
-        Gets the playlists̈́' tracks from TIDAL.
+        """Gets the playlists̈́' tracks from TIDAL.
 
         :param limit: The amount of items you want returned.
         :param offset: The index of the first item you want included.
-        :return: A list of :class:`Tracks <.Track>`
+        :return: A list of
+        :class:`Tracks <.Track>`
         """
         params = {"limit": limit, "offset": offset}
         request = self.requests.request(
@@ -140,12 +136,13 @@ class Playlist(object):
         )
 
     def items(self, limit=100, offset=0):
-        """
-        Fetches up to the first 100 items, including tracks and videos
+        """Fetches up to the first 100 items, including tracks and videos.
 
         :param limit: The amount of items you want, up to 100.
         :param offset: The index of the first item you want returned
-        :return: A list of :class:`Tracks<.Track>` and :class:`Videos<.Video>`
+        :return: A list of
+        :class:`Tracks<.Track>` and
+        :class:`Videos<.Video>`
         """
         params = {"limit": limit, "offset": offset}
         request = self.requests.request(
@@ -155,8 +152,7 @@ class Playlist(object):
         return self.requests.map_json(request.json(), parse=self.session.parse_media)
 
     def image(self, dimensions):
-        """
-        A URL to a playlist picture
+        """A URL to a playlist picture.
 
         :param dimensions: The width and height that want from the image
         :type dimensions: int
@@ -176,9 +172,7 @@ class Playlist(object):
         )
 
     def wide_image(self, width=1080, height=720):
-        """
-        Create a url to a wider playlist image.
-
+        """Create a url to a wider playlist image.
 
         :param width: The width of the image
         :param height: The height of the image

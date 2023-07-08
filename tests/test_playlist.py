@@ -34,7 +34,8 @@ def test_playlist(session):
     assert playlist.num_tracks == 40
     assert (
         playlist.description
-        == "JAY-Z shares his favorite Hip-Hop and R&B songs from the year. (Photo: Ravie B.)"
+        == "JAY-Z shares his favorite Hip-Hop and R&B songs from the year."
+        " (Photo: Ravie B.)"
     )
     assert playlist.duration == 8008
     assert playlist.last_updated == datetime.datetime(

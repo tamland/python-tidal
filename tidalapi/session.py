@@ -27,17 +27,7 @@ import time
 import uuid
 from collections import namedtuple
 from enum import Enum
-from typing import (
-    Any,
-    Callable,
-    List,
-    Literal,
-    Optional,
-    TypedDict,
-    Union,
-    cast,
-    no_type_check,
-)
+from typing import Any, Callable, List, Literal, Optional, Union, cast, no_type_check
 from urllib.parse import urljoin
 
 import requests
@@ -76,9 +66,8 @@ class VideoQuality(Enum):
 
 
 class LinkLogin(object):
-    """
-    The data required for logging in to TIDAL using a remote link, json is the data returned from TIDAL
-    """
+    """The data required for logging in to TIDAL using a remote link, json is the data
+    returned from TIDAL."""
 
     #: Amount of seconds until the code expires
     expires_in = None
@@ -97,8 +86,7 @@ class LinkLogin(object):
 
 
 class Config(object):
-    """
-    Configuration for TIDAL services.
+    """Configuration for TIDAL services.
 
     The maximum item_limit is 10000, and some endpoints have a maximum of 100 items, which will be shown in the docs.
     In cases where the maximum is 100 items, you will have to use offsets to get more than 100 items.
@@ -207,9 +195,7 @@ TypeRelation = namedtuple("TypeRelation", ("identifier", "type", "parse"))
 
 
 class Session(object):
-    """
-    Object for interacting with the TIDAL api and
-    """
+    """Object for interacting with the TIDAL api and."""
 
     #: The TIDAL access token, this is what you use with load_oauth_session
     access_token = None
@@ -299,9 +285,8 @@ class Session(object):
         return result
 
     def load_session(self, session_id, country_code=None, user_id=None):
-        """
-        Establishes TIDAL login details using a previous session id.
-        May return true if the session-id is invalid/expired, you should verify the login afterwards.
+        """Establishes TIDAL login details using a previous session id. May return true
+        if the session-id is invalid/expired, you should verify the login afterwards.
 
         :param session_id: The UUID of the session you want to use.
         :param country_code: (Optional) Two-letter country code.
@@ -327,13 +312,13 @@ class Session(object):
     def load_oauth_session(
         self, token_type, access_token, refresh_token=None, expiry_time=None
     ):
-        """
-        Login to TIDAL using details from a previous OAuth login, automatically
+        """Login to TIDAL using details from a previous OAuth login, automatically
         refreshes expired access tokens if refresh_token is supplied as well.
 
         :param token_type: The type of token, e.g. Bearer
         :param access_token: The access token received from an oauth login or refresh
-        :param refresh_token: (Optional) A refresh token that lets you get a new access token after it has expired
+        :param refresh_token: (Optional) A refresh token that lets you get a new access
+            token after it has expired
         :param expiry_time: (Optional) The datetime the access token will expire
         :return: True if we believe the log in was successful, otherwise false.
         """
@@ -354,8 +339,7 @@ class Session(object):
         return True
 
     def login(self, username, password):
-        """
-        Logs in to the TIDAL api.
+        """Logs in to the TIDAL api.
 
         :param username: The TIDAL username
         :param password: The password to your TIDAL account
@@ -381,8 +365,8 @@ class Session(object):
         return True
 
     def login_oauth_simple(self, function=print):
-        """
-        Login to TIDAL using a remote link. You can select what function you want to use to display the link
+        """Login to TIDAL using a remote link. You can select what function you want to
+        use to display the link.
 
         :param function: The function you want to display the link with
         :raises: TimeoutError: If the login takes too long
@@ -393,9 +377,9 @@ class Session(object):
         future.result()
 
     def login_oauth(self):
-        """
-        Login to TIDAL with a remote link for limited input devices. The function will return everything you
-        need to log in through a web browser, and will return an future that will run until login.
+        """Login to TIDAL with a remote link for limited input devices. The function
+        will return everything you need to log in through a web browser, and will return
+        an future that will run until login.
 
         :return: A :class:`LinkLogin` object containing all the data needed to log in remotely, and
             a :class:`concurrent.futures.Future` that will poll until the login is completed, or until the link expires.
@@ -458,11 +442,12 @@ class Session(object):
         raise TimeoutError("You took too long to log in")
 
     def token_refresh(self, refresh_token):
-        """
-        Retrieves a new access token using the specified parameters, updating the current access token
+        """Retrieves a new access token using the specified parameters, updating the
+        current access token.
 
         :param refresh_token: The refresh token retrieved when using the OAuth login.
-        :return: True if we believe the token was successfully refreshed, otherwise False
+        :return: True if we believe the token was successfully refreshed, otherwise
+            False
         """
         url = "https://auth.tidal.com/v1/oauth2/token"
         params = {
@@ -485,9 +470,9 @@ class Session(object):
         return True
 
     def search(self, query, models=None, limit=50, offset=0):
-        """
-        Searches TIDAL with the specified query, you can also specify what models you want to search for.
-        While you can set the offset, there aren't more than 300 items available in a search.
+        """Searches TIDAL with the specified query, you can also specify what models you
+        want to search for. While you can set the offset, there aren't more than 300
+        items available in a search.
 
         :param query: The string you want to search for
         :param models: A list of tidalapi models you want to include in the search.
@@ -547,9 +532,9 @@ class Session(object):
         ).ok
 
     def playlist(self, playlist_id=None):
-        """
-        Function to create a playlist object with access to the session instance in a smoother way.
-        Calls :class:`tidalapi.Playlist(session=session, playlist_id=playlist_id) <.Playlist>` internally
+        """Function to create a playlist object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.Playlist(session=session,
+        playlist_id=playlist_id) <.Playlist>` internally.
 
         :param playlist_id: (Optional) The TIDAL id of the playlist. You may want access to the methods without an id.
         :return: Returns a :class:`.Playlist` object that has access to the session instance used.
@@ -558,9 +543,9 @@ class Session(object):
         return tidalapi.Playlist(session=self, playlist_id=playlist_id).factory()
 
     def track(self, track_id=None, with_album=False):
-        """
-        Function to create a Track object with access to the session instance in a smoother way.
-        Calls :class:`tidalapi.Track(session=session, track_id=track_id) <.Track>` internally
+        """Function to create a Track object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.Track(session=session, track_id=track_id)
+        <.Track>` internally.
 
         :param track_id: (Optional) The TIDAL id of the Track. You may want access to the methods without an id.
         :param with_album: (Optional) Whether to fetch the complete :class:`.Album` for the track or not
@@ -576,9 +561,9 @@ class Session(object):
         return item
 
     def video(self, video_id=None):
-        """
-        Function to create a Video object with access to the session instance in a smoother way.
-        Calls :class:`tidalapi.Video(session=session, video_id=video_id) <.Video>` internally
+        """Function to create a Video object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.Video(session=session, video_id=video_id)
+        <.Video>` internally.
 
         :param video_id: (Optional) The TIDAL id of the Video. You may want access to the methods without an id.
         :return: Returns a :class:`.Video` object that has access to the session instance used.
@@ -587,9 +572,9 @@ class Session(object):
         return tidalapi.Video(session=self, media_id=video_id)
 
     def artist(self, artist_id=None):
-        """
-        Function to create a Artist object with access to the session instance in a smoother way.
-        Calls :class:`tidalapi.Artist(session=session, artist_id=artist_id) <.Artist>` internally
+        """Function to create a Artist object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.Artist(session=session,
+        artist_id=artist_id) <.Artist>` internally.
 
         :param artist_id: (Optional) The TIDAL id of the Artist. You may want access to the methods without an id.
         :return: Returns a :class:`.Artist` object that has access to the session instance used.
@@ -598,9 +583,9 @@ class Session(object):
         return tidalapi.Artist(session=self, artist_id=artist_id)
 
     def album(self, album_id=None):
-        """
-        Function to create a Album object with access to the session instance in a smoother way.
-        Calls :class:`tidalapi.Album(session=session, album_id=album_id) <.Album>` internally
+        """Function to create a Album object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.Album(session=session, album_id=album_id)
+        <.Album>` internally.
 
         :param album_id: (Optional) The TIDAL id of the Album. You may want access to the methods without an id.
         :return: Returns a :class:`.Album` object that has access to the session instance used.
@@ -609,9 +594,8 @@ class Session(object):
         return tidalapi.Album(session=self, album_id=album_id)
 
     def mix(self, mix_id=None):
-        """
-        Function to create a mix object with access to the session instance smoothly
-        Calls :class:`tidalapi.Mix(session=session, mix_id=mix_id) <.Album>` internally
+        """Function to create a mix object with access to the session instance smoothly
+        Calls :class:`tidalapi.Mix(session=session, mix_id=mix_id) <.Album>` internally.
 
         :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
         :return: Returns a :class:`.Mix` object that has access to the session instance used.
@@ -620,9 +604,9 @@ class Session(object):
         return tidalapi.Mix(session=self, mix_id=mix_id)
 
     def get_user(self, user_id=None):
-        """
-        Function to create a User object with access to the session instance in a smoother way.
-        Calls :class:`tidalapi.User(session=session, user_id=user_id) <.User>` internally
+        """Function to create a User object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.User(session=session, user_id=user_id)
+        <.User>` internally.
 
         :param user_id: (Optional) The TIDAL id of the User. You may want access to the methods without an id.
         :return: Returns a :class:`.User` object that has access to the session instance used.

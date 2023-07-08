@@ -14,19 +14,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-A module containing functions relating to TIDAL mixes.
-"""
+"""A module containing functions relating to TIDAL mixes."""
 import copy
 from enum import Enum
-from typing import Optional
 
 
 class MixType(Enum):
-    """
-    An enum to track all the different types of mixes
-    """
+    """An enum to track all the different types of mixes."""
 
     video_daily = "VIDEO_DAILY_MIX"
     daily = "DAILY_MIX"
@@ -42,10 +36,10 @@ class MixType(Enum):
 
 
 class Mix(object):
-    """
-    A mix from TIDAL, e.g. the listen.tidal.com/view/pages/my_collection_my_mixes
+    """A mix from TIDAL, e.g. the listen.tidal.com/view/pages/my_collection_my_mixes.
 
-    These get used for many things, like artist/track radio's, recommendations, and historical plays
+    These get used for many things, like artist/track radio's, recommendations, and
+    historical plays
     """
 
     id = ""
@@ -66,8 +60,8 @@ class Mix(object):
             self.get(mix_id)
 
     def get(self, mix_id=None):
-        """
-        Returns information about a mix, and also replaces the mix object used to call this function.
+        """Returns information about a mix, and also replaces the mix object used to
+        call this function.
 
         :param mix_id: TIDAL's identifier of the mix
         :return: A :class:`Mix` object containing all the information about the mix
@@ -112,8 +106,7 @@ class Mix(object):
         return self._items
 
     def image(self, dimensions):
-        """
-        A URL to a Mix picture
+        """A URL to a Mix picture.
 
         :param dimensions: The width and height the requested image should be
         :type dimensions: int

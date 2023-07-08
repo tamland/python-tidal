@@ -38,6 +38,7 @@ ffmpeg-python = "^0.2.0"
 black = "^23.3.0"
 isort = "^5.12.0"
 ruff = "^0.0.277"
+docformatter = {extras = ["tomli"], version = "^1.7.3"}
 
 [build-system]
 requires = ["poetry-core"]
@@ -49,3 +50,7 @@ packages = "tidalapi"
 
 [tool.isort]
 profile = "black"
+
+[tool.docformatter]
+recursive = true
+black = true

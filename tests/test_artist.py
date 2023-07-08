@@ -140,8 +140,8 @@ def test_artist_image(session):
 
 
 def find_ids(items, function):
-    """
-    Makes sure that the items argument has id attributes that exist in the list returned by function.
+    """Makes sure that the items argument has id attributes that exist in the list
+    returned by function.
 
     :param items: A list of items that you expect in the list returned by `function`
     :param function: A function that returns a list of items of the same type as items.

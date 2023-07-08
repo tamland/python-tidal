@@ -168,17 +168,18 @@ def test_add_remove_favorite_video(session):
 
 
 def add_remove(object_id, add, remove, objects):
-    """
-    Add and remove an item from favorites. Skips the test if the item was already in your favorites.
+    """Add and remove an item from favorites. Skips the test if the item was already in
+    your favorites.
 
     :param object_id: Identifier of the object
     :param add: Function to add object to favorites
     :param remove: Function to remove object from favorites
     :param objects: Function to list objects in favorites
     """
-    # If the item is already favorited, we don't want to do anything with it, as it would result in the date it was
-    # favorited changing. Avoiding it also lets us make sure that we won't remove something from the favorites if
-    # the tests are cancelled.
+    # If the item is already favorited, we don't want to do anything with it,
+    # as it would result in the date it was favorited changing. Avoiding it
+    # also lets us make sure that we won't remove something from the favorites
+    # if the tests are cancelled.
     exists = False
     for item in objects():
         if item.id == object_id:

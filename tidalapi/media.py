@@ -15,9 +15,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-A module containing information about various media types.
+"""A module containing information about various media types.
 
 Classes: :class:`Media`, :class:`Track`, :class:`Video`
 """
@@ -70,9 +68,8 @@ class Media(object):
         )
 
     def parse(self, json_obj):
-        """
-        Assigns all
-        :param json_obj:
+        """Assigns all :param json_obj:
+
         :return:
         """
         artists = self.session.parse_artists(json_obj["artists"])
@@ -117,8 +114,7 @@ class Media(object):
         self.artist_roles = json_obj.get("artistRoles")
 
     def parse_media(self, json_obj):
-        """
-        Selects the media type when checking lists that can contain both.
+        """Selects the media type when checking lists that can contain both.
 
         :param json_obj: The json containing the media
         :return: Returns a new Video or Track object.
@@ -130,9 +126,7 @@ class Media(object):
 
 
 class Track(Media):
-    """
-    An object containing information about a track.
-    """
+    """An object containing information about a track."""
 
     replay_gain = None
     peak = None
@@ -161,8 +155,8 @@ class Track(Media):
         return copy.copy(self)
 
     def _get(self, media_id):
-        """
-        Returns information about a track, and also replaces the track used to call this function.
+        """Returns information about a track, and also replaces the track used to call
+        this function.
 
         :param media_id: TIDAL's identifier of the track
         :return: A :class:`Track` object containing all the information about the track
@@ -182,8 +176,7 @@ class Track(Media):
         return request.json()["urls"][0]
 
     def lyrics(self):
-        """
-        Retrieves the lyrics for a song
+        """Retrieves the lyrics for a song.
 
         :return: A :class:`Lyrics` object containing the lyrics
         :raises: A :class:`requests.HTTPError` if there aren't any lyrics
@@ -193,10 +186,11 @@ class Track(Media):
         )
 
     def get_track_radio(self):
-        """
-        Queries TIDAL for the track radio, which is a mix of tracks that are similar to this track.
+        """Queries TIDAL for the track radio, which is a mix of tracks that are similar
+        to this track.
 
-        :return: A list of :class:`Tracks <tidalapi.media.Track>`
+        :return: A list of
+        :class:`Tracks <tidalapi.media.Track>`
         """
         params = {"limit": 100}
         return self.requests.map_request(
@@ -204,8 +198,7 @@ class Track(Media):
         )
 
     def stream(self):
-        """
-        Retrieves the track streaming object, allowing for audio transmission.
+        """Retrieves the track streaming object, allowing for audio transmission.
 
         :return: A :class:`Stream` object which holds audio file properties and parameters needed for streaming via `MPEG-DASH` protocol.
         """
@@ -220,8 +213,8 @@ class Track(Media):
 
 
 class Stream(object):
-    """
-    An object that stores the audio file properties and parameters needed for streaming via `MPEG-DASH` protocol.
+    """An object that stores the audio file properties and parameters needed for
+    streaming via `MPEG-DASH` protocol.
 
     The `manifest` attribute holds the MPD file content encoded in base64.
     """
@@ -267,9 +260,7 @@ class Lyrics(object):
 
 
 class Video(Media):
-    """
-    An object containing information about a video
-    """
+    """An object containing information about a video."""
 
     release_date = None
     video_quality = None
@@ -288,8 +279,8 @@ class Video(Media):
         return copy.copy(self)
 
     def _get(self, media_id):
-        """
-        Returns information about the video, and replaces the object used to call this function.
+        """Returns information about the video, and replaces the object used to call
+        this function.
 
         :param media_id: TIDAL's identifier of the video
         :return: A :class:`Video` object containing all the information about the video.

@@ -42,10 +42,10 @@ def session(request):
 
 class Credentials(ABC):
     def load(self, key: str) -> Optional[dict]:
-        """Load secret"""
+        """Load secret."""
 
     def save(self, key: str, val: dict) -> None:
-        """Save secret"""
+        """Save secret."""
 
 
 class EnvCredentials(Credentials):

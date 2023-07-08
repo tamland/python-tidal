@@ -15,16 +15,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-
-"""
+""""""
 
 import copy
 
 
 class Genre(object):
-    """ """
+    """"""
 
     name = ""
     path = ""
@@ -60,9 +57,10 @@ class Genre(object):
         return self.parse_genres(self.requests.request("GET", "genres").json())
 
     def items(self, model):
-        """
-        Gets the current genre's items of the specified type
-        :param model: The tidalapi model you want returned. See :class:`Genre`
+        """Gets the current genre's items of the specified type :param model: The
+        tidalapi model you want returned.
+
+        See :class:`Genre`
         :return:
         """
         type_relations = next(

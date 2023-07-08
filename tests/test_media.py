@@ -190,7 +190,7 @@ def test_video_image(session):
 def test_full_name_track_1(session):
     track = session.track(149119714)
     assert track.name == "Fibonacci Progressions (Keemiyo Remix)"
-    assert track.version == None
+    assert track.version is None
     assert track.full_name == "Fibonacci Progressions (Keemiyo Remix)"
 
 

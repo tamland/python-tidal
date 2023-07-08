@@ -24,7 +24,7 @@ from contextlib import suppress
 from json import dumps, loads
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import keyring
 import keyring.backends

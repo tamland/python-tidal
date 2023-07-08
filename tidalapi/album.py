@@ -70,7 +70,7 @@ class Album(object):
             artists = self.session.parse_artists(json_obj["artists"])
 
         # Sometimes the artist field is not filled, an example is 140196345
-        if not "artist" in json_obj:
+        if "artist" not in json_obj:
             artist = artists[0]
         elif artist is None:
             artist = self.session.parse_artist(json_obj["artist"])

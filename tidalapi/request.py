@@ -159,7 +159,7 @@ class Requests(object):
 
         params = {"offset": 0, "limit": 100}
         remaining = 100
-        item_list: list[Any] = []
+        item_list: List[Any] = []
         while remaining == 100:
             items = self.map_request(url, params=params, parse=parse)
             remaining = len(items)

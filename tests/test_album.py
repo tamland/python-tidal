@@ -28,6 +28,7 @@ def test_album(session):
     album = session.album(17927863)
     assert album.id == 17927863
     assert album.name == 'Some Things (Deluxe)'
+    assert album.type == 'ALBUM'
     assert album.duration == 6712
     assert album.available
     assert album.num_tracks == 22
@@ -109,3 +110,15 @@ def test_review(session):
     album = session.album(199142349)
     review = album.review()
     assert "Kanye West" in review
+    
+def test_album_type_album(session):
+    album = session.album(17927863)
+    assert album.type == "ALBUM"    
+
+def test_album_type_single(session):
+    album = session.album(239638071)
+    assert album.type == "SINGLE"
+    
+def test_album_type_ep(session):
+    album = session.album(289261563)
+    assert album.type == "EP"

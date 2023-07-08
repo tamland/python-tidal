@@ -22,6 +22,7 @@ A module containing information and functions related to TIDAL artists.
 
 import copy
 from enum import Enum
+
 import dateutil.parser
 
 IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
@@ -40,7 +41,7 @@ class Artist(object):
         self.request = self.session.request
         self.id = artist_id
         if artist_id:
-            self.request.map_request('artists/%s' % artist_id, parse=self.parse_artist)
+            self.request.map_request("artists/%s" % artist_id, parse=self.parse_artist)
 
     def parse_artist(self, json_obj):
         """
@@ -48,25 +49,26 @@ class Artist(object):
         :param json_obj:
         :return:
         """
-        self.id = json_obj['id']
-        self.name = json_obj['name']
-
+        self.id = json_obj["id"]
+        self.name = json_obj["name"]
 
         # Artists do not have roles as playlist creators.
         self.roles = None
         self.role = None
-        if json_obj.get('type') or json_obj.get('artistTypes'):
+        if json_obj.get("type") or json_obj.get("artistTypes"):
             roles = []
-            for role in json_obj.get('artistTypes', [json_obj.get('type')]):
+            for role in json_obj.get("artistTypes", [json_obj.get("type")]):
                 roles.append(Role(role))
 
             self.roles = roles
             self.role = roles[0]
 
-        self.picture = json_obj.get('picture')
+        self.picture = json_obj.get("picture")
 
-        user_date_added = json_obj.get('dateAdded')
-        self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
+        user_date_added = json_obj.get("dateAdded")
+        self.user_date_added = (
+            dateutil.parser.isoparse(user_date_added) if user_date_added else None
+        )
 
         return copy.copy(self)
 
@@ -81,7 +83,9 @@ class Artist(object):
         return list(map(self.parse_artist, json_obj))
 
     def _get_albums(self, params=None):
-        return self.request.map_request('artists/%s/albums' % self.id, params, parse=self.session.parse_album)
+        return self.request.map_request(
+            "artists/%s/albums" % self.id, params, parse=self.session.parse_album
+        )
 
     def get_albums(self, limit=None, offset=0):
         """
@@ -89,7 +93,7 @@ class Artist(object):
 
         :return: A list of :class:`Albums<tidalapi.album.Album>`
         """
-        params = {'limit': limit, 'offset': offset}
+        params = {"limit": limit, "offset": offset}
         return self._get_albums(params)
 
     def get_albums_ep_singles(self, limit=None, offset=0):
@@ -98,7 +102,7 @@ class Artist(object):
 
         :return: A list of :class:`Albums <tidalapi.album.Album>`
         """
-        params = {'filter': 'EPSANDSINGLES', 'limit': limit, 'offset': offset}
+        params = {"filter": "EPSANDSINGLES", "limit": limit, "offset": offset}
         return self._get_albums(params)
 
     def get_albums_other(self, limit=None, offset=0):
@@ -107,7 +111,7 @@ class Artist(object):
 
         :return: A list of :class:`Albums <tidalapi.album.Album>`
         """
-        params = {'filter': 'COMPILATIONS', 'limit': limit, 'offset': offset}
+        params = {"filter": "COMPILATIONS", "limit": limit, "offset": offset}
         return self._get_albums(params)
 
     def get_top_tracks(self, limit=None, offset=0):
@@ -116,8 +120,12 @@ class Artist(object):
 
         :return: A list of :class:`Tracks <tidalapi.media.Track>`
         """
-        params = {'limit': limit, 'offset': offset}
-        return self.request.map_request('artists/%s/toptracks' % self.id, params=params, parse=self.session.parse_track)
+        params = {"limit": limit, "offset": offset}
+        return self.request.map_request(
+            "artists/%s/toptracks" % self.id,
+            params=params,
+            parse=self.session.parse_track,
+        )
 
     def get_videos(self, limit=None, offset=0):
         """
@@ -125,8 +133,10 @@ class Artist(object):
 
         :return: A list of :class:`Videos <tidalapi.media.Video>`
         """
-        params = {'limit': limit, 'offset': offset}
-        return self.request.map_request('artists/%s/videos' % self.id, params=params, parse=self.session.parse_video)
+        params = {"limit": limit, "offset": offset}
+        return self.request.map_request(
+            "artists/%s/videos" % self.id, params=params, parse=self.session.parse_video
+        )
 
     def get_bio(self):
         """
@@ -135,7 +145,7 @@ class Artist(object):
         :return: A string containing the bio, as well as identifiers to other TIDAL objects inside the bio.
         """
         # morguldir: TODO: Add parsing of wimplinks?
-        return self.request.request('GET', 'artists/%s/bio' % self.id).json()['text']
+        return self.request.request("GET", "artists/%s/bio" % self.id).json()["text"]
 
     def get_similar(self):
         """
@@ -143,7 +153,9 @@ class Artist(object):
 
         :return: A list of :class:`Artists <tidalapi.artist.Artist>`
         """
-        return self.request.map_request('artists/%s/similar' % self.id, parse=self.parse_artist)
+        return self.request.map_request(
+            "artists/%s/similar" % self.id, parse=self.parse_artist
+        )
 
     def get_radio(self):
         """
@@ -151,8 +163,10 @@ class Artist(object):
 
         :return: A list of :class:`Tracks <tidalapi.media.Track>`
         """
-        params = {'limit': 100}
-        return self.request.map_request('artists/%s/radio' % self.id, params=params, parse=self.session.parse_track)
+        params = {"limit": 100}
+        return self.request.map_request(
+            "artists/%s/radio" % self.id, params=params, parse=self.session.parse_track
+        )
 
     def image(self, dimensions):
         """
@@ -168,10 +182,14 @@ class Artist(object):
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 
         if not self.picture:
-            json = self.request.request('get', 'artists/%s' % self.id).json()
-            self.picture = json.get('picture')
+            json = self.request.request("get", "artists/%s" % self.id).json()
+            self.picture = json.get("picture")
 
-        return self.session.config.image_url % (self.picture.replace('-', '/'), dimensions, dimensions)
+        return self.session.config.image_url % (
+            self.picture.replace("-", "/"),
+            dimensions,
+            dimensions,
+        )
 
     def page(self):
         """
@@ -186,7 +204,8 @@ class Role(Enum):
     """
     An Enum with different roles an artist can have.
     """
-    main = 'MAIN'
-    featured = 'FEATURED'
-    contributor = 'CONTRIBUTOR'
-    artist = 'ARTIST'
+
+    main = "MAIN"
+    featured = "FEATURED"
+    contributor = "CONTRIBUTOR"
+    artist = "ARTIST"

@@ -22,9 +22,10 @@ A module containing functions relating to TIDAL api requests.
 
 import json
 import logging
-import requests
 from typing import Any, List
 from urllib.parse import urljoin
+
+import requests
 
 log = logging.getLogger(__name__)
 

@@ -17,9 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+
 import dateutil.parser
 
-DEFAULT_ALBUM_IMAGE = "https://tidal.com/browse/assets/images/defaultImages/defaultAlbumImage.png"
+DEFAULT_ALBUM_IMAGE = (
+    "https://tidal.com/browse/assets/images/defaultImages/defaultAlbumImage.png"
+)
 
 
 class Album(object):
@@ -30,6 +33,7 @@ class Album(object):
     the id, name, cover and video cover. TIDAL does this to reduce the network load.
 
     """
+
     id = None
     name = None
     cover = None
@@ -59,45 +63,51 @@ class Album(object):
         self.artist = session.artist()
         self.id = album_id
         if album_id:
-            self.requests.map_request('albums/%s' % album_id, parse=self.parse)
+            self.requests.map_request("albums/%s" % album_id, parse=self.parse)
 
     def parse(self, json_obj, artist=None, artists=None):
         if artists is None:
-            artists = self.session.parse_artists(json_obj['artists'])
+            artists = self.session.parse_artists(json_obj["artists"])
 
         # Sometimes the artist field is not filled, an example is 140196345
-        if not 'artist' in json_obj:
+        if not "artist" in json_obj:
             artist = artists[0]
         elif artist is None:
-            artist = self.session.parse_artist(json_obj['artist'])
+            artist = self.session.parse_artist(json_obj["artist"])
 
-        self.id = json_obj['id']
-        self.name = json_obj['title']
-        self.cover = json_obj['cover']
-        self.video_cover = json_obj['videoCover']
-        self.duration = json_obj.get('duration')
-        self.available = json_obj.get('streamReady')
-        self.num_tracks = json_obj.get('numberOfTracks')
-        self.num_videos = json_obj.get('numberOfVideos')
-        self.num_volumes = json_obj.get('numberOfVolumes')
-        self.copyright = json_obj.get('copyright')
-        self.version = json_obj.get('version')
-        self.explicit = json_obj.get('explicit')
-        self.universal_product_number = json_obj.get('upc')
-        self.popularity = json_obj.get('popularity')
+        self.id = json_obj["id"]
+        self.name = json_obj["title"]
+        self.cover = json_obj["cover"]
+        self.video_cover = json_obj["videoCover"]
+        self.duration = json_obj.get("duration")
+        self.available = json_obj.get("streamReady")
+        self.num_tracks = json_obj.get("numberOfTracks")
+        self.num_videos = json_obj.get("numberOfVideos")
+        self.num_volumes = json_obj.get("numberOfVolumes")
+        self.copyright = json_obj.get("copyright")
+        self.version = json_obj.get("version")
+        self.explicit = json_obj.get("explicit")
+        self.universal_product_number = json_obj.get("upc")
+        self.popularity = json_obj.get("popularity")
         self.type = json_obj.get("type")
 
         self.artist = artist
         self.artists = artists
 
-        release_date = json_obj.get('releaseDate')
-        self.release_date = dateutil.parser.isoparse(release_date) if release_date else None
+        release_date = json_obj.get("releaseDate")
+        self.release_date = (
+            dateutil.parser.isoparse(release_date) if release_date else None
+        )
 
-        tidal_release_date = json_obj.get('streamStartDate')
-        self.tidal_release_date = dateutil.parser.isoparse(tidal_release_date) if tidal_release_date else None
+        tidal_release_date = json_obj.get("streamStartDate")
+        self.tidal_release_date = (
+            dateutil.parser.isoparse(tidal_release_date) if tidal_release_date else None
+        )
 
-        user_date_added = json_obj.get('dateAdded')
-        self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
+        user_date_added = json_obj.get("dateAdded")
+        self.user_date_added = (
+            dateutil.parser.isoparse(user_date_added) if user_date_added else None
+        )
 
         return copy.copy(self)
 
@@ -131,8 +141,10 @@ class Album(object):
         :param offset: The position of the first item you want to include.
         :return: A list of the :class:`Tracks <.Track>` in the album.
         """
-        params = {'limit': limit, 'offset': offset}
-        return self.requests.map_request('albums/%s/tracks' % self.id, params, parse=self.session.parse_track)
+        params = {"limit": limit, "offset": offset}
+        return self.requests.map_request(
+            "albums/%s/tracks" % self.id, params, parse=self.session.parse_track
+        )
 
     def items(self, limit=100, offset=0):
         """
@@ -141,8 +153,10 @@ class Album(object):
         :param offset: The index you want to start retrieving items from
         :return: A list of :class:`Tracks<.Track>` and :class:`Videos`<.Video>`
         """
-        params = {'offset': offset, 'limit': limit}
-        return self.requests.map_request('albums/%s/items' % self.id, params=params, parse=self.session.parse_media)
+        params = {"offset": offset, "limit": limit}
+        return self.requests.map_request(
+            "albums/%s/items" % self.id, params=params, parse=self.session.parse_media
+        )
 
     def image(self, dimensions, default=DEFAULT_ALBUM_IMAGE):
         """
@@ -160,7 +174,11 @@ class Album(object):
         if dimensions not in [80, 160, 320, 640, 1280]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 
-        return self.session.config.image_url % (self.cover.replace('-', '/'), dimensions, dimensions)
+        return self.session.config.image_url % (
+            self.cover.replace("-", "/"),
+            dimensions,
+            dimensions,
+        )
 
     def video(self, dimensions):
         """
@@ -178,7 +196,11 @@ class Album(object):
         if dimensions not in [80, 160, 320, 640, 1280]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 
-        return self.session.config.video_url % (self.video_cover.replace('-', '/'), dimensions, dimensions)
+        return self.session.config.video_url % (
+            self.video_cover.replace("-", "/"),
+            dimensions,
+            dimensions,
+        )
 
     def page(self):
         """
@@ -194,7 +216,9 @@ class Album(object):
 
         :return: A :any:`list` of similar albums
         """
-        return self.requests.map_request('albums/%s/similar' % self.id, parse=self.session.parse_album)
+        return self.requests.map_request(
+            "albums/%s/similar" % self.id, parse=self.session.parse_album
+        )
 
     def review(self) -> str:
         """
@@ -204,4 +228,4 @@ class Album(object):
         :raises: :class:`requests.HTTPError` if there isn't a review yet
         """
         # morguldir: TODO: Add parsing of wimplinks?
-        return self.requests.request('GET', 'albums/%s/review' % self.id).json()['text']
+        return self.requests.request("GET", "albums/%s/review" % self.id).json()["text"]

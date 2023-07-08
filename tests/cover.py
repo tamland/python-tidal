@@ -18,8 +18,8 @@
 
 from io import BytesIO
 
-import pytest
 import ffmpeg
+import pytest
 from PIL import Image
 
 
@@ -45,7 +45,9 @@ def verify_image_cover(session, model, resolutions):
     :param resolutions: A list of resolutions that the image has.
     """
     for resolution in resolutions:
-        verify_image_resolution(session, model.image(resolution), resolution, resolution)
+        verify_image_resolution(
+            session, model.image(resolution), resolution, resolution
+        )
 
     with pytest.raises(ValueError):
         model.image(81)
@@ -63,8 +65,8 @@ def verify_video_resolution(url, width, height):
     :param height: The height of the video in pixels.
     """
     probe = ffmpeg.probe(url)
-    stream = probe['streams'][-1]
-    assert (stream['width'], stream['height']) == (width, height)
+    stream = probe["streams"][-1]
+    assert (stream["width"], stream["height"]) == (width, height)
 
 
 def verify_video_cover(model, resolutions):

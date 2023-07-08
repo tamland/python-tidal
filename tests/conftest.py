@@ -17,18 +17,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+
+import logging
 from abc import ABC
 from contextlib import suppress
 from json import dumps, loads
-
-import logging
 from os import getenv
 from pathlib import Path
-from typing import Any, Optional, List
+from typing import Any, List, Optional
+
 import keyring
 import keyring.backends
 import keyring.errors
 import pytest
+
 import tidalapi
 
 

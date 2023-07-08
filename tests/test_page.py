@@ -43,13 +43,15 @@ def test_get_explore_items(session):
     genres = explore.categories[1].show_more()
     iterator = iter(genres)
     next(iterator)
-    assert next(iterator).title == 'Africa'
-    assert next(iterator).title == 'Blues'
+    assert next(iterator).title == "Africa"
+    assert next(iterator).title == "Blues"
 
 
 def test_show_more(session):
     videos = session.videos()
-    originals = next(iter(filter(lambda x: x.title == 'TIDAL Originals', videos.categories)))
+    originals = next(
+        iter(filter(lambda x: x.title == "TIDAL Originals", videos.categories))
+    )
     more = originals.show_more()
     assert len(more.categories[0].items) > 0
     assert isinstance(next(iter(more)), tidalapi.Artist)
@@ -82,7 +84,7 @@ def test_page_links(session):
     explore = session.explore()
     for item in explore.categories[3].items:
         page = item.get()
-        if item.title == 'TIDAL Rising':
+        if item.title == "TIDAL Rising":
             assert isinstance(page.categories[1].text, str)
 
 
@@ -101,7 +103,7 @@ def test_genres(session):
 def test_moods(session):
     moods = session.moods()
     first = next(iter(moods))
-    assert first.title == 'Music School'
+    assert first.title == "Music School"
     assert isinstance(next(iter(first.get())), tidalapi.Playlist)
 
 

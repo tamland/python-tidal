@@ -16,40 +16,39 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import print_function, unicode_literals
 
+import base64
 import concurrent.futures
 import datetime
-import base64
 import logging
 import random
-import requests
 import time
+import uuid
+from enum import Enum
 from typing import (
     Any,
     Callable,
+    List,
     Literal,
     Optional,
     TypedDict,
     Union,
     cast,
     no_type_check,
-    List,
 )
-import uuid
-from enum import Enum
+from urllib.parse import urljoin
 
+import requests
+
+import tidalapi.album
+import tidalapi.artist
+import tidalapi.genre
+import tidalapi.media
+import tidalapi.mix
 import tidalapi.playlist
 import tidalapi.request
 import tidalapi.user
-import tidalapi.media
-import tidalapi.artist
-import tidalapi.album
-import tidalapi.genre
-import tidalapi.mix
-
-from urllib.parse import urljoin
 
 log = logging.getLogger("__NAME__")
 SearchTypes: List[Optional[Any]] = [

@@ -20,7 +20,7 @@ Module for parsing TIDAL's pages format found at https://listen.tidal.com/v1/pag
 """
 
 import copy
-from typing import TYPE_CHECKING, Any, Iterator, Optional, Union, cast, List
+from typing import TYPE_CHECKING, Any, Iterator, List, Optional, Union, cast
 
 if TYPE_CHECKING:
     import tidalapi

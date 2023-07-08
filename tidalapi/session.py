@@ -26,6 +26,7 @@ import logging
 import random
 import requests
 import time
+from collections import namedtuple
 from typing import (
     Any,
     Callable,
@@ -203,6 +204,8 @@ class Case(Enum):
 
 TypeConversionKeys = Literal["identifier", "type", "parse"]
 
+TypeRelation = namedtuple("TypeRelation", ("identifier", "type", "parse"))
+
 
 class Session(object):
     """
@@ -249,25 +252,28 @@ class Session(object):
         # It also helps in converting the other way around. All the information about artist is stored at the
         # Same index, which means you can get the index of the model, and then get the text using that index.
         # There probably is a better way to do this, but this was sadly the most readable way i found of doing it.
-        self.type_conversions: TypeConversions = {
-            "identifier": [
-                "artists",
-                "albums",
-                "tracks",
-                "videos",
-                "playlists",
-                "mixs",
-            ],
-            "type": SearchTypes,
-            "parse": [
-                self.parse_artist,
-                self.parse_album,
-                self.parse_track,
-                self.parse_video,
-                self.parse_playlist,
-                self.parse_mix,
-            ],
-        }
+        self.type_conversions: List[TypeRelation] = [
+            TypeRelation(identifier=identifier, type=type, parse=parse)
+            for identifier, type, parse in zip(
+                (
+                    "artists",
+                    "albums",
+                    "tracks",
+                    "videos",
+                    "playlists",
+                    "mixs",
+                ),
+                SearchTypes,
+                (
+                    self.parse_artist,
+                    self.parse_album,
+                    self.parse_track,
+                    self.parse_video,
+                    self.parse_playlist,
+                    self.parse_mix,
+                ),
+            )
+        ]
 
     def convert_type(
         self,
@@ -277,8 +283,10 @@ class Session(object):
         case=Case.lower,
         suffix=True,
     ):
-        index = self.type_conversions[search_type].index(search)
-        result = self.type_conversions[output][index]
+        type_relations = next(
+            x for x in self.type_conversions if getattr(x, search_type) == search
+        )
+        result = getattr(type_relations, output)
 
         if output == "identifier":
             result = cast(str, result)

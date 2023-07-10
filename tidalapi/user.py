@@ -22,7 +22,7 @@
 """
 
 from copy import copy
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 import dateutil.parser
 
@@ -96,9 +96,9 @@ class FetchedUser(User):
 
 
 class LoggedInUser(FetchedUser):
-    username = None
-    email = None
-    profile_metadata = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    profile_metadata: Optional[Dict] = None
 
     def __init__(self, session, user_id):
         super(LoggedInUser, self).__init__(session, user_id)

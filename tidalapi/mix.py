@@ -14,37 +14,34 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-A module containing functions relating to TIDAL mixes.
-"""
+"""A module containing functions relating to TIDAL mixes."""
 import copy
 from enum import Enum
-from typing import Optional
 
 
 class MixType(Enum):
-    """
-    An enum to track all the different types of mixes
-    """
-    video_daily = 'VIDEO_DAILY_MIX'
-    daily = 'DAILY_MIX'
-    discovery = 'DISCOVERY_MIX'
-    new_release = 'NEW_RELEASE_MIX'
-    track = 'TRACK_MIX'
-    artist = 'ARTIST_MIX'
-    songwriter = 'SONGWRITER_MIX'
-    producter = 'PRODUCER_MIX'
-    history_alltime = 'HISTORY_ALLTIME_MIX'
-    history_monthly = 'HISTORY_MONTHLY_MIX'
-    history_yearly = 'HISTORY_YEARLY_MIX'
+    """An enum to track all the different types of mixes."""
+
+    video_daily = "VIDEO_DAILY_MIX"
+    daily = "DAILY_MIX"
+    discovery = "DISCOVERY_MIX"
+    new_release = "NEW_RELEASE_MIX"
+    track = "TRACK_MIX"
+    artist = "ARTIST_MIX"
+    songwriter = "SONGWRITER_MIX"
+    producter = "PRODUCER_MIX"
+    history_alltime = "HISTORY_ALLTIME_MIX"
+    history_monthly = "HISTORY_MONTHLY_MIX"
+    history_yearly = "HISTORY_YEARLY_MIX"
+
 
 class Mix(object):
-    """
-    A mix from TIDAL, e.g. the listen.tidal.com/view/pages/my_collection_my_mixes
+    """A mix from TIDAL, e.g. the listen.tidal.com/view/pages/my_collection_my_mixes.
 
-    These get used for many things, like artist/track radio's, recommendations, and historical plays
+    These get used for many things, like artist/track radio's, recommendations, and
+    historical plays
     """
+
     id = ""
     title = ""
     sub_title = ""
@@ -63,8 +60,8 @@ class Mix(object):
             self.get(mix_id)
 
     def get(self, mix_id=None):
-        """
-        Returns information about a mix, and also replaces the mix object used to call this function.
+        """Returns information about a mix, and also replaces the mix object used to
+        call this function.
 
         :param mix_id: TIDAL's identifier of the mix
         :return: A :class:`Mix` object containing all the information about the mix
@@ -72,29 +69,28 @@ class Mix(object):
         if mix_id is None:
             mix_id = self.id
 
-        params = {'mixId': mix_id,
-                  'deviceType': 'BROWSER'}
+        params = {"mixId": mix_id, "deviceType": "BROWSER"}
         parse = self.session.parse_page
-        result = self.request.map_request('pages/mix', parse=parse, params=params)
+        result = self.request.map_request("pages/mix", parse=parse, params=params)
         self._retrieved = True
         self.__dict__.update(result.categories[0].__dict__)
         self._items = result.categories[1].items
         return self
 
     def parse(self, json_obj):
-        """ Parse a mix into a :class:`Mix`, replaces the calling object
+        """Parse a mix into a :class:`Mix`, replaces the calling object
 
         :param json_obj: The json of a mix to be parsed
         :return: A copy of the parsed mix
         """
-        self.id = json_obj['id']
-        self.title = json_obj['title']
-        self.sub_title = json_obj['subTitle']
-        self.sharing_images = json_obj['sharingImages']
-        self.mix_type = MixType(json_obj['mixType'])
-        self.content_behaviour = json_obj['contentBehavior']
-        self.short_subtitle = json_obj['shortSubtitle']
-        self.images = json_obj['images']
+        self.id = json_obj["id"]
+        self.title = json_obj["title"]
+        self.sub_title = json_obj["subTitle"]
+        self.sharing_images = json_obj["sharingImages"]
+        self.mix_type = MixType(json_obj["mixType"])
+        self.content_behaviour = json_obj["contentBehavior"]
+        self.short_subtitle = json_obj["shortSubtitle"]
+        self.images = json_obj["images"]
 
         return copy.copy(self)
 
@@ -108,10 +104,9 @@ class Mix(object):
             self.get(self.id)
 
         return self._items
-    
+
     def image(self, dimensions):
-        """
-        A URL to a Mix picture
+        """A URL to a Mix picture.
 
         :param dimensions: The width and height the requested image should be
         :type dimensions: int
@@ -129,7 +124,6 @@ class Mix(object):
         if dimensions == 320:
             return self.images["SMALL"]["url"]
         elif dimensions == 640:
-            return self.images["MEDIUM"]['url']
+            return self.images["MEDIUM"]["url"]
         elif dimensions == 1500:
-            return self.images["LARGE"]['url']
-        
+            return self.images["LARGE"]["url"]

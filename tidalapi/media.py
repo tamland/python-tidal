@@ -15,15 +15,15 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-A module containing information about various media types.
+"""A module containing information about various media types.
 
 Classes: :class:`Media`, :class:`Track`, :class:`Video`
 """
 
 import copy
+
 import dateutil.parser
+
 import tidalapi
 
 
@@ -36,6 +36,7 @@ class Media(object):
     The date_added attribute is only relevant for playlists.
     For the release date of the actual media, use the release date of the album.
     """
+
     id = None
     name = None
     duration = -1
@@ -62,68 +63,71 @@ class Media(object):
             self._get(self.id)
 
     def _get(self, media_id):
-        raise NotImplementedError("You are not supposed to use the media class directly.")
+        raise NotImplementedError(
+            "You are not supposed to use the media class directly."
+        )
 
     def parse(self, json_obj):
-        """
-        Assigns all
-        :param json_obj:
+        """Assigns all :param json_obj:
+
         :return:
         """
-        artists = self.session.parse_artists(json_obj['artists'])
+        artists = self.session.parse_artists(json_obj["artists"])
 
         # Sometimes the artist field is not filled, example: 62300893
-        if 'artist' in json_obj:
-            artist = self.session.parse_artist(json_obj['artist'])
+        if "artist" in json_obj:
+            artist = self.session.parse_artist(json_obj["artist"])
         else:
             artist = artists[0]
 
         album = None
-        if json_obj['album']:
-            album = self.session.album().parse(json_obj['album'], artist, artists)
+        if json_obj["album"]:
+            album = self.session.album().parse(json_obj["album"], artist, artists)
 
-        self.id = json_obj['id']
-        self.name = json_obj['title']
-        self.duration = json_obj['duration']
-        self.available = bool(json_obj['streamReady'])
+        self.id = json_obj["id"]
+        self.name = json_obj["title"]
+        self.duration = json_obj["duration"]
+        self.available = bool(json_obj["streamReady"])
 
         # Removed media does not have a release date.
         self.tidal_release_date = None
-        release_date = json_obj.get('streamStartDate')
-        self.tidal_release_date = dateutil.parser.isoparse(release_date) if release_date else None
+        release_date = json_obj.get("streamStartDate")
+        self.tidal_release_date = (
+            dateutil.parser.isoparse(release_date) if release_date else None
+        )
 
         # When getting items from playlists they have a date added attribute, same with favorites.
-        user_date_added = json_obj.get('dateAdded')
-        self.user_date_added = dateutil.parser.isoparse(user_date_added) if user_date_added else None
+        user_date_added = json_obj.get("dateAdded")
+        self.user_date_added = (
+            dateutil.parser.isoparse(user_date_added) if user_date_added else None
+        )
 
-        self.track_num = json_obj['trackNumber']
-        self.volume_num = json_obj['volumeNumber']
-        self.explicit = bool(json_obj['explicit'])
-        self.popularity = json_obj['popularity']
+        self.track_num = json_obj["trackNumber"]
+        self.volume_num = json_obj["volumeNumber"]
+        self.explicit = bool(json_obj["explicit"])
+        self.popularity = json_obj["popularity"]
         self.artist = artist
         self.artists = artists
         self.album = album
-        self.type = json_obj.get('type')
+        self.type = json_obj.get("type")
 
-        self.artist_roles = json_obj.get('artistRoles')
+        self.artist_roles = json_obj.get("artistRoles")
 
     def parse_media(self, json_obj):
-        """
-        Selects the media type when checking lists that can contain both.
+        """Selects the media type when checking lists that can contain both.
 
         :param json_obj: The json containing the media
         :return: Returns a new Video or Track object.
         """
-        if json_obj.get('type') is None or json_obj['type'] == 'Track':
+        if json_obj.get("type") is None or json_obj["type"] == "Track":
             return Track(self.session).parse_track(json_obj)
         # There are other types like Event, Live, and Video witch match the video class
         return Video(self.session).parse_video(json_obj)
 
 
 class Track(Media):
-    """
-    An object containing information about a track.
-    """
+    """An object containing information about a track."""
+
     replay_gain = None
     peak = None
     isrc = None
@@ -134,79 +138,87 @@ class Track(Media):
 
     def parse_track(self, json_obj):
         Media.parse(self, json_obj)
-        self.replay_gain = json_obj['replayGain']
+        self.replay_gain = json_obj["replayGain"]
         # Tracks from the pages endpoints might not actually exist
-        if 'peak' in json_obj and 'isrc' in json_obj:
-            self.peak = json_obj['peak']
-            self.isrc = json_obj['isrc']
-            self.copyright = json_obj['copyright']
-        self.audio_quality = tidalapi.Quality(json_obj['audioQuality'])
-        self.version = json_obj['version']
+        if "peak" in json_obj and "isrc" in json_obj:
+            self.peak = json_obj["peak"]
+            self.isrc = json_obj["isrc"]
+            self.copyright = json_obj["copyright"]
+        self.audio_quality = tidalapi.Quality(json_obj["audioQuality"])
+        self.version = json_obj["version"]
 
         if self.version is not None:
-            self.full_name = (f"{json_obj['title']} ({json_obj['version']})")
+            self.full_name = f"{json_obj['title']} ({json_obj['version']})"
         else:
-            self.full_name = json_obj['title']
+            self.full_name = json_obj["title"]
 
         return copy.copy(self)
 
     def _get(self, media_id):
-        """
-        Returns information about a track, and also replaces the track used to call this function.
+        """Returns information about a track, and also replaces the track used to call
+        this function.
 
         :param media_id: TIDAL's identifier of the track
         :return: A :class:`Track` object containing all the information about the track
         """
         parse = self.parse_track
-        return self.requests.map_request('tracks/%s' % media_id, parse=parse)
+        return self.requests.map_request("tracks/%s" % media_id, parse=parse)
 
     def get_url(self):
         params = {
-            'urlusagemode': 'STREAM',
-            'audioquality' : self.session.config.quality,
-            'assetpresentation': 'FULL',
+            "urlusagemode": "STREAM",
+            "audioquality": self.session.config.quality,
+            "assetpresentation": "FULL",
         }
-        request = self.requests.request('GET', 'tracks/%s/urlpostpaywall' % self.id, params)
-        return request.json()['urls'][0]
+        request = self.requests.request(
+            "GET", "tracks/%s/urlpostpaywall" % self.id, params
+        )
+        return request.json()["urls"][0]
 
     def lyrics(self):
-        """
-        Retrieves the lyrics for a song
+        """Retrieves the lyrics for a song.
 
         :return: A :class:`Lyrics` object containing the lyrics
         :raises: A :class:`requests.HTTPError` if there aren't any lyrics
         """
-        return self.requests.map_request('tracks/%s/lyrics' % self.id, parse=Lyrics().parse)
-      
-    def get_track_radio(self):
-        """
-        Queries TIDAL for the track radio, which is a mix of tracks that are similar to this track.
+        return self.requests.map_request(
+            "tracks/%s/lyrics" % self.id, parse=Lyrics().parse
+        )
 
-        :return: A list of :class:`Tracks <tidalapi.media.Track>`
+    def get_track_radio(self):
+        """Queries TIDAL for the track radio, which is a mix of tracks that are similar
+        to this track.
+
+        :return: A list of
+        :class:`Tracks <tidalapi.media.Track>`
         """
-        params = {'limit': 100}
-        return self.requests.map_request('tracks/%s/radio' % self.id, params=params, parse=self.session.parse_track)
+        params = {"limit": 100}
+        return self.requests.map_request(
+            "tracks/%s/radio" % self.id, params=params, parse=self.session.parse_track
+        )
 
     def stream(self):
-        """
-        Retrieves the track streaming object, allowing for audio transmission.
+        """Retrieves the track streaming object, allowing for audio transmission.
 
         :return: A :class:`Stream` object which holds audio file properties and parameters needed for streaming via `MPEG-DASH` protocol.
         """
         params = {
-            'playbackmode': 'STREAM',
-            'audioquality' : self.session.config.quality,
-            'assetpresentation': 'FULL',
+            "playbackmode": "STREAM",
+            "audioquality": self.session.config.quality,
+            "assetpresentation": "FULL",
         }
-        return self.requests.map_request('tracks/%s/playbackinfopostpaywall' % self.id, params, parse=Stream().parse)
+        return self.requests.map_request(
+            "tracks/%s/playbackinfopostpaywall" % self.id, params, parse=Stream().parse
+        )
 
-      
+
 class Stream(object):
-    """
-    An object that stores the audio file properties and parameters needed for streaming via `MPEG-DASH` protocol.
-    
+    """An object that stores the audio file properties and parameters needed for
+    streaming via `MPEG-DASH` protocol.
+
     The `manifest` attribute holds the MPD file content encoded in base64.
     """
+
     track_id = -1
     audio_mode = ""
     audio_quality = "LOW"
@@ -215,7 +227,7 @@ class Stream(object):
     manifest = ""
 
     def parse(self, json_obj):
-        self.track_id = json_obj['trackId']
+        self.track_id = json_obj["trackId"]
         self.audio_mode = json_obj["audioMode"]
         self.audio_quality = json_obj["audioQuality"]
         self.manifest_mime_type = json_obj["manifestMimeType"]
@@ -223,7 +235,7 @@ class Stream(object):
         self.manifest = json_obj["manifest"]
 
         return copy.copy(self)
-      
+
 
 class Lyrics(object):
     track_id = -1
@@ -236,57 +248,64 @@ class Lyrics(object):
     right_to_left = False
 
     def parse(self, json_obj):
-        self.track_id = json_obj['trackId']
-        self.provider = json_obj['lyricsProvider']
-        self.provider_track_id = json_obj['providerCommontrackId']
-        self.provider_lyrics_id = json_obj['providerLyricsId']
-        self.text = json_obj['lyrics']
-        self.subtitles = json_obj['subtitles']
-        self.right_to_left = bool(json_obj['isRightToLeft'])
+        self.track_id = json_obj["trackId"]
+        self.provider = json_obj["lyricsProvider"]
+        self.provider_track_id = json_obj["providerCommontrackId"]
+        self.provider_lyrics_id = json_obj["providerLyricsId"]
+        self.text = json_obj["lyrics"]
+        self.subtitles = json_obj["subtitles"]
+        self.right_to_left = bool(json_obj["isRightToLeft"])
 
         return copy.copy(self)
 
 
 class Video(Media):
-    """
-    An object containing information about a video
-    """
+    """An object containing information about a video."""
+
     release_date = None
     video_quality = None
     cover = None
 
     def parse_video(self, json_obj):
         Media.parse(self, json_obj)
-        release_date = json_obj.get('releaseDate')
-        self.release_date = dateutil.parser.isoparse(release_date) if release_date else None
-        self.cover = json_obj['imageId']
+        release_date = json_obj.get("releaseDate")
+        self.release_date = (
+            dateutil.parser.isoparse(release_date) if release_date else None
+        )
+        self.cover = json_obj["imageId"]
         # Videos found in the /pages endpoints don't have quality
-        self.video_quality = json_obj.get('quality')
+        self.video_quality = json_obj.get("quality")
 
         return copy.copy(self)
 
     def _get(self, media_id):
-        """
-        Returns information about the video, and replaces the object used to call this function.
+        """Returns information about the video, and replaces the object used to call
+        this function.
 
         :param media_id: TIDAL's identifier of the video
         :return: A :class:`Video` object containing all the information about the video.
         """
         parse = self.parse_video
-        return self.requests.map_request('videos/%s' % media_id, parse=parse)
+        return self.requests.map_request("videos/%s" % media_id, parse=parse)
 
     def get_url(self):
         params = {
-            'urlusagemode': 'STREAM',
-            'videoquality': self.session.config.video_quality,
-            'assetpresentation': 'FULL'
+            "urlusagemode": "STREAM",
+            "videoquality": self.session.config.video_quality,
+            "assetpresentation": "FULL",
         }
-        request = self.requests.request('GET', 'videos/%s/urlpostpaywall' % self.id, params)
-        return request.json()['urls'][0]
+        request = self.requests.request(
+            "GET", "videos/%s/urlpostpaywall" % self.id, params
+        )
+        return request.json()["urls"][0]
 
     def image(self, width=1080, height=720):
         if (width, height) not in [(160, 107), (480, 320), (750, 500), (1080, 720)]:
             raise ValueError("Invalid resolution {} x {}".format(width, height))
         if not self.cover:
             raise AttributeError("No cover image")
-        return self.session.config.image_url % (self.cover.replace('-', '/'), width, height)
+        return self.session.config.image_url % (
+            self.cover.replace("-", "/"),
+            width,
+            height,
+        )

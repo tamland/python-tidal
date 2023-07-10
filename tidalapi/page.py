@@ -14,13 +14,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 """
 Module for parsing TIDAL's pages format found at https://listen.tidal.com/v1/pages
 """
 
 import copy
-from typing import TYPE_CHECKING, Any, Iterator, Optional, Union, cast, List
+from typing import TYPE_CHECKING, Any, Iterator, List, Optional, Union, cast
 
 if TYPE_CHECKING:
     import tidalapi
@@ -69,11 +68,9 @@ class Page(object):
         return self.__next__()
 
     def parse(self, json_obj):
-        """
-        Goes through everything in the page, and gets the title and adds all the rows to the categories field
-        :param json_obj: The json to be parsed
-        :return: A copy of the Page that you can use to browse all the items
-        """
+        """Goes through everything in the page, and gets the title and adds all the rows
+        to the categories field :param json_obj: The json to be parsed :return: A copy
+        of the Page that you can use to browse all the items."""
         self.title = json_obj["title"]
         self.categories = []
         for row in json_obj["rows"]:
@@ -83,8 +80,7 @@ class Page(object):
         return copy.copy(self)
 
     def get(self, endpoint, params=None):
-        """
-        Retrieve a page from the specified endpoint, overwrites the calling page
+        """Retrieve a page from the specified endpoint, overwrites the calling page.
 
         :param params: Parameter to retrieve the page with
         :param endpoint: The endpoint you want to retrieve
@@ -174,9 +170,7 @@ class PageCategory(object):
 
 
 class FeaturedItems(PageCategory):
-    """
-    Items that have been featured by TIDAL
-    """
+    """Items that have been featured by TIDAL."""
 
     items: Optional[list["PageItem"]] = None
 
@@ -202,8 +196,7 @@ class PageLinks(PageCategory):
     items: Optional[list["PageLink"]] = None
 
     def parse(self, json_obj):
-        """
-        Parse the list of links from TIDAL
+        """Parse the list of links from TIDAL.
 
         :param json_obj: The json to be parsed
         :return: A copy of this page category containing the links in the items field
@@ -218,15 +211,13 @@ class PageLinks(PageCategory):
 
 
 class ItemList(PageCategory):
-    """
-    A list of items from TIDAL, can be a list of mixes, for example, or a list of playlists and mixes in some cases
-    """
+    """A list of items from TIDAL, can be a list of mixes, for example, or a list of
+    playlists and mixes in some cases."""
 
     items = None
 
     def parse(self, json_obj):
-        """
-        Parse a list of items on TIDAL from the pages endpoints.
+        """Parse a list of items on TIDAL from the pages endpoints.
 
         :param json_obj: The json from TIDAL to be parsed
         :return: A copy of the ItemList with a list of items
@@ -315,8 +306,7 @@ class PageItem(object):
         self.featured = bool(json_obj["featured"])
 
     def get(self):
-        """
-        Retrieve the PageItem with the artifact_id matching the type
+        """Retrieve the PageItem with the artifact_id matching the type.
 
         :return: The fully parsed item, e.g. :class:`.Playlist`, :class:`.Video`, :class:`.Track`
         """
@@ -335,9 +325,8 @@ class PageItem(object):
 
 
 class TextBlock(object):
-    """
-    A block of text, with a named icon, which seems to be left up to the application
-    """
+    """A block of text, with a named icon, which seems to be left up to the
+    application."""
 
     text = ""
     icon = ""
@@ -355,9 +344,7 @@ class TextBlock(object):
 
 
 class LinkList(PageCategory):
-    """
-    A list of items containing links, e.g. social links or articles
-    """
+    """A list of items containing links, e.g. social links or articles."""
 
     items = None
     title = None

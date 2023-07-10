@@ -15,24 +15,20 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-A module containing functions relating to TIDAL api requests.
-"""
+"""A module containing functions relating to TIDAL api requests."""
 
 import json
 import logging
-import requests
 from typing import Any, List
 from urllib.parse import urljoin
+
+import requests
 
 log = logging.getLogger(__name__)
 
 
 class Requests(object):
-    """
-    A class for handling api requests to TIDAL.
-    """
+    """A class for handling api requests to TIDAL."""
 
     def __init__(self, session):
         self.session = session
@@ -46,7 +42,8 @@ class Requests(object):
         }
 
         if params:
-            # Don't update items with a none value, as we prefer a default value, requests also does not support them.
+            # Don't update items with a none value, as we prefer a default value.
+            # requests also does not support them.
             not_none = filter(lambda item: item[1] is not None, params.items())
             request_params.update(not_none)
 
@@ -84,8 +81,7 @@ class Requests(object):
         return request
 
     def request(self, method, path, params=None, data=None, headers=None):
-        """
-        Method for tidal requests.
+        """Method for tidal requests.
 
         Not meant for use outside of this library.
 
@@ -105,16 +101,16 @@ class Requests(object):
         return request
 
     def map_request(self, url, params=None, parse=None):
-        """
-        Returns the data about object(s) at the specified url,
-        with the method specified in the parse argument
+        """Returns the data about object(s) at the specified url, with the method
+        specified in the parse argument.
 
         Not meant for use outside of this library
 
         :param url: TIDAL api endpoint that contains the data
         :param params: TIDAL parameters to use when getting the data
         :param parse: The method used to parse the data at the url
-        :return: The object(s) at the url, with the same type as the class of the parse method.
+        :return: The object(s) at the url, with the same type as the class of the parse
+            method.
         """
         json_obj = self.request("GET", url, params).json()
 
@@ -145,9 +141,8 @@ class Requests(object):
         return list(map(parse, items))
 
     def get_items(self, url, parse):
-        """
-        Returns a list of items, used when there are over a 100 items,
-        but TIDAL doesn't always allow more specifying a higher limit.
+        """Returns a list of items, used when there are over a 100 items, but TIDAL
+        doesn't always allow more specifying a higher limit.
 
         Not meant for use outside of this library.
 
@@ -158,7 +153,7 @@ class Requests(object):
 
         params = {"offset": 0, "limit": 100}
         remaining = 100
-        item_list: list[Any] = []
+        item_list: List[Any] = []
         while remaining == 100:
             items = self.map_request(url, params=params, parse=parse)
             remaining = len(items)

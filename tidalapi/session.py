@@ -25,6 +25,7 @@ import logging
 import random
 import time
 import uuid
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     Any,
@@ -201,7 +202,8 @@ class Case(Enum):
 TypeConversionKeys = Literal["identifier", "type", "parse"]
 
 
-class TypeRelation(NamedTuple):
+@dataclass
+class TypeRelation:
     identifier: str
     type: Optional[Any]
     parse: Callable

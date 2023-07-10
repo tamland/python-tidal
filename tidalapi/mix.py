@@ -16,8 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """A module containing functions relating to TIDAL mixes."""
 import copy
+from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional, TypedDict, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from tidalapi.types import JsonObj
 
@@ -42,14 +43,16 @@ class MixType(Enum):
     history_yearly = "HISTORY_YEARLY_MIX"
 
 
-class ImageDetails(TypedDict):
+@dataclass
+class ImageDetails:
     url: str
 
 
-class ImageResponse(TypedDict):
-    SMALL: ImageDetails
-    MEDIUM: ImageDetails
-    LARGE: ImageDetails
+@dataclass
+class ImageResponse:
+    small: ImageDetails
+    medium: ImageDetails
+    large: ImageDetails
 
 
 class Mix:
@@ -108,7 +111,12 @@ class Mix:
         self.mix_type = MixType(json_obj["mixType"])
         self.content_behaviour = json_obj["contentBehavior"]
         self.short_subtitle = json_obj["shortSubtitle"]
-        self.images = json_obj["images"]
+        self.images = ImageResponse(
+            **{
+                size: ImageDetails(json_obj["images"][size.upper()]["url"])
+                for size in ("small", "medium", "large")
+            }
+        )
 
         return copy.copy(self)
 
@@ -137,10 +145,10 @@ class Mix:
             raise ValueError("No images present.")
 
         if dimensions == 320:
-            return self.images["SMALL"]["url"]
+            return self.images.small.url
         elif dimensions == 640:
-            return self.images["MEDIUM"]["url"]
+            return self.images.medium.url
         elif dimensions == 1500:
-            return self.images["LARGE"]["url"]
+            return self.images.large.url
 
         raise ValueError(f"Invalid resolution {dimensions} x {dimensions}")

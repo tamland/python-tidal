@@ -23,13 +23,12 @@ Classes: :class:`Media`, :class:`Track`, :class:`Video`
 import copy
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import List, Optional, Union, cast
 
 import dateutil.parser
 
 import tidalapi
-
-JsonObj = Dict[str, Any]
+from tidalapi.types import JsonObj
 
 
 class Media:

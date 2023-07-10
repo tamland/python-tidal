@@ -25,9 +25,18 @@ import logging
 import random
 import time
 import uuid
-from collections import namedtuple
 from enum import Enum
-from typing import Any, Callable, List, Literal, Optional, Union, cast, no_type_check
+from typing import (
+    Any,
+    Callable,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Union,
+    cast,
+    no_type_check,
+)
 from urllib.parse import urljoin
 
 import requests
@@ -191,7 +200,11 @@ class Case(Enum):
 
 TypeConversionKeys = Literal["identifier", "type", "parse"]
 
-TypeRelation = namedtuple("TypeRelation", ("identifier", "type", "parse"))
+
+class TypeRelation(NamedTuple):
+    identifier: str
+    type: Optional[Any]
+    parse: Callable
 
 
 class Session(object):

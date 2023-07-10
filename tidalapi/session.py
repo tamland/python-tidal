@@ -584,7 +584,7 @@ class Session(object):
 
         return tidalapi.Video(session=self, media_id=video_id)
 
-    def artist(self, artist_id=None):
+    def artist(self, artist_id: Optional[str] = None) -> tidalapi.artist.Artist:
         """Function to create a Artist object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Artist(session=session,
         artist_id=artist_id) <.Artist>` internally.

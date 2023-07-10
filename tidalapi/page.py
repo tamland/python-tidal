@@ -19,7 +19,9 @@ Module for parsing TIDAL's pages format found at https://listen.tidal.com/v1/pag
 """
 
 import copy
-from typing import TYPE_CHECKING, Any, Iterator, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Union, cast
+
+from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
     import tidalapi
@@ -67,7 +69,7 @@ class Page(object):
     def next(self):
         return self.__next__()
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "Page":
         """Goes through everything in the page, and gets the title and adds all the rows
         to the categories field :param json_obj: The json to be parsed :return: A copy
         of the Page that you can use to browse all the items."""
@@ -79,7 +81,7 @@ class Page(object):
 
         return copy.copy(self)
 
-    def get(self, endpoint, params=None):
+    def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> "Page":
         """Retrieve a page from the specified endpoint, overwrites the calling page.
 
         :param params: Parameter to retrieve the page with
@@ -102,7 +104,7 @@ class PageCategory(object):
     title = None
     description: Optional[str] = ""
     requests = None
-    _more: Optional[dict[str, dict[str, str]]] = None
+    _more: Optional[dict[str, Union[dict[str, str], str]]] = None
 
     def __init__(self, session: "tidalapi.session.Session"):
         self.session = session
@@ -162,9 +164,14 @@ class PageCategory(object):
 
         :return: A :class:`.Page` more of the items in the category, None if there aren't any
         """
+        if self._more:
+            api_path = self._more["apiPath"]
+            assert isinstance(api_path, str)
+        else:
+            api_path = None
         return (
-            Page(self.session, self._more["title"]).get(self._more["apiPath"])
-            if self._more
+            Page(self.session, self._more["title"]).get(api_path)
+            if api_path and self._more
             else None
         )
 

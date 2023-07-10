@@ -19,6 +19,7 @@
 
 import copy
 from enum import Enum
+from typing import List
 
 import dateutil.parser
 
@@ -32,6 +33,7 @@ class Artist(object):
     role = None
     picture = None
     user_date_added = None
+    bio = None
 
     def __init__(self, session, artist_id):
         self.session = session
@@ -40,7 +42,7 @@ class Artist(object):
         if artist_id:
             self.request.map_request("artists/%s" % artist_id, parse=self.parse_artist)
 
-    def parse_artist(self, json_obj):
+    def parse_artist(self, json_obj) -> "Artist":
         """
 
         :param json_obj:
@@ -69,7 +71,7 @@ class Artist(object):
 
         return copy.copy(self)
 
-    def parse_artists(self, json_obj):
+    def parse_artists(self, json_obj) -> List["Artist"]:
         """Parses a TIDAL artist, replaces the current artist object. Made for use
         inside of the python tidalapi module.
 

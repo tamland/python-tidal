@@ -25,9 +25,18 @@ import logging
 import random
 import time
 import uuid
-from collections import namedtuple
 from enum import Enum
-from typing import Any, Callable, List, Literal, Optional, Union, cast, no_type_check
+from typing import (
+    Any,
+    Callable,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Union,
+    cast,
+    no_type_check,
+)
 from urllib.parse import urljoin
 
 import requests
@@ -191,7 +200,11 @@ class Case(Enum):
 
 TypeConversionKeys = Literal["identifier", "type", "parse"]
 
-TypeRelation = namedtuple("TypeRelation", ("identifier", "type", "parse"))
+
+class TypeRelation(NamedTuple):
+    identifier: str
+    type: Optional[Any]
+    parse: Callable
 
 
 class Session(object):
@@ -571,7 +584,7 @@ class Session(object):
 
         return tidalapi.Video(session=self, media_id=video_id)
 
-    def artist(self, artist_id=None):
+    def artist(self, artist_id: Optional[str] = None) -> tidalapi.artist.Artist:
         """Function to create a Artist object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Artist(session=session,
         artist_id=artist_id) <.Artist>` internally.
@@ -582,7 +595,7 @@ class Session(object):
 
         return tidalapi.Artist(session=self, artist_id=artist_id)
 
-    def album(self, album_id=None):
+    def album(self, album_id: Optional[str] = None) -> tidalapi.Album:
         """Function to create a Album object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Album(session=session, album_id=album_id)
         <.Album>` internally.

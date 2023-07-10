@@ -582,7 +582,7 @@ class Session(object):
 
         return tidalapi.Artist(session=self, artist_id=artist_id)
 
-    def album(self, album_id=None):
+    def album(self, album_id: Optional[str] = None) -> tidalapi.Album:
         """Function to create a Album object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Album(session=session, album_id=album_id)
         <.Album>` internally.

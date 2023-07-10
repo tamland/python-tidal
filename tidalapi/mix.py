@@ -17,6 +17,13 @@
 """A module containing functions relating to TIDAL mixes."""
 import copy
 from enum import Enum
+from typing import TYPE_CHECKING, List, Optional, TypedDict, Union
+
+from tidalapi.types import JsonObj
+
+if TYPE_CHECKING:
+    from tidalapi.media import Track, Video
+    from tidalapi.session import Session
 
 
 class MixType(Enum):
@@ -35,31 +42,41 @@ class MixType(Enum):
     history_yearly = "HISTORY_YEARLY_MIX"
 
 
-class Mix(object):
+class ImageDetails(TypedDict):
+    url: str
+
+
+class ImageResponse(TypedDict):
+    SMALL: ImageDetails
+    MEDIUM: ImageDetails
+    LARGE: ImageDetails
+
+
+class Mix:
     """A mix from TIDAL, e.g. the listen.tidal.com/view/pages/my_collection_my_mixes.
 
     These get used for many things, like artist/track radio's, recommendations, and
     historical plays
     """
 
-    id = ""
-    title = ""
-    sub_title = ""
+    id: str = ""
+    title: str = ""
+    sub_title: str = ""
     sharing_images = None
-    mix_type = None
-    content_behaviour = ""
-    short_subtitle = ""
-    images = None
+    mix_type: Optional[MixType] = None
+    content_behaviour: str = ""
+    short_subtitle: str = ""
+    images: Optional[ImageResponse] = None
     _retrieved = False
-    _items = None
+    _items: Optional[List[Union["Video", "Track"]]] = None
 
-    def __init__(self, session, mix_id):
+    def __init__(self, session: Session, mix_id: str):
         self.session = session
         self.request = session.request
         if mix_id is not None:
             self.get(mix_id)
 
-    def get(self, mix_id=None):
+    def get(self, mix_id: Optional[str] = None) -> "Mix":
         """Returns information about a mix, and also replaces the mix object used to
         call this function.
 
@@ -72,12 +89,13 @@ class Mix(object):
         params = {"mixId": mix_id, "deviceType": "BROWSER"}
         parse = self.session.parse_page
         result = self.request.map_request("pages/mix", parse=parse, params=params)
+        assert not isinstance(result, list)
         self._retrieved = True
         self.__dict__.update(result.categories[0].__dict__)
         self._items = result.categories[1].items
         return self
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "Mix":
         """Parse a mix into a :class:`Mix`, replaces the calling object
 
         :param json_obj: The json of a mix to be parsed
@@ -94,7 +112,7 @@ class Mix(object):
 
         return copy.copy(self)
 
-    def items(self):
+    def items(self) -> List[Union["Video", "Track"]]:
         """
         Returns all the items in the mix, retrieves them with :class:`get` as well if not already done
 
@@ -102,10 +120,11 @@ class Mix(object):
         """
         if not self._retrieved:
             self.get(self.id)
-
+        if not self._items:
+            raise ValueError("Retrieved items missing")
         return self._items
 
-    def image(self, dimensions):
+    def image(self, dimensions: int) -> str:
         """A URL to a Mix picture.
 
         :param dimensions: The width and height the requested image should be
@@ -114,10 +133,6 @@ class Mix(object):
 
         Original sizes: 320x320, 640x640, 1500x1500
         """
-
-        if dimensions not in [320, 640, 1500]:
-            raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
-
         if not self.images:
             raise ValueError("No images present.")
 
@@ -127,3 +142,5 @@ class Mix(object):
             return self.images["MEDIUM"]["url"]
         elif dimensions == 1500:
             return self.images["LARGE"]["url"]
+
+        raise ValueError(f"Invalid resolution {dimensions} x {dimensions}")

@@ -15,18 +15,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-
-"""
+""""""
 
 import copy
 
 
 class Genre(object):
-    """
-
-    """
+    """"""
 
     name = ""
     path = ""
@@ -42,14 +37,16 @@ class Genre(object):
         self.requests = session.request
 
     def parse_genre(self, json_obj):
-        self.name = json_obj['name']
-        self.path = json_obj['path']
-        self.playlists = json_obj['hasPlaylists']
-        self.artists = json_obj['hasArtists']
-        self.albums = json_obj['hasAlbums']
-        self.tracks = json_obj['hasTracks']
-        self.videos = json_obj['hasVideos']
-        self.image = "http://resources.wimpmusic.com/images/%s/460x306.jpg" % json_obj['image'].replace('-', '/')
+        self.name = json_obj["name"]
+        self.path = json_obj["path"]
+        self.playlists = json_obj["hasPlaylists"]
+        self.artists = json_obj["hasArtists"]
+        self.albums = json_obj["hasAlbums"]
+        self.tracks = json_obj["hasTracks"]
+        self.videos = json_obj["hasVideos"]
+        self.image = "http://resources.wimpmusic.com/images/%s/460x306.jpg" % json_obj[
+            "image"
+        ].replace("-", "/")
 
         return copy.copy(self)
 
@@ -57,18 +54,21 @@ class Genre(object):
         return list(map(self.parse_genre, json_obj))
 
     def get_genres(self):
-        return self.parse_genres(self.requests.request('GET', 'genres').json())
+        return self.parse_genres(self.requests.request("GET", "genres").json())
 
     def items(self, model):
-        """
-        Gets the current genre's items of the specified type
-        :param model: The tidalapi model you want returned. See :class:`Genre`
+        """Gets the current genre's items of the specified type :param model: The
+        tidalapi model you want returned.
+
+        See :class:`Genre`
         :return:
         """
-        type_index = self.session.type_conversions['type'].index(model)
-        name = self.session.type_conversions['identifier'][type_index]
-        parse = self.session.type_conversions['parse'][type_index]
+        type_relations = next(
+            x for x in self.session.type_conversions if x.type == model
+        )
+        name = type_relations.identifier
+        parse = type_relations.parse
         if getattr(self, name):
-            location = 'genres/{0}/{1}'.format(self.path, name)
+            location = "genres/{0}/{1}".format(self.path, name)
             return self.requests.map_request(location, parse=parse)
         raise TypeError("This genre does not contain {0}".format(name))

@@ -1,0 +1,23 @@
+name: Lint
+
+on:
+  push:
+    branch:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v3
+        - name: Install Poetry
+          uses: abatilo/actions-poetry@v2
+        - name: Set up Python
+          uses: actions/setup-python@v4
+          with:
+            python-version: 3.11
+            cache: 'poetry'
+        - run: poetry install
+        - run: make lint

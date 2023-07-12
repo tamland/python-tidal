@@ -111,11 +111,11 @@ class Mix:
         self.mix_type = MixType(json_obj["mixType"])
         self.content_behaviour = json_obj["contentBehavior"]
         self.short_subtitle = json_obj["shortSubtitle"]
+        images = json_obj["images"]
         self.images = ImageResponse(
-            **{
-                size: ImageDetails(json_obj["images"][size.upper()]["url"])
-                for size in ("small", "medium", "large")
-            }
+            small=ImageDetails(images["SMALL"]["url"]),
+            medium=ImageDetails(images["MEDIUM"]["url"]),
+            large=ImageDetails(images["LARGE"]["url"]),
         )
 
         return copy.copy(self)

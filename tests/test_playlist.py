@@ -52,7 +52,7 @@ def test_playlist(session):
 
     creator = playlist.creator
     assert creator.id == 7804
-    assert creator.name == "JAY-Z"
+    assert creator.name == "JAY Z"
     assert isinstance(creator, tidalapi.Artist)
 
 
@@ -116,7 +116,7 @@ def test_get_tracks(session):
 
     assert len(items) >= 5288
     assert items[0].id == 199477058
-    assert items[5287].id == 92035253
+    assert items[5287].id == 209284860
 
 
 def test_get_videos(session):

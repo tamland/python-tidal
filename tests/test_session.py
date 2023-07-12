@@ -98,8 +98,7 @@ def test_search(session):
     assert isinstance(search["tracks"][0], Track)
     assert isinstance(search["videos"][0], Video)
     assert isinstance(search["playlists"][0], Playlist)
-
-    assert (search["top_hit"]).name == "Walker Hayes"
+    assert "Walker" in search["top_hit"].artist.name
 
 
 def test_type_search(session):

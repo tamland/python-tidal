@@ -606,8 +606,8 @@ class Session(object):
         self, user_id=None
     ) -> Union[tidalapi.FetchedUser, tidalapi.LoggedInUser, tidalapi.PlaylistCreator]:
         """Function to create a User object with access to the session instance in a
-        smoother way. Calls :class:`user.User(session=session, user_id=user_id)
-        <.User>` internally.
+        smoother way. Calls :class:`user.User(session=session, user_id=user_id) <.User>`
+        internally.
 
         :param user_id: (Optional) The TIDAL id of the User. You may want access to the methods without an id.
         :return: Returns a :class:`.User` object that has access to the session instance used.

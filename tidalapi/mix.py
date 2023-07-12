@@ -19,8 +19,9 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional, TypedDict, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from tidalapi.types import JsonObj
 
@@ -45,14 +46,11 @@ class MixType(Enum):
     history_yearly = "HISTORY_YEARLY_MIX"
 
 
-class ImageDetails(TypedDict):
-    url: str
-
-
-class ImageResponse(TypedDict):
-    SMALL: ImageDetails
-    MEDIUM: ImageDetails
-    LARGE: ImageDetails
+@dataclass
+class ImageResponse:
+    small: str
+    medium: str
+    large: str
 
 
 class Mix:
@@ -111,7 +109,12 @@ class Mix:
         self.mix_type = MixType(json_obj["mixType"])
         self.content_behaviour = json_obj["contentBehavior"]
         self.short_subtitle = json_obj["shortSubtitle"]
-        self.images = json_obj["images"]
+        images = json_obj["images"]
+        self.images = ImageResponse(
+            small=images["SMALL"]["url"],
+            mediumimages["MEDIUM"]["url"],
+            large=images["LARGE"]["url"],
+        )
 
         return copy.copy(self)
 
@@ -140,10 +143,10 @@ class Mix:
             raise ValueError("No images present.")
 
         if dimensions == 320:
-            return self.images["SMALL"]["url"]
+            return self.images.small
         elif dimensions == 640:
-            return self.images["MEDIUM"]["url"]
+            return self.images.medium
         elif dimensions == 1500:
-            return self.images["LARGE"]["url"]
+            return self.images.large
 
         raise ValueError(f"Invalid resolution {dimensions} x {dimensions}")

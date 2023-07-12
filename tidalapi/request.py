@@ -64,7 +64,7 @@ class Requests(object):
             json_resp = None
             try:
                 json_resp = request.json()
-            except requests.JSONDecodeError:
+            except json.decoder.JSONDecodeError:
                 pass
 
             if json_resp and json_resp.get("userMessage", "").startswith(

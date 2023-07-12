@@ -43,7 +43,7 @@ def test_get_electronic_items(session):
     genres = list(session.genre.get_genres())
     electronic = [genre for genre in genres if genre.path == "Electronic"][0]
     electronic_items = electronic.items(tidalapi.Playlist)
-    assert "Rising: Electronic" in [playlist.name for playlist in electronic_items]
+    assert "Electronic: RISING" in [playlist.name for playlist in electronic_items]
 
 
 def test_image(session):

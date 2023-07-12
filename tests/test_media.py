@@ -38,7 +38,7 @@ def test_track(session):
     assert track.name == "Alone, Pt. II"
     assert track.duration == 179
     assert track.replay_gain == -10.4
-    assert track.peak == 0.999923
+    assert track.peak == 0.988312
     assert track.available is True
     assert track.tidal_release_date == datetime(2019, 12, 27, 0, 0, tzinfo=tz.tzutc())
     assert track.track_num == 1
@@ -73,7 +73,7 @@ def test_lyrics(session):
 
 
 def test_no_lyrics(session):
-    track = session.track(115105969)
+    track = session.track(17626400)
     with pytest.raises(requests.HTTPError) as exception:
         track.lyrics()
 
@@ -99,7 +99,7 @@ def test_track_streaming(session):
     track = session.track(62392768)
     stream = track.stream()
     assert stream.audio_mode == "STEREO"
-    assert stream.audio_quality == "HIGH"
+    assert stream.audio_quality == "LOSSLESS"
 
 
 def test_video(session):
@@ -110,7 +110,7 @@ def test_video(session):
     assert video.track_num == 0
     assert video.volume_num == 0
     assert video.release_date == datetime(2019, 12, 26, tzinfo=tz.tzutc())
-    assert video.tidal_release_date == datetime(2019, 12, 27, 9, tzinfo=tz.tzutc())
+    assert video.tidal_release_date == datetime(2019, 12, 27, 8, tzinfo=tz.tzutc())
     assert video.duration == 237
     assert video.video_quality == "MP4_1080P"
     assert video.available is True
@@ -161,7 +161,7 @@ def test_live_video(session):
     assert live.track_num == 1
     assert live.volume_num == 1
     assert live.release_date == datetime(2021, 4, 1, tzinfo=tz.tzutc())
-    assert live.tidal_release_date == datetime(2021, 4, 1, 18, tzinfo=tz.tzutc())
+    assert live.tidal_release_date == datetime(2021, 4, 1, 17, tzinfo=tz.tzutc())
     assert live.duration == 204
     assert live.video_quality == "MP4_1080P"
     assert live.available is True

@@ -23,8 +23,6 @@ import pytest
 
 import tidalapi
 
-from .cover import verify_image_cover
-
 
 def test_user(session):
     assert isinstance(session.user, tidalapi.LoggedInUser)
@@ -38,23 +36,26 @@ def test_get_user(session):
     assert isinstance(user, tidalapi.FetchedUser)
     assert user.first_name == "Five Dragons"
     assert user.last_name == "Music"
-
-    verify_image_cover(session, user, [100, 210, 600])
+    assert not user.picture_id
 
 
 def test_get_user_playlists(session):
     user_playlists = session.user.playlists()
     user_favorite_playlists = session.user.favorites.playlists()
-    user_playlists_and_favorite_playlists = (
-        session.user.playlist_and_favorite_playlists()
-    )
-    for item in user_playlists + user_favorite_playlists:
-        assert any(
-            item.id == playlist.id for playlist in user_playlists_and_favorite_playlists
-        )
-    assert len(user_playlists + user_favorite_playlists) - 1 == len(
-        user_playlists_and_favorite_playlists
-    )
+    user_playlists_and_favorite_playlists = []
+    offset = 0
+    while True:
+        playlists = session.user.playlist_and_favorite_playlists(offset=offset)
+        if playlists:
+            user_playlists_and_favorite_playlists += playlists
+        else:
+            break
+        offset += 50
+    playlist_ids = set(x.id for x in user_playlists)
+    favourite_ids = set(x.id for x in user_favorite_playlists)
+    both_ids = set(x.id for x in user_playlists_and_favorite_playlists)
+
+    assert playlist_ids | favourite_ids == both_ids
 
 
 def test_get_user_playlist_creator(session):

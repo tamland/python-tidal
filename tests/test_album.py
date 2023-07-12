@@ -22,6 +22,7 @@ import pytest
 from dateutil import tz
 
 import tidalapi
+from tidalapi.album import Album
 
 from .cover import verify_image_cover, verify_video_cover
 
@@ -98,8 +99,9 @@ def test_no_release_date(session):
     )
 
 
-def test_no_cover(session):
-    album = session.album(82804683)
+def test_default_image_used_if_no_cover_art(mocker):
+    # TODO find an example if there still are any.
+    album = Album(mocker.Mock(), None)
     assert album.cover is None
     assert album.image(1280) == tidalapi.album.DEFAULT_ALBUM_IMAGE
 

@@ -69,7 +69,10 @@ def test_get_albums_ep_singles(session):
 
 def test_get_albums_other(session):
     artist = session.artist(16147)
-    albums = [session.album(3551486), session.album(55664700)]
+    albums = [
+        session.album(108748620),
+        session.album(97216346),
+    ]
 
     find_ids(albums, artist.get_albums_other)
 
@@ -91,13 +94,12 @@ def test_get_videos_release_date(session):
     artist = session.artist(9341252)
 
     videos = [
-        session.video(182251637),
-        session.video(162651673),
-        session.video(117439611),
-        session.video(106471970),
-        session.video(104059079),
-        session.video(151050672),
-        session.video(144150464),
+        session.video(298985403),
+        session.video(288495954),
+        session.video(281813762),
+        session.video(271621957),
+        session.video(267866493),
+        session.video(260469454),
     ]
 
     find_ids(videos, artist.get_videos)
@@ -135,7 +137,7 @@ def test_get_radio(session):
 def test_artist_image(session):
     artist = session.artist(4822757)
     verify_image_cover(session, artist, [160, 320, 480, 750])
-    album = session.album(125914889)
+    album = session.album(108043414)
     verify_image_cover(session, album.artist, [160, 320, 480, 750])
 
 

@@ -21,10 +21,13 @@
 :class:`Favorites` is class with a users favorites.
 """
 
-from copy import copy
-from typing import Dict, Optional, Union
+from __future__ import annotations
 
-import dateutil.parser
+from copy import copy
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
+
+if TYPE_CHECKING:
+    from . import playlist
 
 
 class User(object):
@@ -112,7 +115,7 @@ class LoggedInUser(FetchedUser):
 
         return copy(self)
 
-    def playlists(self):
+    def playlists(self) -> List[Union[playlist.Playlist, playlist.UserPlaylist]]:
         """Get the playlists created by the user.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.

@@ -17,8 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """A module containing things related to TIDAL playlists."""
 
+from __future__ import annotations
+
 import copy
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional
+
+if TYPE_CHECKING:
+    import tidalapi
 
 import dateutil.parser
 
@@ -118,7 +123,7 @@ class Playlist(object):
         self.parse(json_obj)
         return copy.copy(self.factory())
 
-    def tracks(self, limit=None, offset=0):
+    def tracks(self, limit: Optional[int] = None, offset=0) -> List[tidalapi.Track]:
         """Gets the playlists̈́' tracks from TIDAL.
 
         :param limit: The amount of items you want returned.

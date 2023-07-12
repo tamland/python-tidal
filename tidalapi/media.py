@@ -20,15 +20,33 @@
 Classes: :class:`Media`, :class:`Track`, :class:`Video`
 """
 
+from __future__ import annotations
+
 import copy
 from abc import abstractmethod
 from datetime import datetime
-from typing import List, Optional, Union, cast
+from enum import Enum
+from typing import TYPE_CHECKING, List, Optional, Union, cast
 
 import dateutil.parser
 
-import tidalapi
+if TYPE_CHECKING:
+    import tidalapi
+
 from tidalapi.types import JsonObj
+
+
+class Quality(Enum):
+    lossless = "LOSSLESS"
+    high = "HIGH"
+    low = "LOW"
+    master = "HI_RES"
+
+
+class VideoQuality(Enum):
+    high = "HIGH"
+    medium = "MEDIUM"
+    low = "LOW"
 
 
 class Media:
@@ -52,16 +70,14 @@ class Media:
     volume_num: int = 1
     explicit: bool = False
     popularity: int = -1
-    artist: Optional[tidalapi.artist.Artist] = None
+    artist: Optional[tidalapi.Artist] = None
     #: For the artist credit page
     artist_roles = None
-    artists: Optional[List[tidalapi.artist.Artist]] = None
+    artists: Optional[List[tidalapi.Artist]] = None
     album: Optional[tidalapi.album.Album] = None
     type: Optional[str] = None
 
-    def __init__(
-        self, session: tidalapi.session.Session, media_id: Optional[str] = None
-    ):
+    def __init__(self, session: tidalapi.Session, media_id: Optional[str] = None):
         self.session = session
         self.requests = self.session.request
         self.album = session.album()
@@ -70,7 +86,7 @@ class Media:
             self._get(self.id)
 
     @abstractmethod
-    def _get(self, media_id: str) -> "Media":
+    def _get(self, media_id: str) -> Media:
         raise NotImplementedError(
             "You are not supposed to use the media class directly."
         )
@@ -140,12 +156,12 @@ class Track(Media):
     replay_gain = None
     peak = None
     isrc = None
-    audio_quality: Optional[tidalapi.session.Quality] = None
+    audio_quality: Optional[Quality] = None
     version = None
     full_name: Optional[str] = None
     copyright = None
 
-    def parse_track(self, json_obj: JsonObj) -> "Track":
+    def parse_track(self, json_obj: JsonObj) -> Track:
         Media.parse(self, json_obj)
         self.replay_gain = json_obj["replayGain"]
         # Tracks from the pages endpoints might not actually exist
@@ -153,7 +169,7 @@ class Track(Media):
             self.peak = json_obj["peak"]
             self.isrc = json_obj["isrc"]
             self.copyright = json_obj["copyright"]
-        self.audio_quality = tidalapi.session.Quality(json_obj["audioQuality"])
+        self.audio_quality = Quality(json_obj["audioQuality"])
         self.version = json_obj["version"]
 
         if self.version is not None:
@@ -284,7 +300,7 @@ class Video(Media):
     video_quality: Optional[str] = None
     cover: Optional[str] = None
 
-    def parse_video(self, json_obj: JsonObj) -> "Video":
+    def parse_video(self, json_obj: JsonObj) -> Video:
         Media.parse(self, json_obj)
         release_date = json_obj.get("releaseDate")
         self.release_date = (
@@ -296,7 +312,7 @@ class Video(Media):
 
         return copy.copy(self)
 
-    def _get(self, media_id: str) -> "Video":
+    def _get(self, media_id: str) -> Video:
         """Returns information about the video, and replaces the object used to call
         this function.
 

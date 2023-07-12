@@ -9,6 +9,7 @@ tidalapi
 
 Unofficial Python API for TIDAL music streaming service.
 
+Requires Python 3.7 or higher.
 
 0.7.0 Rewrite
 -------------
@@ -48,3 +49,14 @@ Documentation
 -------------
 
 Documentation is available at https://tidalapi.netlify.app/
+
+Development
+-----------
+
+This project uses poetry for dependency management and packaging. To install dependencies and setup the project for development, run:
+
+.. code-block:: bash
+    
+        $ pip install pipx
+        $ pipx install poetry
+        $ poetry install --no-root

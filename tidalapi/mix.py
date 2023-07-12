@@ -15,6 +15,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """A module containing functions relating to TIDAL mixes."""
+
+from __future__ import annotations
+
 import copy
 from enum import Enum
 from typing import TYPE_CHECKING, List, Optional, TypedDict, Union

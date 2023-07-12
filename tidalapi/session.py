@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function, unicode_literals
+from __future__ import annotations, print_function, unicode_literals
 
 import base64
 import concurrent.futures
@@ -27,6 +27,7 @@ import time
 import uuid
 from enum import Enum
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     List,
@@ -41,37 +42,20 @@ from urllib.parse import urljoin
 
 import requests
 
-import tidalapi.album
-import tidalapi.artist
-import tidalapi.genre
-import tidalapi.media
-import tidalapi.mix
-import tidalapi.playlist
-import tidalapi.request
-import tidalapi.user
+if TYPE_CHECKING:
+    import tidalapi
+
+from . import album, artist, genre, media, mix, page, playlist, request, user
 
 log = logging.getLogger("__NAME__")
 SearchTypes: List[Optional[Any]] = [
-    tidalapi.artist.Artist,
-    tidalapi.album.Album,
-    tidalapi.media.Track,
-    tidalapi.media.Video,
-    tidalapi.playlist.Playlist,
+    artist.Artist,
+    album.Album,
+    media.Track,
+    media.Video,
+    playlist.Playlist,
     None,
 ]
-
-
-class Quality(Enum):
-    lossless = "LOSSLESS"
-    high = "HIGH"
-    low = "LOW"
-    master = "HI_RES"
-
-
-class VideoQuality(Enum):
-    high = "HIGH"
-    medium = "MEDIUM"
-    low = "LOW"
 
 
 class LinkLogin(object):
@@ -107,8 +91,8 @@ class Config(object):
     @no_type_check
     def __init__(
         self,
-        quality=Quality.high,
-        video_quality=VideoQuality.high,
+        quality=media.Quality.high,
+        video_quality=media.VideoQuality.high,
         item_limit=1000,
         alac=True,
     ):
@@ -222,15 +206,15 @@ class Session(object):
     session_id = None
     country_code = None
     #: A :class:`.User` object containing the currently logged in user.
-    user = None
+    user: Union[user.FetchedUser, user.LoggedInUser, user.PlaylistCreator] = None
 
     def __init__(self, config=Config()):
         self.config = config
         self.request_session = requests.Session()
 
         # Objects for keeping the session across all modules.
-        self.request = tidalapi.Requests(session=self)
-        self.genre = tidalapi.Genre(session=self)
+        self.request = request.Requests(session=self)
+        self.genre = genre.Genre(session=self)
 
         self.parse_album = self.album().parse
         self.parse_artist = self.artist().parse_artist
@@ -242,8 +226,8 @@ class Session(object):
         self.parse_media = self.track().parse_media
         self.parse_mix = self.mix().parse
 
-        self.parse_user = tidalapi.User(self, None).parse
-        self.page = tidalapi.Page(self, None)
+        self.parse_user = user.User(self, None).parse
+        self.page = page.Page(self, None)
         self.parse_page = self.page.parse
 
         # Dictionary to convert between models from this library, to the text they, and to the parsing function.
@@ -319,7 +303,7 @@ class Session(object):
             user_id = request["userId"]
 
         self.country_code = country_code
-        self.user = tidalapi.User(self, user_id=user_id).factory()
+        self.user = user.User(self, user_id=user_id).factory()
         return True
 
     def load_oauth_session(
@@ -347,7 +331,7 @@ class Session(object):
 
         self.session_id = json["sessionId"]
         self.country_code = json["countryCode"]
-        self.user = tidalapi.User(self, user_id=json["userId"]).factory()
+        self.user = user.User(self, user_id=json["userId"]).factory()
 
         return True
 
@@ -374,7 +358,7 @@ class Session(object):
         body = request.json()
         self.session_id = body["sessionId"]
         self.country_code = body["countryCode"]
-        self.user = tidalapi.User(self, user_id=body["userId"]).factory()
+        self.user = user.User(self, user_id=body["userId"]).factory()
         return True
 
     def login_oauth_simple(self, function=print):
@@ -385,7 +369,7 @@ class Session(object):
         :raises: TimeoutError: If the login takes too long
         """
         login, future = self.login_oauth()
-        text = "Visit {0} to log in, the code will expire in {1} seconds"
+        text = "Visit https://{0} to log in, the code will expire in {1} seconds"
         function(text.format(login.verification_uri_complete, login.expires_in))
         future.result()
 
@@ -427,7 +411,7 @@ class Session(object):
         json = session.json()
         self.session_id = json["sessionId"]
         self.country_code = json["countryCode"]
-        self.user = tidalapi.User(self, user_id=json["userId"]).factory()
+        self.user = user.User(self, user_id=json["userId"]).factory()
 
     def _wait_for_link_login(self, json):
         expiry = json["expiresIn"]
@@ -544,7 +528,9 @@ class Session(object):
             "GET", "users/%s/subscription" % self.user.id
         ).ok
 
-    def playlist(self, playlist_id=None):
+    def playlist(
+        self, playlist_id=None
+    ) -> Union[tidalapi.Playlist, tidalapi.UserPlaylist]:
         """Function to create a playlist object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Playlist(session=session,
         playlist_id=playlist_id) <.Playlist>` internally.
@@ -553,9 +539,9 @@ class Session(object):
         :return: Returns a :class:`.Playlist` object that has access to the session instance used.
         """
 
-        return tidalapi.Playlist(session=self, playlist_id=playlist_id).factory()
+        return playlist.Playlist(session=self, playlist_id=playlist_id).factory()
 
-    def track(self, track_id=None, with_album=False):
+    def track(self, track_id=None, with_album=False) -> tidalapi.Track:
         """Function to create a Track object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Track(session=session, track_id=track_id)
         <.Track>` internally.
@@ -565,7 +551,7 @@ class Session(object):
         :return: Returns a :class:`.Track` object that has access to the session instance used.
         """
 
-        item = tidalapi.Track(session=self, media_id=track_id)
+        item = media.Track(session=self, media_id=track_id)
         if item.album and with_album:
             album = self.album(item.album.id)
             if album:
@@ -573,7 +559,7 @@ class Session(object):
 
         return item
 
-    def video(self, video_id=None):
+    def video(self, video_id=None) -> tidalapi.Video:
         """Function to create a Video object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Video(session=session, video_id=video_id)
         <.Video>` internally.
@@ -582,9 +568,9 @@ class Session(object):
         :return: Returns a :class:`.Video` object that has access to the session instance used.
         """
 
-        return tidalapi.Video(session=self, media_id=video_id)
+        return media.Video(session=self, media_id=video_id)
 
-    def artist(self, artist_id: Optional[str] = None) -> tidalapi.artist.Artist:
+    def artist(self, artist_id: Optional[str] = None) -> tidalapi.Artist:
         """Function to create a Artist object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Artist(session=session,
         artist_id=artist_id) <.Artist>` internally.
@@ -593,7 +579,7 @@ class Session(object):
         :return: Returns a :class:`.Artist` object that has access to the session instance used.
         """
 
-        return tidalapi.Artist(session=self, artist_id=artist_id)
+        return artist.Artist(session=self, artist_id=artist_id)
 
     def album(self, album_id: Optional[str] = None) -> tidalapi.Album:
         """Function to create a Album object with access to the session instance in a
@@ -604,9 +590,9 @@ class Session(object):
         :return: Returns a :class:`.Album` object that has access to the session instance used.
         """
 
-        return tidalapi.Album(session=self, album_id=album_id)
+        return album.Album(session=self, album_id=album_id)
 
-    def mix(self, mix_id=None):
+    def mix(self, mix_id=None) -> tidalapi.Mix:
         """Function to create a mix object with access to the session instance smoothly
         Calls :class:`tidalapi.Mix(session=session, mix_id=mix_id) <.Album>` internally.
 
@@ -614,18 +600,20 @@ class Session(object):
         :return: Returns a :class:`.Mix` object that has access to the session instance used.
         """
 
-        return tidalapi.Mix(session=self, mix_id=mix_id)
+        return mix.Mix(session=self, mix_id=mix_id)
 
-    def get_user(self, user_id=None):
+    def get_user(
+        self, user_id=None
+    ) -> Union[tidalapi.FetchedUser, tidalapi.LoggedInUser, tidalapi.PlaylistCreator]:
         """Function to create a User object with access to the session instance in a
-        smoother way. Calls :class:`tidalapi.User(session=session, user_id=user_id)
-        <.User>` internally.
+        smoother way. Calls :class:`user.User(session=session, user_id=user_id) <.User>`
+        internally.
 
         :param user_id: (Optional) The TIDAL id of the User. You may want access to the methods without an id.
         :return: Returns a :class:`.User` object that has access to the session instance used.
         """
 
-        return tidalapi.User(session=self, user_id=user_id).factory()
+        return user.User(session=self, user_id=user_id).factory()
 
     def home(self):
         """

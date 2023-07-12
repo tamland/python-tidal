@@ -44,15 +44,10 @@ class MixType(Enum):
 
 
 @dataclass
-class ImageDetails:
-    url: str
-
-
-@dataclass
 class ImageResponse:
-    small: ImageDetails
-    medium: ImageDetails
-    large: ImageDetails
+    small: str
+    medium: str
+    large: str
 
 
 class Mix:
@@ -113,9 +108,9 @@ class Mix:
         self.short_subtitle = json_obj["shortSubtitle"]
         images = json_obj["images"]
         self.images = ImageResponse(
-            small=ImageDetails(images["SMALL"]["url"]),
-            medium=ImageDetails(images["MEDIUM"]["url"]),
-            large=ImageDetails(images["LARGE"]["url"]),
+            small=images["SMALL"]["url"],
+            mediumimages["MEDIUM"]["url"],
+            large=images["LARGE"]["url"],
         )
 
         return copy.copy(self)
@@ -145,10 +140,10 @@ class Mix:
             raise ValueError("No images present.")
 
         if dimensions == 320:
-            return self.images.small.url
+            return self.images.small
         elif dimensions == 640:
-            return self.images.medium.url
+            return self.images.medium
         elif dimensions == 1500:
-            return self.images.large.url
+            return self.images.large
 
         raise ValueError(f"Invalid resolution {dimensions} x {dimensions}")

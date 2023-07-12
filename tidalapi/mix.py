@@ -112,7 +112,7 @@ class Mix:
         images = json_obj["images"]
         self.images = ImageResponse(
             small=images["SMALL"]["url"],
-            mediumimages["MEDIUM"]["url"],
+            medium=images["MEDIUM"]["url"],
             large=images["LARGE"]["url"],
         )
 

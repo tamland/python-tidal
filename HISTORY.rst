@@ -5,17 +5,18 @@ History
 
 v0.7.2
 ------
-* Improved tests - 2e0byo
-* Add type to album object - jozefKruszynski
-* Add mix images and tests - jozefKruszynski
-* Add mypy and fix immediate typing errors - arusahni
-* New attribute to media.Track() class: 'full_name' WilliamGuisan
-* Fix Track.stream() method ssnailed
-* Fixed key error for gender when parsing user json mkaufhol
-* Drop (almost) all user data we don't use. 2e0byo
-* Add typing for media, genres, mixes, and albums arusahni
-* Replace TypedDict and NamedTuple with dataclasses arusahni
-* Fix circular Imports and Typing PretzelVector
+* (BREAKING!) Drop support for python3.8 and older
+* Improved tests - 2e0byo_
+* Add type to album object - jozefKruszynski_
+* Add mix images and tests - jozefKruszynski_
+* Add mypy and fix immediate typing errors - arusahni_
+* New attribute to media.Track() class: 'full_name' - WilliamGuisan_
+* Fix Track.stream() method - ssnailed_
+* Fixed key error for gender when parsing user json - mkaufhol_
+* Drop (almost) all user data we don't use. - 2e0byo_
+* Add typing for media, genres, mixes, and albums - arusahni_
+* Replace TypedDict and NamedTuple with dataclasses - arusahni_
+* Fix circular Imports and Typing - PretzelVector_
 
 v0.7.1
 ------
@@ -113,3 +114,14 @@ v0.6.2
 .. _retired-guy: https://github.com/retired-guy
 .. _bjesus: https://github.com/bjesus
 .. _bloedboemmel: https://github.com/bloedboemmel
+.. _2e0byo: https://github.com/2e0byo
+.. _jozefKruszynski: https://github.com/jozefKruszynski
+.. _arusahni: https://github.com/arusahni
+.. _WilliamGuisan: https://github.com/WilliamGuisan
+.. _ssnailed: https://github.com/ssnailed
+.. _mkaufhol: https://github.com/mkaufhol
+.. _PretzelVector: https://github.com/PretzelVector
+.. _tehkillerbee: https://github.com/tehkillerbee
+
+
+

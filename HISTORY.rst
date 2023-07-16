@@ -3,6 +3,20 @@
 History
 =======
 
+v0.7.2
+------
+* Improved tests - 2e0byo
+* Add type to album object - jozefKruszynski
+* Add mix images and tests - jozefKruszynski
+* Add mypy and fix immediate typing errors - arusahni
+* New attribute to media.Track() class: 'full_name' WilliamGuisan
+* Fix Track.stream() method ssnailed
+* Fixed key error for gender when parsing user json mkaufhol
+* Drop (almost) all user data we don't use. 2e0byo
+* Add typing for media, genres, mixes, and albums arusahni
+* Replace TypedDict and NamedTuple with dataclasses arusahni
+* Fix circular Imports and Typing PretzelVector
+
 v0.7.1
 ------
 * Quick fix for "got key error 'picture'" error. - BlackLight_

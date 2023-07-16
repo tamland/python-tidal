@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tidalapi"
-version = "0.7.1"
+version = "0.7.2"
 description = "Unofficial API for TIDAL music streaming service."
 authors = ["Thomas Amland <thomas.amland@googlemail.com>"]
 maintainers = ["tehkillerbee <josaksel.dk@gmail.com>"]
@@ -14,7 +14,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

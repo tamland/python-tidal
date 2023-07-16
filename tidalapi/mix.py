@@ -97,7 +97,7 @@ class Mix:
         return self
 
     def parse(self, json_obj: JsonObj) -> "Mix":
-        """Parse a mix into a :class:`Mix`, replaces the calling object
+        """Parse a mix into a :class:`Mix`, replaces the calling object.
 
         :param json_obj: The json of a mix to be parsed
         :return: A copy of the parsed mix
@@ -119,8 +119,8 @@ class Mix:
         return copy.copy(self)
 
     def items(self) -> List[Union["Video", "Track"]]:
-        """
-        Returns all the items in the mix, retrieves them with :class:`get` as well if not already done
+        """Returns all the items in the mix, retrieves them with :class:`get` as well if
+        not already done.
 
         :return: A :class:`list` of videos and/or tracks from the mix
         """

@@ -126,8 +126,7 @@ class Album:
 
     @property
     def year(self) -> Optional[int]:
-        """
-        Convenience function to get the year using :class:`available_release_date`
+        """Convenience function to get the year using :class:`available_release_date`
 
         :return: An :any:`python:int` containing the year the track was released
         """
@@ -138,9 +137,8 @@ class Album:
         """Get the release date if it's available, otherwise get the day it was released
         on TIDAL.
 
-        :return: A
-        :any:`python:datetime.datetime` object with the release date, or the tidal
-            release date, can be None
+        :return: A :any:`python:datetime.datetime` object with the release date, or the
+            tidal release date, can be None
         """
         if self.release_date:
             return self.release_date
@@ -153,8 +151,7 @@ class Album:
 
         :param limit: The amount of items you want returned.
         :param offset: The position of the first item you want to include.
-        :return: A list of the
-        :class:`Tracks <.Track>` in the album.
+        :return: A list of the :class:`Tracks <.Track>` in the album.
         """
         params = {"limit": limit, "offset": offset}
         tracks = self.requests.map_request(

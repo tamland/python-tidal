@@ -159,8 +159,8 @@ class PageCategory(object):
         return category.parse(json_obj)
 
     def show_more(self):
-        """
-        Get the full list of items on their own :class:`.Page` from a :class:`.PageCategory`
+        """Get the full list of items on their own :class:`.Page` from a
+        :class:`.PageCategory`
 
         :return: A :class:`.Page` more of the items in the category, None if there aren't any
         """
@@ -196,9 +196,7 @@ class FeaturedItems(PageCategory):
 
 
 class PageLinks(PageCategory):
-    """
-    A list of :class:`.PageLink` to other parts of TIDAL
-    """
+    """A list of :class:`.PageLink` to other parts of TIDAL."""
 
     items: Optional[list["PageLink"]] = None
 
@@ -257,9 +255,7 @@ class ItemList(PageCategory):
 
 
 class PageLink(object):
-    """
-    A Link to another :class:`.Page` on TIDAL, Call get() to retrieve the Page
-    """
+    """A Link to another :class:`.Page` on TIDAL, Call get() to retrieve the Page."""
 
     title = None
     icon = None
@@ -275,10 +271,8 @@ class PageLink(object):
         self.image_id = json_obj["imageId"]
 
     def get(self):
-        """
-        Requests the linked page from TIDAL
-        :return: A :class:`Page` at the api_path
-        """
+        """Requests the linked page from TIDAL :return: A :class:`Page` at the
+        api_path."""
         return self.request.map_request(
             self.api_path,
             params={"deviceType": "DESKTOP"},
@@ -287,9 +281,8 @@ class PageLink(object):
 
 
 class PageItem(object):
-    """
-    An Item from a :class:`.PageCategory` from the /pages endpoint, call get() to retrieve the actual item
-    """
+    """An Item from a :class:`.PageCategory` from the /pages endpoint, call get() to
+    retrieve the actual item."""
 
     header = ""
     short_header = ""

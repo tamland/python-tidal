@@ -76,8 +76,7 @@ class Artist(object):
         inside of the python tidalapi module.
 
         :param json_obj: Json data returned from api.tidal.com containing an artist
-        :return: Returns a copy of the original
-        :exc: 'Artist': object
+        :return: Returns a copy of the original :exc: 'Artist': object
         """
         return list(map(self.parse_artist, json_obj))
 
@@ -89,8 +88,7 @@ class Artist(object):
     def get_albums(self, limit=None, offset=0):
         """Queries TIDAL for the artists albums.
 
-        :return: A list of
-        :class:`Albums<tidalapi.album.Album>`
+        :return: A list of :class:`Albums<tidalapi.album.Album>`
         """
         params = {"limit": limit, "offset": offset}
         return self._get_albums(params)
@@ -98,8 +96,7 @@ class Artist(object):
     def get_albums_ep_singles(self, limit=None, offset=0):
         """Queries TIDAL for the artists extended plays and singles.
 
-        :return: A list of
-        :class:`Albums <tidalapi.album.Album>`
+        :return: A list of :class:`Albums <tidalapi.album.Album>`
         """
         params = {"filter": "EPSANDSINGLES", "limit": limit, "offset": offset}
         return self._get_albums(params)
@@ -107,8 +104,7 @@ class Artist(object):
     def get_albums_other(self, limit=None, offset=0):
         """Queries TIDAL for albums the artist has appeared on as a featured artist.
 
-        :return: A list of
-        :class:`Albums <tidalapi.album.Album>`
+        :return: A list of :class:`Albums <tidalapi.album.Album>`
         """
         params = {"filter": "COMPILATIONS", "limit": limit, "offset": offset}
         return self._get_albums(params)
@@ -116,8 +112,7 @@ class Artist(object):
     def get_top_tracks(self, limit=None, offset=0):
         """Queries TIDAL for the artists tracks, sorted by popularity.
 
-        :return: A list of
-        :class:`Tracks <tidalapi.media.Track>`
+        :return: A list of :class:`Tracks <tidalapi.media.Track>`
         """
         params = {"limit": limit, "offset": offset}
         return self.request.map_request(
@@ -129,8 +124,7 @@ class Artist(object):
     def get_videos(self, limit=None, offset=0):
         """Queries tidal for the artists videos.
 
-        :return: A list of
-        :class:`Videos <tidalapi.media.Video>`
+        :return: A list of :class:`Videos <tidalapi.media.Video>`
         """
         params = {"limit": limit, "offset": offset}
         return self.request.map_request(
@@ -149,8 +143,7 @@ class Artist(object):
     def get_similar(self):
         """Queries TIDAL for similar artists.
 
-        :return: A list of
-        :class:`Artists <tidalapi.artist.Artist>`
+        :return: A list of :class:`Artists <tidalapi.artist.Artist>`
         """
         return self.request.map_request(
             "artists/%s/similar" % self.id, parse=self.parse_artist
@@ -160,8 +153,7 @@ class Artist(object):
         """Queries TIDAL for the artist radio, which is a mix of tracks that are similar
         to what the artist makes.
 
-        :return: A list of
-        :class:`Tracks <tidalapi.media.Track>`
+        :return: A list of :class:`Tracks <tidalapi.media.Track>`
         """
         params = {"limit": 100}
         return self.request.map_request(

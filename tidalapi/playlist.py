@@ -65,8 +65,7 @@ class Playlist(object):
         """Parses a playlist from tidal, replaces the current playlist object.
 
         :param json_obj: Json data returned from api.tidal.com containing a playlist
-        :return: Returns a copy of the original
-        :exc: 'Playlist': object
+        :return: Returns a copy of the original :exc: 'Playlist': object
         """
         self.id = json_obj["uuid"]
         self.name = json_obj["title"]
@@ -128,8 +127,7 @@ class Playlist(object):
 
         :param limit: The amount of items you want returned.
         :param offset: The index of the first item you want included.
-        :return: A list of
-        :class:`Tracks <.Track>`
+        :return: A list of :class:`Tracks <.Track>`
         """
         params = {"limit": limit, "offset": offset}
         request = self.requests.request(
@@ -145,9 +143,7 @@ class Playlist(object):
 
         :param limit: The amount of items you want, up to 100.
         :param offset: The index of the first item you want returned
-        :return: A list of
-        :class:`Tracks<.Track>` and
-        :class:`Videos<.Video>`
+        :return: A list of :class:`Tracks<.Track>` and :class:`Videos<.Video>`
         """
         params = {"limit": limit, "offset": offset}
         request = self.requests.request(

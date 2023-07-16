@@ -50,14 +50,13 @@ class VideoQuality(Enum):
 
 
 class Media:
-    """
-    Base class for generic media, specifically :class:`Track` and :class:`Video`
+    """Base class for generic media, specifically :class:`Track` and :class:`Video`
 
     This class includes data used by both of the subclasses, and a function to parse
     both of them.
 
-    The date_added attribute is only relevant for playlists.
-    For the release date of the actual media, use the release date of the album.
+    The date_added attribute is only relevant for playlists. For the release date of the
+    actual media, use the release date of the album.
     """
 
     id = None
@@ -218,8 +217,7 @@ class Track(Media):
         """Queries TIDAL for the track radio, which is a mix of tracks that are similar
         to this track.
 
-        :return: A list of
-        :class:`Tracks <tidalapi.media.Track>`
+        :return: A list of :class:`Tracks <tidalapi.media.Track>`
         """
         params = {"limit": 100}
         tracks = self.requests.map_request(

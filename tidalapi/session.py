@@ -33,7 +33,6 @@ from typing import (
     Callable,
     List,
     Literal,
-    NamedTuple,
     Optional,
     Union,
     cast,

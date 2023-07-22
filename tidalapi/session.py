@@ -232,10 +232,6 @@ class Session(object):
         self.page = page.Page(self, None)
         self.parse_page = self.page.parse
 
-        # Dictionary to convert between models from this library, to the text they, and to the parsing function.
-        # It also helps in converting the other way around. All the information about artist is stored at the
-        # Same index, which means you can get the index of the model, and then get the text using that index.
-        # There probably is a better way to do this, but this was sadly the most readable way i found of doing it.
         self.type_conversions: List[TypeRelation] = [
             TypeRelation(identifier=identifier, type=type, parse=parse)
             for identifier, type, parse in zip(

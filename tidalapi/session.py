@@ -189,7 +189,7 @@ TypeConversionKeys = Literal["identifier", "type", "parse"]
 class TypeRelation:
     identifier: str
     type: Optional[Any]
-    parse: Callable
+    parse: function
 
 
 class Session(object):
@@ -207,7 +207,9 @@ class Session(object):
     session_id = None
     country_code = None
     #: A :class:`.User` object containing the currently logged in user.
-    user: Union[user.FetchedUser, user.LoggedInUser, user.PlaylistCreator] = None
+    user: Optional[
+        Union[user.FetchedUser, user.LoggedInUser, user.PlaylistCreator]
+    ] = None
 
     def __init__(self, config=Config()):
         self.config = config

@@ -1,8 +1,21 @@
-.PHONY: lint test install format all
+.PHONY: lint test install format all develop shell help
 POETRY ?= poetry run
 
 help:
-	@printf "Chose one of install, format, lint or test.\n"
+	@echo -e "Task runner for python-tidal.  Run make <option> to do something.\n"
+	@echo -e "\t\t\tOptions\n"
+	@echo -e "develop:\tset up development virtual environment with required deps"
+	@echo -e "shell:\t\tstart a shell inside the development environment"
+	@echo -e "install:\tbuild package and install system wide (do not run this from within the virtual environment)"
+	@echo -e "format:\t\tformat code"
+	@echo -e "lint:\t\tlint code"
+	@echo -e "test:\t\trun tests: will fail if development environment not already created"
+
+develop:
+	poetry install
+
+shell:
+	poetry shell
 
 install:
 	rm -rf dist

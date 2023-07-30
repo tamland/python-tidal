@@ -189,7 +189,7 @@ TypeConversionKeys = Literal["identifier", "type", "parse"]
 class TypeRelation:
     identifier: str
     type: Optional[Any]
-    parse: function
+    parse: Callable
 
 
 class Session(object):
@@ -234,7 +234,7 @@ class Session(object):
         self.parse_page = self.page.parse
 
         self.type_conversions: List[TypeRelation] = [
-            TypeRelation(identifier=identifier, type=type, parse=parse)
+            TypeRelation(identifier=identifier, type=type, parse=cast(Callable, parse))
             for identifier, type, parse in zip(
                 (
                     "artists",

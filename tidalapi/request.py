@@ -19,12 +19,14 @@
 
 import json
 import logging
-from typing import Any, List
+from typing import Any, Callable, List, Literal, Mapping, Optional, Union
 from urllib.parse import urljoin
 
-import requests
+from tidalapi.types import JsonObj
 
 log = logging.getLogger(__name__)
+
+Params = Mapping[str, Union[str, int, None]]
 
 
 class Requests(object):
@@ -80,7 +82,14 @@ class Requests(object):
 
         return request
 
-    def request(self, method, path, params=None, data=None, headers=None):
+    def request(
+        self,
+        method: Literal["GET", "POST", "PUT"],
+        path: str,
+        params: Optional[Params] = None,
+        data: Optional[JsonObj] = None,
+        headers: Optional[Mapping[str, str]] = None,
+    ):
         """Method for tidal requests.
 
         Not meant for use outside of this library.
@@ -100,7 +109,12 @@ class Requests(object):
             log.debug("response: %s", json.dumps(request.json(), indent=4))
         return request
 
-    def map_request(self, url, params=None, parse=None):
+    def map_request(
+        self,
+        url: str,
+        params: Optional[Params] = None,
+        parse: Optional[Callable] = None,
+    ):
         """Returns the data about object(s) at the specified url, with the method
         specified in the parse argument.
 

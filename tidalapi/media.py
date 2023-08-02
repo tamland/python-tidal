@@ -165,13 +165,13 @@ class Track(Media):
         Media.parse(self, json_obj)
         self.replay_gain = json_obj["replayGain"]
         # Tracks from the pages endpoints might not actually exist
-        if 'peak' in json_obj and 'isrc' in json_obj:
-            self.peak = json_obj['peak']
-            self.isrc = json_obj['isrc']
-            self.copyright = json_obj['copyright']
-        self.audio_quality = tidalapi.Quality(json_obj['audioQuality'])
-        self.version = json_obj['version']
-        self.media_metadata_tags = json_obj['mediaMetadata']['tags']
+        if "peak" in json_obj and "isrc" in json_obj:
+            self.peak = json_obj["peak"]
+            self.isrc = json_obj["isrc"]
+            self.copyright = json_obj["copyright"]
+        self.audio_quality = tidalapi.Quality(json_obj["audioQuality"])
+        self.version = json_obj["version"]
+        self.media_metadata_tags = json_obj["mediaMetadata"]["tags"]
 
         if self.version is not None:
             self.full_name = f"{json_obj['title']} ({json_obj['version']})"

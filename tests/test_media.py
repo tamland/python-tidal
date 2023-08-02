@@ -206,7 +206,8 @@ def test_full_name_track_3(session):
     assert track.name == "Magical place (feat. IOVA)"
     assert track.version == "Dj Dark & MD Dj Remix"
     assert track.full_name == "Magical place (feat. IOVA) (Dj Dark & MD Dj Remix)"
-    
+
+
 def test_track_media_metadata_tags(session):
     track = session.track(182912246)
     assert track.name == "All You Ever Wanted"

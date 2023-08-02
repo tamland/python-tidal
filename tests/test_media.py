@@ -212,5 +212,3 @@ def test_track_media_metadata_tags(session):
     track = session.track(182912246)
     assert track.name == "All You Ever Wanted"
     assert track.media_metadata_tags == ["LOSSLESS", "HIRES_LOSSLESS", "MQA"]
-
-

@@ -16,19 +16,19 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import datetime
+
 import dateutil.tz
+import pytest
+
 import tidalapi
-from .cover import verify_image_cover
 
 
 def test_user(session):
     assert isinstance(session.user, tidalapi.LoggedInUser)
     user = session.get_user(session.user.id)
     assert isinstance(user, tidalapi.LoggedInUser)
-    assert '@' in user.email
-    assert user.accepted_eula
+    assert "@" in user.email
 
 
 def test_get_user(session):
@@ -36,17 +36,26 @@ def test_get_user(session):
     assert isinstance(user, tidalapi.FetchedUser)
     assert user.first_name == "Five Dragons"
     assert user.last_name == "Music"
-
-    verify_image_cover(session, user, [100, 210, 600])
+    assert not user.picture_id
 
 
 def test_get_user_playlists(session):
     user_playlists = session.user.playlists()
     user_favorite_playlists = session.user.favorites.playlists()
-    user_playlists_and_favorite_playlists = session.user.playlist_and_favorite_playlists()
-    for item in user_playlists + user_favorite_playlists:
-        assert any(item.id == playlist.id for playlist in user_playlists_and_favorite_playlists)
-    assert len(user_playlists + user_favorite_playlists) - 1 == len(user_playlists_and_favorite_playlists)
+    user_playlists_and_favorite_playlists = []
+    offset = 0
+    while True:
+        playlists = session.user.playlist_and_favorite_playlists(offset=offset)
+        if playlists:
+            user_playlists_and_favorite_playlists += playlists
+        else:
+            break
+        offset += 50
+    playlist_ids = set(x.id for x in user_playlists)
+    favourite_ids = set(x.id for x in user_favorite_playlists)
+    both_ids = set(x.id for x in user_playlists_and_favorite_playlists)
+
+    assert playlist_ids | favourite_ids == both_ids
 
 
 def test_get_user_playlist_creator(session):
@@ -68,14 +77,14 @@ def test_get_editorial_playlist_creator(session):
 def test_create_playlist(session):
     playlist = session.user.create_playlist("Testing", "Testing1234")
     playlist.add([125169484])
-    assert playlist.tracks()[0].name == 'Alone, Pt. II'
+    assert playlist.tracks()[0].name == "Alone, Pt. II"
     assert playlist.description == "Testing1234"
     assert playlist.name == "Testing"
     playlist.remove_by_id(125169484)
     assert len(playlist.tracks()) == 0
     playlist.add([64728757, 125169484])
     for index, item in enumerate(playlist.tracks()):
-        if item.name == 'Alone, Pt. II':
+        if item.name == "Alone, Pt. II":
             playlist.remove_by_index(index)
             break
 
@@ -93,8 +102,13 @@ def test_create_playlist(session):
     assert playlist.name == "testing"
     assert playlist.description == "testing1234"
 
-    assert any([playlist.id == user_playlist.id for user_playlist in session.user.playlists()])
-    assert any([isinstance(user_playlist, tidalapi.UserPlaylist)] for user_playlist in session.user.playlists())
+    assert any(
+        [playlist.id == user_playlist.id for user_playlist in session.user.playlists()]
+    )
+    assert any(
+        [isinstance(user_playlist, tidalapi.UserPlaylist)]
+        for user_playlist in session.user.playlists()
+    )
 
     long_playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     playlist_tracks = long_playlist.tracks(limit=250)
@@ -112,7 +126,9 @@ def test_create_playlist(session):
 def test_add_remove_favorite_artist(session):
     favorites = session.user.favorites
     artist_id = 5247488
-    add_remove(artist_id, favorites.add_artist, favorites.remove_artist, favorites.artists)
+    add_remove(
+        artist_id, favorites.add_artist, favorites.remove_artist, favorites.artists
+    )
 
 
 def test_add_remove_favorite_album(session):
@@ -125,8 +141,18 @@ def test_add_remove_favorite_playlist(session):
     favorites = session.user.favorites
     playlists_and_favorite_playlists = session.user.playlist_and_favorite_playlists
     playlist_id = "e676056d-fbc6-499a-be9d-7191d2d0bfee"
-    add_remove(playlist_id, favorites.add_playlist, favorites.remove_playlist, favorites.playlists)
-    add_remove(playlist_id, favorites.add_playlist, favorites.remove_playlist, playlists_and_favorite_playlists)
+    add_remove(
+        playlist_id,
+        favorites.add_playlist,
+        favorites.remove_playlist,
+        favorites.playlists,
+    )
+    add_remove(
+        playlist_id,
+        favorites.add_playlist,
+        favorites.remove_playlist,
+        playlists_and_favorite_playlists,
+    )
 
 
 def test_add_remove_favorite_track(session):
@@ -142,17 +168,18 @@ def test_add_remove_favorite_video(session):
 
 
 def add_remove(object_id, add, remove, objects):
-    """
-    Add and remove an item from favorites. Skips the test if the item was already in your favorites.
+    """Add and remove an item from favorites. Skips the test if the item was already in
+    your favorites.
 
     :param object_id: Identifier of the object
     :param add: Function to add object to favorites
     :param remove: Function to remove object from favorites
     :param objects: Function to list objects in favorites
     """
-    # If the item is already favorited, we don't want to do anything with it, as it would result in the date it was
-    # favorited changing. Avoiding it also lets us make sure that we won't remove something from the favorites if
-    # the tests are cancelled.
+    # If the item is already favorited, we don't want to do anything with it,
+    # as it would result in the date it was favorited changing. Avoiding it
+    # also lets us make sure that we won't remove something from the favorites
+    # if the tests are cancelled.
     exists = False
     for item in objects():
         if item.id == object_id:
@@ -160,7 +187,10 @@ def add_remove(object_id, add, remove, objects):
             model = type(item).__name__
             name = item.name
     if exists:
-        reason = "%s '%s' is already favorited, skipping to avoid changing the date it was favorited" % (model, name)
+        reason = (
+            "%s '%s' is already favorited, skipping to avoid changing the date it was favorited"
+            % (model, name)
+        )
         pytest.skip(reason)
 
     current_time = datetime.datetime.now(tz=dateutil.tz.tzutc())

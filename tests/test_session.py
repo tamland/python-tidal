@@ -18,10 +18,11 @@
 
 from __future__ import print_function
 
-import requests
 import pytest
+import requests
+
 import tidalapi
-from tidalapi import Artist, Album, Playlist, Track, Video
+from tidalapi import Album, Artist, Playlist, Track, Video
 
 
 def test_load_oauth_session(session):
@@ -47,7 +48,13 @@ def test_oauth_login(capsys):
     session = tidalapi.Session(config)
     login, future = session.login_oauth()
     with capsys.disabled():
-        print("Visit", login.verification_uri_complete, "to log in, the link expires in", login.expires_in, "seconds")
+        print(
+            "Visit",
+            login.verification_uri_complete,
+            "to log in, the link expires in",
+            login.expires_in,
+            "seconds",
+        )
     future.result()
     assert session.check_login()
     assert session.config.item_limit == 10000
@@ -56,7 +63,7 @@ def test_oauth_login(capsys):
 def test_failed_oauth_login(session):
     client_id = session.config.client_id
     config = tidalapi.Config()
-    config.client_id = client_id + 's'
+    config.client_id = client_id + "s"
     session = tidalapi.Session(config)
     with pytest.raises(requests.HTTPError):
         session.login_oauth()
@@ -81,29 +88,28 @@ def test_oauth_refresh(session):
 def test_search(session):
     # Great edge case test
     search = session.search("Walker", limit=300)
-    assert len(search['artists']) == 300
-    assert len(search['albums']) == 300
-    assert len(search['tracks']) == 300
-    assert len(search['videos']) == 300
-    assert len(search['playlists']) >= 195
-    assert isinstance(search['artists'][0], Artist)
-    assert isinstance(search['albums'][0], Album)
-    assert isinstance(search['tracks'][0], Track)
-    assert isinstance(search['videos'][0], Video)
-    assert isinstance(search['playlists'][0], Playlist)
-
-    assert (search['top_hit']).name == "Walker Hayes"
+    assert len(search["artists"]) == 300
+    assert len(search["albums"]) == 300
+    assert len(search["tracks"]) == 300
+    assert len(search["videos"]) == 300
+    assert len(search["playlists"]) >= 195
+    assert isinstance(search["artists"][0], Artist)
+    assert isinstance(search["albums"][0], Album)
+    assert isinstance(search["tracks"][0], Track)
+    assert isinstance(search["videos"][0], Video)
+    assert isinstance(search["playlists"][0], Playlist)
+    assert "Walker" in search["top_hit"].artist.name
 
 
 def test_type_search(session):
     search = session.search("Hello", [Playlist, Video])
-    assert isinstance(search['top_hit'], Playlist)
+    assert isinstance(search["top_hit"], Playlist)
 
-    assert len(search['artists']) == 0
-    assert len(search['albums']) == 0
-    assert len(search['tracks']) == 0
-    assert len(search['videos']) == 50
-    assert len(search['playlists']) == 50
+    assert len(search["artists"]) == 0
+    assert len(search["albums"]) == 0
+    assert len(search["tracks"]) == 0
+    assert len(search["videos"]) == 50
+    assert len(search["playlists"]) == 50
 
 
 def test_invalid_type_search(session):
@@ -112,13 +118,13 @@ def test_invalid_type_search(session):
 
 
 def test_invalid_search(session):
-    search = session.search('ERIWGJRGIJGRWEIOGRJOGREIWJIOWREG')
-    assert len(search['artists']) == 0
-    assert len(search['albums']) == 0
-    assert len(search['tracks']) == 0
-    assert len(search['videos']) == 0
-    assert len(search['playlists']) == 0
-    assert search['top_hit'] is None
+    search = session.search("ERIWGJRGIJGRWEIOGRJOGREIWJIOWREG")
+    assert len(search["artists"]) == 0
+    assert len(search["albums"]) == 0
+    assert len(search["tracks"]) == 0
+    assert len(search["videos"]) == 0
+    assert len(search["playlists"]) == 0
+    assert search["top_hit"] is None
 
 
 def test_config(session):

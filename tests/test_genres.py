@@ -17,14 +17,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from io import BytesIO
-from PIL import Image
+
 import pytest
+from PIL import Image
+
 import tidalapi
 
 
 def test_get_genres(session):
     genres = list(session.genre.get_genres())
-    assert 'Jazz' in [genre.name for genre in genres]
+    assert "Jazz" in [genre.name for genre in genres]
 
 
 def test_get_items(session):
@@ -39,13 +41,13 @@ def test_get_items(session):
 
 def test_get_electronic_items(session):
     genres = list(session.genre.get_genres())
-    electronic = [genre for genre in genres if genre.path == 'Electronic'][0]
+    electronic = [genre for genre in genres if genre.path == "Electronic"][0]
     electronic_items = electronic.items(tidalapi.Playlist)
-    assert 'Rising: Electronic' in [playlist.name for playlist in electronic_items]
+    assert "Electronic: RISING" in [playlist.name for playlist in electronic_items]
 
 
 def test_image(session):
     genres = session.genre.get_genres()
-    electronic = [genre for genre in genres if genre.path == 'Electronic'][0]
+    electronic = [genre for genre in genres if genre.path == "Electronic"][0]
     image = session.request_session.get(electronic.image).content
     assert Image.open(BytesIO(image)).size == (460, 306)

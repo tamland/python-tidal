@@ -18,14 +18,13 @@
 
 from io import BytesIO
 
-import pytest
 import ffmpeg
+import pytest
 from PIL import Image
 
 
 def verify_image_resolution(session, url, width, height):
-    """
-    Verifies that the image at the specified url is the specified resolution
+    """Verifies that the image at the specified url is the specified resolution.
 
     :param session: The TIDAL session
     :param url: The url to the image
@@ -37,15 +36,17 @@ def verify_image_resolution(session, url, width, height):
 
 
 def verify_image_cover(session, model, resolutions):
-    """
-    Verifies that the given object has an image url that supports the given resolutions
+    """Verifies that the given object has an image url that supports the given
+    resolutions.
 
     :param session: The TIDAL session you want to use
     :param model: The object you want to test the image of
     :param resolutions: A list of resolutions that the image has.
     """
     for resolution in resolutions:
-        verify_image_resolution(session, model.image(resolution), resolution, resolution)
+        verify_image_resolution(
+            session, model.image(resolution), resolution, resolution
+        )
 
     with pytest.raises(ValueError):
         model.image(81)
@@ -55,21 +56,20 @@ def verify_image_cover(session, model, resolutions):
 
 
 def verify_video_resolution(url, width, height):
-    """
-    Verify that the video at the specified url matches the given resolutions.
+    """Verify that the video at the specified url matches the given resolutions.
 
     :param url: The url to the video.
     :param width: The width of the video in pixels.
     :param height: The height of the video in pixels.
     """
     probe = ffmpeg.probe(url)
-    stream = probe['streams'][-1]
-    assert (stream['width'], stream['height']) == (width, height)
+    stream = probe["streams"][-1]
+    assert (stream["width"], stream["height"]) == (width, height)
 
 
 def verify_video_cover(model, resolutions):
-    """
-    Verifies that the given instance of a model has an image of all the listed resolutions.
+    """Verifies that the given instance of a model has an image of all the listed
+    resolutions.
 
     :param model: An instance of the model you want to check
     :param resolutions: A list of resolutions

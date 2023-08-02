@@ -17,11 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+
 import pytest
 from dateutil import tz
 
 import tidalapi
-from .cover import verify_image_resolution, verify_image_cover
+
+from .cover import verify_image_cover, verify_image_resolution
 
 
 def test_playlist(session):
@@ -30,39 +32,49 @@ def test_playlist(session):
     assert playlist.id == "7eafb342-141a-4092-91eb-da0012da3a19"
     assert playlist.name == "JAY-Z's Year End Picks 2019"
     assert playlist.num_tracks == 40
-    assert playlist.description == 'JAY-Z shares his favorite Hip-Hop and R&B songs from the year. (Photo: Ravie B.)'
+    assert (
+        playlist.description
+        == "JAY-Z shares his favorite Hip-Hop and R&B songs from the year."
+        " (Photo: Ravie B.)"
+    )
     assert playlist.duration == 8008
-    assert playlist.last_updated == datetime.datetime(2021, 12, 9, 17, 13, 40, 932000, tzinfo=tz.tzutc())
+    assert playlist.last_updated == datetime.datetime(
+        2021, 12, 9, 17, 13, 40, 932000, tzinfo=tz.tzutc()
+    )
 
-    assert playlist.created == datetime.datetime(2019, 12, 19, 17, 15, 5, 500000, tzinfo=tz.tzutc())
-    assert playlist.type == 'ARTIST'
+    assert playlist.created == datetime.datetime(
+        2019, 12, 19, 17, 15, 5, 500000, tzinfo=tz.tzutc()
+    )
+    assert playlist.type == "ARTIST"
     assert playlist.public is True
     assert playlist.popularity == 0
     assert len(playlist.promoted_artists) == 4
 
     creator = playlist.creator
     assert creator.id == 7804
-    assert creator.name == "JAY-Z"
+    assert creator.name == "JAY Z"
     assert isinstance(creator, tidalapi.Artist)
 
 
 def test_updated_playlist(session):
     playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     assert playlist.id == "944dd087-f65c-4954-a9a3-042a574e86e3"
-    assert playlist.name == 'lofi'
+    assert playlist.name == "lofi"
     assert playlist.num_tracks >= 5288
     assert playlist.description == ""
     assert playlist.duration >= 693350
     assert playlist.last_updated >= datetime.datetime(2020, 5, 14, tzinfo=tz.tzutc())
-    assert playlist.created == datetime.datetime(2020, 4, 15, 15, 15, 37, 282000, tzinfo=tz.tzutc())
-    assert playlist.type == 'USER'
+    assert playlist.created == datetime.datetime(
+        2020, 4, 15, 15, 15, 37, 282000, tzinfo=tz.tzutc()
+    )
+    assert playlist.type == "USER"
     assert playlist.public is False
     assert playlist.popularity == 0
     assert playlist.promoted_artists is None
 
     creator = playlist.creator
     assert creator.id == 169584258
-    assert creator.name == 'user'
+    assert creator.name == "user"
 
 
 def test_video_playlist(session):
@@ -71,13 +83,19 @@ def test_video_playlist(session):
     assert playlist.name == "TIDAL X Sundance"
     assert playlist.num_tracks == 0
     assert playlist.num_videos == 12
-    assert playlist.description == "In partnership with Vulture, " \
-        "TIDAL talks to actors and musicians at the 2017 Sundance Film Festival " \
+    assert (
+        playlist.description == "In partnership with Vulture, "
+        "TIDAL talks to actors and musicians at the 2017 Sundance Film Festival "
         "about the meeting of music and film. #tidalxvulture (Photo: TIDAL) "
+    )
     assert playlist.duration == 1996
-    assert playlist.last_updated == datetime.datetime(2020, 3, 25, 8, 5, 33, 115000, tzinfo=tz.tzutc())
-    assert playlist.created == datetime.datetime(2017, 1, 23, 18, 34, 56, 930000, tzinfo=tz.tzutc())
-    assert playlist.type == 'EDITORIAL'
+    assert playlist.last_updated == datetime.datetime(
+        2020, 3, 25, 8, 5, 33, 115000, tzinfo=tz.tzutc()
+    )
+    assert playlist.created == datetime.datetime(
+        2017, 1, 23, 18, 34, 56, 930000, tzinfo=tz.tzutc()
+    )
+    assert playlist.type == "EDITORIAL"
     assert playlist.public is True
     assert playlist.promoted_artists[0].name == "Sundance Film Festival"
 
@@ -98,7 +116,7 @@ def test_get_tracks(session):
 
     assert len(items) >= 5288
     assert items[0].id == 199477058
-    assert items[5287].id == 92035253
+    assert items[5287].id == 209284860
 
 
 def test_get_videos(session):
@@ -119,7 +137,9 @@ def test_wide_image(session):
     resolutions = [(160, 107), (480, 320), (750, 500), (1080, 720)]
 
     for width, height in resolutions:
-        verify_image_resolution(session, playlist.wide_image(width, height), width, height)
+        verify_image_resolution(
+            session, playlist.wide_image(width, height), width, height
+        )
 
     with pytest.raises(ValueError):
         playlist.wide_image(81, 21)

@@ -1,9 +1,8 @@
 #!/bin/bash
-python setup.py sdist
+poetry build
 
-python setup.py bdist_wheel
-
-version=$(python setup.py --version)
 echo -n "Enter the upload URL"
+read name
 read url
-twine upload --repository "$url" --sign --verbose dist/tidalapi-$version*
+poetry config "repositories.${name}" "${url}"
+poetry publish -r "${name}"

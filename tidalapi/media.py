@@ -169,7 +169,7 @@ class Track(Media):
             self.peak = json_obj["peak"]
             self.isrc = json_obj["isrc"]
             self.copyright = json_obj["copyright"]
-        self.audio_quality = tidalapi.Quality(json_obj["audioQuality"])
+        self.audio_quality = Quality(json_obj["audioQuality"])
         self.version = json_obj["version"]
         self.media_metadata_tags = json_obj["mediaMetadata"]["tags"]
 

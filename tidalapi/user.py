@@ -24,13 +24,19 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+
+from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
-    from . import playlist
+    from tidalapi.album import Album
+    from tidalapi.artist import Artist
+    from tidalapi.media import Track, Video
+    from tidalapi.playlist import Playlist, UserPlaylist
+    from tidalapi.session import Session
 
 
-class User(object):
+class User:
     """A class containing various information about a TIDAL user.
 
     The attributes of this class are pretty varied. ID is the only attribute you can
@@ -41,18 +47,23 @@ class User(object):
     and id.
     """
 
-    id = -1
+    id: Optional[int] = -1
 
-    def __init__(self, session, user_id):
+    def __init__(self, session: "Session", user_id: Optional[int]):
         self.id = user_id
         self.session = session
         self.request = session.request
         self.playlist = session.playlist()
 
-    def factory(self):
-        return self.request.map_request("users/%s" % self.id, parse=self.parse)
+    def factory(self) -> Union["LoggedInUser", "FetchedUser", "PlaylistCreator"]:
+        return cast(
+            Union["LoggedInUser", "FetchedUser", "PlaylistCreator"],
+            self.request.map_request("users/%s" % self.id, parse=self.parse),
+        )
 
-    def parse(self, json_obj):
+    def parse(
+        self, json_obj
+    ) -> Union["LoggedInUser", "FetchedUser", "PlaylistCreator"]:
         if "username" in json_obj:
             user: Union[LoggedInUser, FetchedUser, PlaylistCreator] = LoggedInUser(
                 self.session, json_obj["id"]
@@ -76,7 +87,7 @@ class FetchedUser(User):
     last_name: Optional[str] = None
     picture_id: Optional[str] = None
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj):
         self.id = json_obj["id"]
         self.first_name = json_obj["firstName"]
         self.last_name = json_obj["lastName"]
@@ -84,7 +95,7 @@ class FetchedUser(User):
 
         return copy(self)
 
-    def image(self, dimensions):
+    def image(self, dimensions: int):
         if dimensions not in [100, 210, 600]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 
@@ -103,11 +114,12 @@ class LoggedInUser(FetchedUser):
     email: Optional[str] = None
     profile_metadata: Optional[Dict] = None
 
-    def __init__(self, session, user_id):
+    def __init__(self, session: "Session", user_id: Optional[int]):
         super(LoggedInUser, self).__init__(session, user_id)
+        assert self.id is not None, "User is not logged in"
         self.favorites = Favorites(session, self.id)
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "LoggedInUser":
         super(LoggedInUser, self).parse(json_obj)
         self.username = json_obj["username"]
         self.email = json_obj["email"]
@@ -115,7 +127,7 @@ class LoggedInUser(FetchedUser):
 
         return copy(self)
 
-    def playlists(self) -> List[Union[playlist.Playlist, playlist.UserPlaylist]]:
+    def playlists(self) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the playlists created by the user.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
@@ -124,7 +136,7 @@ class LoggedInUser(FetchedUser):
             "users/%s/playlists" % self.id, parse=self.playlist.parse_factory
         )
 
-    def playlist_and_favorite_playlists(self, offset=0):
+    def playlist_and_favorite_playlists(self, offset: int = 0):
         """Get the playlists created by the user, and the playlists favorited by the
         user. This function is limited to 50 by TIDAL, requiring pagination.
 
@@ -141,7 +153,7 @@ class LoggedInUser(FetchedUser):
 
         return self.request.map_json(json_obj, parse=self.playlist.parse_factory)
 
-    def create_playlist(self, title, description):
+    def create_playlist(self, title: str, description: str) -> "Playlist":
         data = {"title": title, "description": description}
         json = self.request.request(
             "POST", "users/%s/playlists" % self.id, data=data
@@ -151,10 +163,10 @@ class LoggedInUser(FetchedUser):
 
 
 class PlaylistCreator(User):
-    name = None
+    name: Optional[str] = None
 
-    def parse(self, json_obj):
-        if self.id == 0:
+    def parse(self, json_obj: JsonObj) -> "PlaylistCreator":
+        if self.id == 0 or self.session.user is None:
             self.name = "TIDAL"
 
         elif "name" in json_obj:
@@ -169,55 +181,55 @@ class PlaylistCreator(User):
         return copy(self)
 
 
-class Favorites(object):
+class Favorites:
     """An object containing a users favourites."""
 
-    def __init__(self, session, user_id):
+    def __init__(self, session: "Session", user_id: int):
         self.session = session
         self.requests = session.request
-        self.base_url = "users/%s/favorites" % user_id
+        self.base_url = f"users/{user_id}/favorites"
 
-    def add_album(self, album_id):
+    def add_album(self, album_id: str) -> bool:
         """Adds an album to the users favorites.
 
         :param album_id: TIDAL's identifier of the album.
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request(
-            "POST", self.base_url + "/albums", data={"albumId": album_id}
+            "POST", f"{self.base_url}/albums", data={"albumId": album_id}
         ).ok
 
-    def add_artist(self, artist_id):
+    def add_artist(self, artist_id: str) -> bool:
         """Adds an artist to the users favorites.
 
         :param artist_id: TIDAL's identifier of the artist
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request(
-            "POST", self.base_url + "/artists", data={"artistId": artist_id}
+            "POST", f"{self.base_url}/artists", data={"artistId": artist_id}
         ).ok
 
-    def add_playlist(self, playlist_id):
+    def add_playlist(self, playlist_id: str) -> bool:
         """Adds a playlist to the users favorites.
 
         :param playlist_id: TIDAL's identifier of the playlist.
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request(
-            "POST", self.base_url + "/playlists", data={"uuids": playlist_id}
+            "POST", f"{self.base_url}/playlists", data={"uuids": playlist_id}
         ).ok
 
-    def add_track(self, track_id):
+    def add_track(self, track_id: str) -> bool:
         """Adds a track to the users favorites.
 
         :param track_id: TIDAL's identifier of the track.
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request(
-            "POST", self.base_url + "/tracks", data={"trackId": track_id}
+            "POST", f"{self.base_url}/tracks", data={"trackId": track_id}
         ).ok
 
-    def add_video(self, video_id):
+    def add_video(self, video_id: str) -> bool:
         """Adds a video to the users favorites.
 
         :param video_id: TIDAL's identifier of the video.
@@ -226,108 +238,121 @@ class Favorites(object):
         params = {"limit": "100"}
         return self.requests.request(
             "POST",
-            self.base_url + "/videos",
+            f"{self.base_url}/videos",
             data={"videoIds": video_id},
             params=params,
         ).ok
 
-    def remove_artist(self, artist_id):
+    def remove_artist(self, artist_id: str) -> bool:
         """Removes a track from the users favorites.
 
         :param artist_id: TIDAL's identifier of the artist.
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request(
-            "DELETE", self.base_url + "/artists/%s" % artist_id
+            "DELETE", f"{self.base_url}/artists/{artist_id}"
         ).ok
 
-    def remove_album(self, album_id):
+    def remove_album(self, album_id: str) -> bool:
         """Removes an album from the users favorites.
 
         :param album_id: TIDAL's identifier of the album
         :return: A boolean indicating whether the request was successful or not.
         """
-        return self.requests.request(
-            "DELETE", self.base_url + "/albums/%s" % album_id
-        ).ok
+        return self.requests.request("DELETE", f"{self.base_url}/albums/{album_id}").ok
 
-    def remove_playlist(self, playlist_id):
+    def remove_playlist(self, playlist_id: str) -> bool:
         """Removes a playlist from the users favorites.
 
         :param playlist_id: TIDAL's identifier of the playlist.
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request(
-            "DELETE", self.base_url + "/playlists/%s" % playlist_id
+            "DELETE", f"{self.base_url}/playlists/{playlist_id}"
         ).ok
 
-    def remove_track(self, track_id):
+    def remove_track(self, track_id: str) -> bool:
         """Removes a track from the users favorites.
 
         :param track_id: TIDAL's identifier of the track.
         :return: A boolean indicating whether the request was successful or not.
         """
-        return self.requests.request(
-            "DELETE", self.base_url + "/tracks/%s" % track_id
-        ).ok
+        return self.requests.request("DELETE", f"{self.base_url}tracks/{track_id}").ok
 
-    def remove_video(self, video_id):
+    def remove_video(self, video_id: str) -> bool:
         """Removes a video from the users favorites.
 
         :param video_id: TIDAL's identifier of the video.
         :return: A boolean indicating whether the request was successful or not.
         """
-        return self.requests.request(
-            "DELETE", self.base_url + "/videos/%s" % video_id
-        ).ok
+        return self.requests.request("DELETE", f"{self.base_url}videos/{video_id}").ok
 
-    def artists(self, limit=None, offset=0):
+    def artists(self, limit: Optional[int] = None, offset: int = 0) -> List["Artist"]:
         """Get the users favorite artists.
 
         :return: A :class:`list` of :class:`~tidalapi.artist.Artist` objects containing the favorite artists.
         """
         params = {"limit": limit, "offset": offset}
-        return self.requests.map_request(
-            self.base_url + "/artists", params=params, parse=self.session.parse_artist
+        return cast(
+            List["Artist"],
+            self.requests.map_request(
+                f"{self.base_url}/artists",
+                params=params,
+                parse=self.session.parse_artist,
+            ),
         )
 
-    def albums(self, limit=None, offset=0):
+    def albums(self, limit: Optional[int] = None, offset: int = 0) -> List["Album"]:
         """Get the users favorite albums.
 
         :return: A :class:`list` of :class:`~tidalapi.album.Album` objects containing the favorite albums.
         """
         params = {"limit": limit, "offset": offset}
-        return self.requests.map_request(
-            self.base_url + "/albums", params=params, parse=self.session.parse_album
+        return cast(
+            List["Album"],
+            self.requests.map_request(
+                f"{self.base_url}/albums", params=params, parse=self.session.parse_album
+            ),
         )
 
-    def playlists(self, limit=None, offset=0):
+    def playlists(
+        self, limit: Optional[int] = None, offset: int = 0
+    ) -> List["Playlist"]:
         """Get the users favorite playlists.
 
         :return: A :class:`list` :class:`~tidalapi.playlist.Playlist` objects containing the favorite playlists.
         """
         params = {"limit": limit, "offset": offset}
-        return self.requests.map_request(
-            self.base_url + "/playlists",
-            params=params,
-            parse=self.session.parse_playlist,
+        return cast(
+            List["Playlist"],
+            self.requests.map_request(
+                f"{self.base_url}/playlists",
+                params=params,
+                parse=self.session.parse_playlist,
+            ),
         )
 
-    def tracks(self, limit=None, offset=0):
+    def tracks(self, limit: Optional[int] = None, offset: int = 0) -> List["Track"]:
         """Get the users favorite tracks.
 
-        :return: A :class:`list` of :class:`~tidalapi.track.Track` objects containing all of the favorite tracks.
+        :return: A :class:`list` of :class:`~tidalapi.media.Track` objects containing all of the favorite tracks.
         """
         params = {"limit": limit, "offset": offset}
-        return self.requests.map_request(
-            self.base_url + "/tracks", params=params, parse=self.session.parse_track
+        return cast(
+            List["Track"],
+            self.requests.map_request(
+                f"{self.base_url}/tracks", params=params, parse=self.session.parse_track
+            ),
         )
 
-    def videos(self):
+    def videos(self) -> List["Video"]:
         """Get the users favorite videos.
 
         :return: A :class:`list` of :class:`~tidalapi.media.Video` objects containing all the favorite videos
         """
-        return self.requests.get_items(
-            self.base_url + "/videos", parse=self.session.parse_media
+        return cast(
+            List["Video"],
+            self.requests.get_items(
+                f"{self.base_url}/videos", parse=self.session.parse_media
+            ),
         )

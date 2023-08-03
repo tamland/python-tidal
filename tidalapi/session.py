@@ -280,7 +280,9 @@ class Session(object):
 
         return result
 
-    def load_session(self, session_id, country_code=None, user_id=None):
+    def load_session(
+        self, session_id, country_code=None, user_id: Optional[int] = None
+    ):
         """Establishes TIDAL login details using a previous session id. May return true
         if the session-id is invalid/expired, you should verify the login afterwards.
 

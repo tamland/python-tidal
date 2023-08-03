@@ -84,7 +84,7 @@ class Requests(object):
 
     def request(
         self,
-        method: Literal["GET", "POST", "PUT"],
+        method: Literal["GET", "POST", "PUT", "DELETE"],
         path: str,
         params: Optional[Params] = None,
         data: Optional[JsonObj] = None,

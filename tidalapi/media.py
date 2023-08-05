@@ -159,6 +159,7 @@ class Track(Media):
     version = None
     full_name: Optional[str] = None
     copyright = None
+    media_metadata_tags = None
 
     def parse_track(self, json_obj: JsonObj) -> Track:
         Media.parse(self, json_obj)
@@ -170,6 +171,7 @@ class Track(Media):
             self.copyright = json_obj["copyright"]
         self.audio_quality = Quality(json_obj["audioQuality"])
         self.version = json_obj["version"]
+        self.media_metadata_tags = json_obj["mediaMetadata"]["tags"]
 
         if self.version is not None:
             self.full_name = f"{json_obj['title']} ({json_obj['version']})"

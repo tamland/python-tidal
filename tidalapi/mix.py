@@ -131,7 +131,7 @@ class Mix:
             raise ValueError("Retrieved items missing")
         return self._items
 
-    def image(self, dimensions: int) -> str:
+    def image(self, dimensions: int = 320) -> str:
         """A URL to a Mix picture.
 
         :param dimensions: The width and height the requested image should be

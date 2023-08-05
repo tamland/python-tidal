@@ -26,8 +26,6 @@ import dateutil.parser
 
 from tidalapi.types import JsonObj
 
-IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
-
 if TYPE_CHECKING:
     from tidalapi.album import Album
     from tidalapi.media import Track, Video

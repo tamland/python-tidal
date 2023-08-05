@@ -174,7 +174,7 @@ class Album:
         assert isinstance(items, list)
         return cast(List[Union["Track", "Video"]], items)
 
-    def image(self, dimensions: int, default: str = DEFAULT_ALBUM_IMAGE) -> str:
+    def image(self, dimensions: int = 320, default: str = DEFAULT_ALBUM_IMAGE) -> str:
         """A url to an album image cover.
 
         :param dimensions: The width and height that you want from the image

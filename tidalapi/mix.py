@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 class MixType(Enum):
     """An enum to track all the different types of mixes."""
 
+    welcome_mix = "WELCOME_MIX"
     video_daily = "VIDEO_DAILY_MIX"
     daily = "DAILY_MIX"
     discovery = "DISCOVERY_MIX"

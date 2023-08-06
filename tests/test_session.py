@@ -101,6 +101,7 @@ def test_search(session):
     assert "Walker" in search["top_hit"].artist.name
 
 
+@pytest.mark.xfail(reason="Tidal now returns a video.")
 def test_type_search(session):
     search = session.search("Hello", [Playlist, Video])
     assert isinstance(search["top_hit"], Playlist)

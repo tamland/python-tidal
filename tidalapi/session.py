@@ -467,11 +467,21 @@ class Session(object):
         self.token_type = json["token_type"]
         return True
 
-    def set_audio_quality(self, quality=media.Quality.high):
-        self.config.quality = quality.value
+    @property
+    def audio_quality(self) -> media.Quality:
+        return self.config.quality
 
-    def set_video_quality(self, quality=media.VideoQuality.high):
-        self.config.video_quality = quality.value
+    @audio_quality.setter
+    def audio_quality(self, value=media.Quality.high):
+        self.config.quality = media.Quality(value)
+
+    @property
+    def video_quality(self) -> media.Quality:
+        return self.config.quality
+
+    @video_quality.setter
+    def video_quality(self, value=media.VideoQuality.high):
+        self.config.video_quality = media.VideoQuality(value)
 
     def search(self, query, models=None, limit=50, offset=0):
         """Searches TIDAL with the specified query, you can also specify what models you

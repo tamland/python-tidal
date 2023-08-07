@@ -196,7 +196,7 @@ class Artist:
             ),
         )
 
-    def image(self, dimensions: int) -> str:
+    def image(self, dimensions: int = 320) -> str:
         """A url to an artist picture.
 
         :param dimensions: The width and height that you want from the image

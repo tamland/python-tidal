@@ -472,16 +472,16 @@ class Session(object):
         return self.config.quality
 
     @audio_quality.setter
-    def audio_quality(self, value=media.Quality.high):
-        self.config.quality = media.Quality(value)
+    def audio_quality(self, quality):
+        self.config.quality = media.Quality(quality).value
 
     @property
     def video_quality(self) -> media.Quality:
         return self.config.quality
 
     @video_quality.setter
-    def video_quality(self, value=media.VideoQuality.high):
-        self.config.video_quality = media.VideoQuality(value)
+    def video_quality(self, quality):
+        self.config.video_quality = media.VideoQuality(quality).value
 
     def search(self, query, models=None, limit=50, offset=0):
         """Searches TIDAL with the specified query, you can also specify what models you

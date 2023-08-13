@@ -468,16 +468,16 @@ class Session(object):
         return True
 
     @property
-    def audio_quality(self) -> media.Quality:
+    def audio_quality(self) -> str:
         return self.config.quality
 
     @audio_quality.setter
-    def audio_quality(self, quality):
+    def audio_quality(self, quality: str):
         self.config.quality = media.Quality(quality).value
 
     @property
-    def video_quality(self) -> media.Quality:
         return self.config.quality
+    def video_quality(self) -> str:
 
     @video_quality.setter
     def video_quality(self, quality):

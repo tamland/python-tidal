@@ -476,8 +476,8 @@ class Session(object):
         self.config.quality = media.Quality(quality).value
 
     @property
-        return self.config.quality
     def video_quality(self) -> str:
+        return self.config.video_quality
 
     @video_quality.setter
     def video_quality(self, quality):

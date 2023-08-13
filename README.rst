@@ -38,7 +38,7 @@ Example usage
     # Will run until you visit the printed url and link your account
     session.login_oauth_simple()
     # Override the required playback quality, if necessary
-    # session.set_audio_quality(Quality.lossless)
+    # session.audio_quality = "LOSSLESS"
 
     album = session.album(66236918)
     tracks = album.tracks()

@@ -3,6 +3,18 @@
 History
 =======
 
+v0.7.3
+------
+* Official support for HI_RES FLAC quality tehkillerbee_
+* Add helper functions to set audio/video quality for current session tehkillerbee_
+* Added missing WELCOME_MIX MixType tehkillerbee_
+* Various image bugfixes tehkillerbee_
+* Add typings for Artists and Users - arusahni_
+* Add media metadata - jozefKruszynski_
+* Downgrade minimum required version of requests JoshMock_
+
+
+
 v0.7.2
 ------
 * (BREAKING!) Drop support for python3.8 and older
@@ -122,6 +134,7 @@ v0.6.2
 .. _mkaufhol: https://github.com/mkaufhol
 .. _PretzelVector: https://github.com/PretzelVector
 .. _tehkillerbee: https://github.com/tehkillerbee
+.. _JoshMock: https://github.com/JoshMock
 
 
 

@@ -152,7 +152,7 @@ class Playlist(object):
         self._etag = request.headers["etag"]
         return self.requests.map_json(request.json(), parse=self.session.parse_media)
 
-    def image(self, dimensions):
+    def image(self, dimensions=480):
         """A URL to a playlist picture.
 
         :param dimensions: The width and height that want from the image

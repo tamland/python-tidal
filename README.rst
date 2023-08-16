@@ -11,10 +11,9 @@ Unofficial Python API for TIDAL music streaming service.
 
 Requires Python 3.7 or higher.
 
-0.7.0 Rewrite
+0.7.x Migration guide
 -------------
-
-The 0.7.0 rewrite is now complete, see the `migration guide <https://tidalapi.netlify.app/migration.html#migrating-from-0-6-x-0-7-x>`_ for dealing with it
+The 0.7.x rewrite is now complete, see the `migration guide <https://tidalapi.netlify.app/migration.html#migrating-from-0-6-x-0-7-x>`_ for dealing with it
 
 Installation
 ------------
@@ -37,6 +36,13 @@ Example usage
     session = tidalapi.Session()
     # Will run until you visit the printed url and link your account
     session.login_oauth_simple()
+    # Override the required playback quality, if necessary
+    # Note: Set the quality according to your subscription.
+    # Normal: Quality.low_320k
+    # HiFi: Quality.high_lossless
+    # HiFi+ Quality.hi_res_lossless
+    session.audio_quality = Quality.low_320k
+
     album = session.album(66236918)
     tracks = album.tracks()
     for track in tracks:

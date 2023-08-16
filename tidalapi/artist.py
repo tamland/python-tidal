@@ -26,8 +26,6 @@ import dateutil.parser
 
 from tidalapi.types import JsonObj
 
-IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
-
 if TYPE_CHECKING:
     from tidalapi.album import Album
     from tidalapi.media import Track, Video
@@ -198,7 +196,7 @@ class Artist:
             ),
         )
 
-    def image(self, dimensions: int) -> str:
+    def image(self, dimensions: int = 320) -> str:
         """A url to an artist picture.
 
         :param dimensions: The width and height that you want from the image

@@ -130,20 +130,20 @@ def test_invalid_search(session):
 
 def test_config(session):
     assert session.config.item_limit == 1000
-    assert session.config.quality == tidalapi.Quality.master.value
+    assert session.config.quality == tidalapi.Quality.low_320k.value
     assert session.config.video_quality == tidalapi.VideoQuality.high.value
     assert session.config.alac is True
 
 
 def test_audio_quality_defaults_to_best(session):
-    assert session.audio_quality == "HI_RES"
+    assert session.audio_quality == "HIGH"
 
 
 def test_video_quality_defaults_to_best(session):
     assert session.video_quality == "HIGH"
 
 
-@pytest.mark.parametrize("quality", ["LOW", "HIGH", "LOSSLESS", "HI_RES"])
+@pytest.mark.parametrize("quality", ["LOW", "HIGH", "LOSSLESS", "HI_RES", "HI_RES_LOSSLESS"])
 def test_manually_set_audio_quality_is_preserved(session, quality):
     session.audio_quality = quality
     assert session.audio_quality == quality

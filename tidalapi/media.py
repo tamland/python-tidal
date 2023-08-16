@@ -37,10 +37,11 @@ from tidalapi.types import JsonObj
 
 
 class Quality(Enum):
-    lossless = "LOSSLESS"
-    high = "HIGH"
-    low = "LOW"
-    master = "HI_RES"
+    low_96k = "LOW"
+    low_320k = "HIGH"
+    high_lossless = "LOSSLESS"
+    hi_res = "HI_RES"
+    hi_res_lossless = "HI_RES_LOSSLESS"
 
 
 class VideoQuality(Enum):

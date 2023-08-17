@@ -218,14 +218,14 @@ def test_get_track_radio_limit_default(session):
     track = session.track(182912246)
     similar_tracks = track.get_track_radio()
     assert len(similar_tracks) == 100
-    
-    
+
+
 def test_get_track_radio_limit_25(session):
     track = session.track(182912246)
     similar_tracks = track.get_track_radio(limit=25)
     assert len(similar_tracks) == 25
-    
-    
+
+
 def test_get_track_radio_limit_100(session):
     track = session.track(182912246)
     similar_tracks = track.get_track_radio(limit=100)

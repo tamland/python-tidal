@@ -50,7 +50,7 @@ def test_track(session):
     )
     assert track.isrc == "NOG841907010"
     assert track.explicit is False
-    assert track.audio_quality == tidalapi.Quality.master
+    assert track.audio_quality == tidalapi.Quality.hi_res
     assert track.album.name == "Alone, Pt. II"
 
     assert track.artist.name == "Alan Walker"
@@ -59,7 +59,7 @@ def test_track(session):
 
 
 def test_track_url(session):
-    session.config = tidalapi.Config(quality=tidalapi.Quality.master)
+    session.config = tidalapi.Config(quality=tidalapi.Quality.hi_res)
     track = session.track(142278122)
     assert "audio.tidal.com" in track.get_url()
 
@@ -212,3 +212,21 @@ def test_track_media_metadata_tags(session):
     track = session.track(182912246)
     assert track.name == "All You Ever Wanted"
     assert track.media_metadata_tags == ["LOSSLESS", "HIRES_LOSSLESS", "MQA"]
+
+
+def test_get_track_radio_limit_default(session):
+    track = session.track(182912246)
+    similar_tracks = track.get_track_radio()
+    assert len(similar_tracks) == 100
+    
+    
+def test_get_track_radio_limit_25(session):
+    track = session.track(182912246)
+    similar_tracks = track.get_track_radio(limit=25)
+    assert len(similar_tracks) == 25
+    
+    
+def test_get_track_radio_limit_100(session):
+    track = session.track(182912246)
+    similar_tracks = track.get_track_radio(limit=100)
+    assert len(similar_tracks) == 100

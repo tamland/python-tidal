@@ -13,7 +13,7 @@ jobs:
     steps:
         - uses: actions/checkout@v3
         - name: Install Poetry
-          uses: abatilo/actions-poetry@v2
+          run: curl -sSL https://install.python-poetry.org | python3 -
         - name: Set up Python
           uses: actions/setup-python@v4
           with:

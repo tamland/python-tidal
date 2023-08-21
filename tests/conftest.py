@@ -115,7 +115,7 @@ def get_credential_store() -> tuple[List[Credentials], Optional[dict]]:
 
 def login(request):
     stores, credentials = get_credential_store()
-    config = tidalapi.Config(quality=tidalapi.Quality.master)
+    config = tidalapi.Config(quality=tidalapi.Quality.hi_res)
     tidal_session = tidalapi.Session(config)
     if credentials and tidal_session.load_oauth_session(**credentials):
         return tidal_session

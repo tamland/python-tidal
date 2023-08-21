@@ -216,13 +216,13 @@ class Track(Media):
         assert not isinstance(lyrics, list)
         return cast("Lyrics", lyrics)
 
-    def get_track_radio(self) -> List["Track"]:
+    def get_track_radio(self, limit=100) -> List["Track"]:
         """Queries TIDAL for the track radio, which is a mix of tracks that are similar
         to this track.
 
         :return: A list of :class:`Tracks <tidalapi.media.Track>`
         """
-        params = {"limit": 100}
+        params = {"limit": limit}
         tracks = self.requests.map_request(
             "tracks/%s/radio" % self.id, params=params, parse=self.session.parse_track
         )

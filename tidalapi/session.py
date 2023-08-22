@@ -648,6 +648,14 @@ class Session(object):
         """
         return self.page.get("pages/explore")
 
+    def for_you(self):
+        """
+        Retrieves the For You page, as seen on https://listen.tidal.com/view/pages/for_you
+
+        :return: A :class:`.Page` object with the :class:`.PageCategory` list from the explore page
+        """
+        return self.page.get("pages/for_you")
+
     def videos(self):
         """
         Retrieves the :class:`Videos<.Video>` page, as seen on https://listen.tidal.com/view/pages/videos

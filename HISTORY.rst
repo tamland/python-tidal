@@ -5,12 +5,15 @@ History
 
 v0.7.3
 ------
-* Official support for HI_RES FLAC quality tehkillerbee_
-* Add helper functions to set audio/video quality for current session tehkillerbee_
-* Added missing WELCOME_MIX MixType tehkillerbee_
-* Various image bugfixes tehkillerbee_
+* Official support for HI_RES FLAC quality - tehkillerbee_
+* Add helper functions to set audio/video quality for current session - tehkillerbee_
+* Added missing WELCOME_MIX MixType - tehkillerbee_
+* Various image bugfixes - tehkillerbee_
+* Add "for_you" page - tehkillerbee_
+* Various test, poetry bugfixes - 2e0byo_
 * Add typings for Artists and Users - arusahni_
 * Add media metadata - jozefKruszynski_
+* Add option to limit track radio length - jozefKruszynski_
 * Downgrade minimum required version of requests JoshMock_
 
 

@@ -48,6 +48,11 @@ def test_get_explore_items(session):
     assert next(iterator).title == "Blues"
 
 
+def test_for_you(session):
+    for_you = session.for_you()
+    assert for_you
+
+
 def test_show_more(session):
     videos = session.videos()
     originals = next(

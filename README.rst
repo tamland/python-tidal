@@ -12,7 +12,7 @@ Unofficial Python API for TIDAL music streaming service.
 Requires Python 3.9 or higher.
 
 0.7.x Migration guide
--------------
+---------------------
 The 0.7.x rewrite is now complete, see the `migration guide <https://tidalapi.netlify.app/migration.html#migrating-from-0-6-x-0-7-x>`_ for dealing with it
 
 Installation

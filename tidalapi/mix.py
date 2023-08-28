@@ -72,7 +72,7 @@ class Mix:
     _retrieved = False
     _items: Optional[List[Union["Video", "Track"]]] = None
 
-    def __init__(self, session: Session, mix_id: str):
+    def __init__(self, session: Session, mix_id: Optional[str]):
         self.session = session
         self.request = session.request
         if mix_id is not None:

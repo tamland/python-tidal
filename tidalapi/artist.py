@@ -222,14 +222,10 @@ class Artist:
             if not self.picture:
                 raise ValueError("No image available")
 
-        return cast(
-            str,
-            self.session.config.image_url
-            % (
-                self.picture.replace("-", "/"),
-                dimensions,
-                dimensions,
-            ),
+        return self.session.config.image_url % (
+            self.picture.replace("-", "/"),
+            dimensions,
+            dimensions,
         )
 
     def page(self) -> "Page":

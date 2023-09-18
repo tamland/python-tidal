@@ -183,14 +183,10 @@ class Playlist:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
         if self.square_picture is None:
             raise AttributeError("No picture available")
-        return cast(
-            str,
-            self.session.config.image_url
-            % (
-                self.square_picture.replace("-", "/"),
-                dimensions,
-                dimensions,
-            ),
+        return self.session.config.image_url % (
+            self.square_picture.replace("-", "/"),
+            dimensions,
+            dimensions,
         )
 
     def wide_image(self, width: int = 1080, height: int = 720) -> str:
@@ -207,14 +203,10 @@ class Playlist:
             raise ValueError("Invalid resolution {} x {}".format(width, height))
         if self.picture is None:
             raise AttributeError("No picture available")
-        return cast(
-            str,
-            self.session.config.image_url
-            % (
-                self.picture.replace("-", "/"),
-                width,
-                height,
-            ),
+        return self.session.config.image_url % (
+            self.picture.replace("-", "/"),
+            width,
+            height,
         )
 
 

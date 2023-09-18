@@ -341,12 +341,8 @@ class Video(Media):
             raise ValueError("Invalid resolution {} x {}".format(width, height))
         if not self.cover:
             raise AttributeError("No cover image")
-        return cast(
-            str,
-            self.session.config.image_url
-            % (
-                self.cover.replace("-", "/"),
-                width,
-                height,
-            ),
+        return self.session.config.image_url % (
+            self.cover.replace("-", "/"),
+            width,
+            height,
         )

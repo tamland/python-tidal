@@ -76,7 +76,7 @@ class Requests(object):
 
         if not headers:
             headers = {}
-        if self.session.token_type:
+        if self.session.token_type and self.session.access_token is not None:
             headers["authorization"] = (
                 self.session.token_type + " " + self.session.access_token
             )

@@ -18,7 +18,7 @@
 """"""
 
 import copy
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from tidalapi.types import JsonObj
 
@@ -73,5 +73,7 @@ class Genre:
         parse = type_relations.parse
         if getattr(self, name):
             location = f"genres/{self.path}/{name}"
-            return self.requests.map_request(location, parse=parse)
+            return cast(
+                List[Optional[Any]], self.requests.map_request(location, parse=parse)
+            )
         raise TypeError("This genre does not contain {0}".format(name))

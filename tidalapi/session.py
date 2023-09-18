@@ -456,7 +456,7 @@ class Session(object):
 
         raise TimeoutError("You took too long to log in")
 
-    def token_refresh(self, refresh_token):
+    def token_refresh(self, refresh_token: str) -> bool:
         """Retrieves a new access token using the specified parameters, updating the
         current access token.
 

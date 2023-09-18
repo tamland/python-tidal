@@ -147,8 +147,10 @@ class Playlist:
             "GET", self._base_url % self.id + "/tracks", params=params
         )
         self._etag = request.headers["etag"]
-        return self.requests.map_json(
-            json_obj=request.json(), parse=self.session.parse_track
+        return list(
+            self.requests.map_json(
+                json_obj=request.json(), parse=self.session.parse_track
+            )
         )
 
     def items(self, limit: int = 100, offset: int = 0) -> List[Union["Track", "Video"]]:
@@ -163,7 +165,9 @@ class Playlist:
             "GET", self._base_url % self.id + "/items", params=params
         )
         self._etag = request.headers["etag"]
-        return self.requests.map_json(request.json(), parse=self.session.parse_media)
+        return list(
+            self.requests.map_json(request.json(), parse=self.session.parse_media)
+        )
 
     def image(self, dimensions: int = 480) -> str:
         """A URL to a playlist picture.

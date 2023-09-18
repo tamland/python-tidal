@@ -26,17 +26,22 @@ from typing import (
     List,
     Literal,
     Mapping,
+    MutableMapping,
     Optional,
     Union,
     cast,
 )
 from urllib.parse import urljoin
 
+import requests
+
 from tidalapi.types import JsonObj
 
 log = logging.getLogger(__name__)
 
 Params = Mapping[str, Union[str, int, None]]
+
+Methods = Literal["GET", "POST", "PUT", "DELETE"]
 
 if TYPE_CHECKING:
     from tidalapi.session import Session
@@ -45,11 +50,18 @@ if TYPE_CHECKING:
 class Requests(object):
     """A class for handling api requests to TIDAL."""
 
-    def __init__(self, session):
+    def __init__(self, session: "Session"):
         self.session = session
         self.config = session.config
 
-    def basic_request(self, method, path, params=None, data=None, headers=None):
+    def basic_request(
+        self,
+        method: Methods,
+        path: str,
+        params: Optional[Params] = None,
+        data: Optional[JsonObj] = None,
+        headers: Optional[MutableMapping[str, str]] = None,
+    ) -> requests.Response:
         request_params = {
             "sessionId": self.session.session_id,
             "countryCode": self.session.country_code,
@@ -97,12 +109,12 @@ class Requests(object):
 
     def request(
         self,
-        method: Literal["GET", "POST", "PUT", "DELETE"],
+        method: Methods,
         path: str,
         params: Optional[Params] = None,
         data: Optional[JsonObj] = None,
-        headers: Optional[Mapping[str, str]] = None,
-    ):
+        headers: Optional[MutableMapping[str, str]] = None,
+    ) -> requests.Response:
         """Method for tidal requests.
 
         Not meant for use outside of this library.
@@ -126,8 +138,8 @@ class Requests(object):
         self,
         url: str,
         params: Optional[Params] = None,
-        parse: Optional[Callable] = None,
-    ):
+        parse: Optional[Callable[..., Any]] = None,
+    ) -> Any:
         """Returns the data about object(s) at the specified url, with the method
         specified in the parse argument.
 
@@ -147,12 +159,13 @@ class Requests(object):
     def map_json(
         cls,
         json_obj: JsonObj,
-        parse: Optional[Callable] = None,
+        parse: Optional[Callable[..., Any]] = None,
         session: Optional["Session"] = None,
-    ) -> List[Any]:
+    ) -> Any:
         items = json_obj.get("items")
 
         if items is None:
+            # Not a collection of items, so returning a single object
             if parse is None:
                 raise ValueError("A parser must be supplied")
             return parse(json_obj)
@@ -167,7 +180,7 @@ class Requests(object):
             for item in items:
                 if session is not None:
                     parse = cast(
-                        Callable,
+                        Callable[..., Any],
                         session.convert_type(
                             cast(str, item["type"]).lower() + "s", output="parse"
                         ),
@@ -181,7 +194,7 @@ class Requests(object):
             raise ValueError("A parser must be supplied")
         return list(map(parse, items))
 
-    def get_items(self, url, parse):
+    def get_items(self, url: str, parse: Callable[..., Any]) -> List[Any]:
         """Returns a list of items, used when there are over a 100 items, but TIDAL
         doesn't always allow more specifying a higher limit.
 

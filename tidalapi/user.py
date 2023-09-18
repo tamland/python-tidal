@@ -62,7 +62,7 @@ class User:
         )
 
     def parse(
-        self, json_obj
+        self, json_obj: JsonObj
     ) -> Union["LoggedInUser", "FetchedUser", "PlaylistCreator"]:
         if "username" in json_obj:
             user: Union[LoggedInUser, FetchedUser, PlaylistCreator] = LoggedInUser(
@@ -87,7 +87,7 @@ class FetchedUser(User):
     last_name: Optional[str] = None
     picture_id: Optional[str] = None
 
-    def parse(self, json_obj: JsonObj):
+    def parse(self, json_obj: JsonObj) -> "FetchedUser":
         self.id = json_obj["id"]
         self.first_name = json_obj["firstName"]
         self.last_name = json_obj["lastName"]
@@ -95,7 +95,7 @@ class FetchedUser(User):
 
         return copy(self)
 
-    def image(self, dimensions: int):
+    def image(self, dimensions: int) -> str:
         if dimensions not in [100, 210, 600]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 
@@ -112,7 +112,7 @@ class FetchedUser(User):
 class LoggedInUser(FetchedUser):
     username: Optional[str] = None
     email: Optional[str] = None
-    profile_metadata: Optional[Dict] = None
+    profile_metadata: Optional[JsonObj] = None
 
     def __init__(self, session: "Session", user_id: Optional[int]):
         super(LoggedInUser, self).__init__(session, user_id)
@@ -132,11 +132,16 @@ class LoggedInUser(FetchedUser):
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
         """
-        return self.request.map_request(
-            "users/%s/playlists" % self.id, parse=self.playlist.parse_factory
+        return cast(
+            List[Union["Playlist", "UserPlaylist"]],
+            self.request.map_request(
+                "users/%s/playlists" % self.id, parse=self.playlist.parse_factory
+            ),
         )
 
-    def playlist_and_favorite_playlists(self, offset: int = 0):
+    def playlist_and_favorite_playlists(
+        self, offset: int = 0
+    ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the playlists created by the user, and the playlists favorited by the
         user. This function is limited to 50 by TIDAL, requiring pagination.
 
@@ -151,7 +156,10 @@ class LoggedInUser(FetchedUser):
             item["playlist"]["dateAdded"] = item["created"]
             json_obj["items"][index] = item["playlist"]
 
-        return self.request.map_json(json_obj, parse=self.playlist.parse_factory)
+        return cast(
+            List[Union["Playlist", "UserPlaylist"]],
+            self.request.map_json(json_obj, parse=self.playlist.parse_factory),
+        )
 
     def create_playlist(self, title: str, description: str) -> "Playlist":
         data = {"title": title, "description": description}

@@ -23,6 +23,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, List, Mapping, Optional, Union, cast
 
 import dateutil.parser
+from typing_extensions import Never
 
 from tidalapi.types import JsonObj
 
@@ -196,7 +197,7 @@ class Artist:
             ),
         )
 
-    def items(self) -> list:
+    def items(self) -> List[Never]:
         """The artist page does not supply any items. This only exists for symmetry with
         other model types.
 

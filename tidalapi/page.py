@@ -181,9 +181,9 @@ class PageCategory:
         elif category_type == "ARTIST_HEADER":
             result = self.session.parse_artist(json_obj["artist"])
             result.bio = json_obj["bio"]
-            return result
+            return ItemWrapper(result)
         elif category_type == "ALBUM_HEADER":
-            return self.session.parse_album(json_obj["album"])
+            return ItemWrapper(self.session.parse_album(json_obj["album"]))
         elif category_type == "HIGHLIGHT_MODULE":
             category = ItemList(self.session)
         elif category_type == "MIXED_TYPES_LIST":
@@ -362,6 +362,8 @@ class PageItem:
             return self.session.track(self.artifact_id)
         elif self.type == "ARTIST":
             return self.session.artist(self.artifact_id)
+        elif self.type == "ALBUM":
+            return self.session.album(self.artifact_id)
         raise NotImplementedError(f"PageItem type {self.type} not implemented")
 
 
@@ -397,3 +399,10 @@ class LinkList(PageCategory):
         self.description = json_obj["description"]
 
         return copy.copy(self)
+
+
+class ItemWrapper(object):
+    """Single item in a "category" of the page."""
+
+    def __init__(self, item):
+        self.items = [item]

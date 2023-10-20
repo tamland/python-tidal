@@ -332,12 +332,18 @@ class Favorites:
             ),
         )
 
-    def tracks(self, limit: Optional[int] = None, offset: int = 0) -> List["Track"]:
+    def tracks(self, limit: Optional[int] = None, offset: int = 0, order: str = "NAME", orderDirection: str = "ASC") -> List["Track"]:
         """Get the users favorite tracks.
 
         :return: A :class:`list` of :class:`~tidalapi.media.Track` objects containing all of the favorite tracks.
         """
-        params = {"limit": limit, "offset": offset}
+        params = {
+            "limit": limit,
+            "offset": offset,
+            "order": order,
+            "orderDirection": orderDirection
+        }
+
         return cast(
             List["Track"],
             self.requests.map_request(

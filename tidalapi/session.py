@@ -619,7 +619,7 @@ class Session(object):
         """
 
         return mix.Mix(session=self, mix_id=mix_id)
-    
+
     def mixv2(self, mix_id=None) -> tidalapi.MixV2:
         """Function to create a mix object with access to the session instance smoothly
         Calls :class:`tidalapi.MixV2(session=session, mix_id=mix_id) <.Album>` internally.

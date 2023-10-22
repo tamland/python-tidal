@@ -166,11 +166,13 @@ def test_add_remove_favorite_video(session):
     video_id = 160850422
     add_remove(video_id, favorites.add_video, favorites.remove_video, favorites.videos)
 
+
 def test_get_favorite_mixes(session):
     favorites = session.user.favorites
     mixes = favorites.mixes()
     assert len(mixes) > 0
     assert isinstance(mixes[0], tidalapi.MixV2)
+
 
 def add_remove(object_id, add, remove, objects):
     """Add and remove an item from favorites. Skips the test if the item was already in

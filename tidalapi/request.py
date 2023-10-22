@@ -36,7 +36,9 @@ class Requests(object):
         self.session = session
         self.config = session.config
 
-    def basic_request(self, method, path, api_version="v1/", params=None, data=None, headers=None):
+    def basic_request(
+        self, method, path, api_version="v1/", params=None, data=None, headers=None
+    ):
         request_params = {
             "sessionId": self.session.session_id,
             "countryCode": self.session.country_code,

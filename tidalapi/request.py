@@ -36,7 +36,7 @@ class Requests(object):
         self.session = session
         self.config = session.config
 
-    def basic_request(self, method, path, params=None, data=None, headers=None):
+    def basic_request(self, method, path, api_version="v1/", params=None, data=None, headers=None):
         request_params = {
             "sessionId": self.session.session_id,
             "countryCode": self.session.country_code,
@@ -56,7 +56,7 @@ class Requests(object):
                 self.session.token_type + " " + self.session.access_token
             )
 
-        url = urljoin(self.session.config.api_location, path)
+        url = urljoin(f"{self.session.config.api_location}{api_version}", path)
         request = self.session.request_session.request(
             method, url, params=request_params, data=data, headers=headers
         )
@@ -86,6 +86,7 @@ class Requests(object):
         self,
         method: Literal["GET", "POST", "PUT", "DELETE"],
         path: str,
+        api_version: str = "v1/",
         params: Optional[Params] = None,
         data: Optional[JsonObj] = None,
         headers: Optional[Mapping[str, str]] = None,
@@ -102,7 +103,7 @@ class Requests(object):
         :return: The json data at specified api endpoint.
         """
 
-        request = self.basic_request(method, path, params, data, headers)
+        request = self.basic_request(method, path, api_version, params, data, headers)
         log.debug("request: %s", request.request.url)
         request.raise_for_status()
         if request.content:
@@ -112,6 +113,7 @@ class Requests(object):
     def map_request(
         self,
         url: str,
+        api_version: str = "v1/",
         params: Optional[Params] = None,
         parse: Optional[Callable] = None,
     ):
@@ -126,7 +128,7 @@ class Requests(object):
         :return: The object(s) at the url, with the same type as the class of the parse
             method.
         """
-        json_obj = self.request("GET", url, params).json()
+        json_obj = self.request("GET", url, api_version, params).json()
 
         return self.map_json(json_obj, parse=parse)
 

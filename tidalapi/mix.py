@@ -20,10 +20,13 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, List, Optional, Union
 
 from tidalapi.types import JsonObj
+
+import dateutil.parser
 
 if TYPE_CHECKING:
     from tidalapi.media import Track, Video
@@ -131,6 +134,117 @@ class Mix:
             raise ValueError("Retrieved items missing")
         return self._items
 
+    def image(self, dimensions: int = 320) -> str:
+        """A URL to a Mix picture.
+
+        :param dimensions: The width and height the requested image should be
+        :type dimensions: int
+        :return: A url to the image
+
+        Original sizes: 320x320, 640x640, 1500x1500
+        """
+        if not self.images:
+            raise ValueError("No images present.")
+
+        if dimensions == 320:
+            return self.images.small
+        elif dimensions == 640:
+            return self.images.medium
+        elif dimensions == 1500:
+            return self.images.large
+
+        raise ValueError(f"Invalid resolution {dimensions} x {dimensions}")
+
+@dataclass
+class TextInfo:
+    text: str
+    color: str
+
+class MixV2:
+    """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place currently.
+    """
+    date_added: Optional[datetime] = None
+    title: str = ""
+    id: str = ""
+    mix_type: Optional[MixType] = None
+    images: Optional[ImageResponse] = None
+    detail_images: Optional[ImageResponse] = None
+    master = False
+    title_text_info: Optional[TextInfo] = None
+    sub_title_text_info: Optional[TextInfo] = None
+    sub_title: str = ""
+    updated: Optional[datetime] = None
+    
+    def __init__(self, session: Session, mix_id: str):
+        self.session = session
+        self.request = session.request
+        if mix_id is not None:
+            self.get(mix_id)
+            
+    def get(self, mix_id: Optional[str] = None) -> "Mix":
+        """Returns information about a mix, and also replaces the mix object used to
+        call this function.
+
+        :param mix_id: TIDAL's identifier of the mix
+        :return: A :class:`Mix` object containing all the information about the mix
+        """
+        if mix_id is None:
+            mix_id = self.id
+
+        params = {"mixId": mix_id, "deviceType": "BROWSER"}
+        parse = self.session.parse_page
+        result = self.request.map_request("pages/mix", parse=parse, params=params)
+        assert not isinstance(result, list)
+        self._retrieved = True
+        self.__dict__.update(result.categories[0].__dict__)
+        self._items = result.categories[1].items
+        return self
+    
+    def parse(self, json_obj: JsonObj) -> "MixV2":
+        """Parse a mix into a :class:`MixV2`, replaces the calling object.
+
+        :param json_obj: The json of a mix to be parsed
+        :return: A copy of the parsed mix
+        """
+        date_added = json_obj.get("dateAdded")
+        self.date_added = (
+            dateutil.parser.isoparse(date_added) if date_added else None
+        )
+        self.title = json_obj["title"]
+        self.id = json_obj["id"]
+        self.title = json_obj["title"]
+        self.mix_type = MixType(json_obj["mixType"])
+        images = json_obj["images"]
+        self.images = ImageResponse(
+            small=images["SMALL"]["url"],
+            medium=images["MEDIUM"]["url"],
+            large=images["LARGE"]["url"],
+        )
+        detail_images = json_obj["detailImages"]
+        self.detail_images = ImageResponse(
+            small=detail_images["SMALL"]["url"],
+            medium=detail_images["MEDIUM"]["url"],
+            large=detail_images["LARGE"]["url"],
+        )
+        self.master = json_obj["master"]
+        title_text_info = json_obj["titleTextInfo"]
+        self.title_text_info = TextInfo(
+            text=title_text_info["text"],
+            color=title_text_info["color"],
+        )
+        sub_title_text_info = json_obj["subTitleTextInfo"]
+        self.sub_title_text_info = TextInfo(
+            text=sub_title_text_info["text"],
+            color=sub_title_text_info["color"],
+        )
+        self.sub_title = json_obj["subTitle"]
+        updated = json_obj.get("updated")
+        self.date_added = (
+            dateutil.parser.isoparse(updated) if date_added else None
+        )
+
+        return copy.copy(self)
+    
     def image(self, dimensions: int = 320) -> str:
         """A URL to a Mix picture.
 

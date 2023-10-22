@@ -98,7 +98,7 @@ class Config(object):
     ):
         self.quality = quality.value
         self.video_quality = video_quality.value
-        self.api_location = "https://api.tidal.com/v1/"
+        self.api_location = "https://api.tidal.com/"
         self.image_url = "https://resources.tidal.com/images/%s/%ix%i.jpg"
         self.video_url = "https://resources.tidal.com/videos/%s/%ix%i.mp4"
 
@@ -228,6 +228,7 @@ class Session(object):
         self.parse_video = self.video().parse_video
         self.parse_media = self.track().parse_media
         self.parse_mix = self.mix().parse
+        self.parse_v2_mix = self.mixv2().parse
 
         self.parse_user = user.User(self, None).parse
         self.page = page.Page(self, None)
@@ -343,7 +344,7 @@ class Session(object):
         :param password: The password to your TIDAL account
         :return: Returns true if we think the login was successful.
         """
-        url = urljoin(self.config.api_location, "login/username")
+        url = urljoin(self.config.api_location, "v1/login/username")
         headers: dict[str, str] = {"X-Tidal-Token": self.config.api_token}
         payload = {
             "username": username,
@@ -618,6 +619,16 @@ class Session(object):
         """
 
         return mix.Mix(session=self, mix_id=mix_id)
+    
+    def mixv2(self, mix_id=None) -> tidalapi.MixV2:
+        """Function to create a mix object with access to the session instance smoothly
+        Calls :class:`tidalapi.MixV2(session=session, mix_id=mix_id) <.Album>` internally.
+
+        :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
+        :return: Returns a :class:`.Mix` object that has access to the session instance used.
+        """
+
+        return mix.MixV2(session=self, mix_id=mix_id)
 
     def get_user(
         self, user_id=None

@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from tidalapi.media import Track, Video
     from tidalapi.playlist import Playlist, UserPlaylist
     from tidalapi.session import Session
+    from tidalapi.mix import Mix, MixV2
 
 
 class User:
@@ -188,6 +189,7 @@ class Favorites:
         self.session = session
         self.requests = session.request
         self.base_url = f"users/{user_id}/favorites"
+        self.v2_base_url = "favorites"
 
     def add_album(self, album_id: str) -> bool:
         """Adds an album to the users favorites.
@@ -356,3 +358,16 @@ class Favorites:
                 f"{self.base_url}/videos", parse=self.session.parse_media
             ),
         )
+        
+    def mixes(self, limit: Optional[int] = 50, offset: int = 0) -> List["MixV2"]:
+        """Get the users favorite tracks.
+
+        :return: A :class:`list` of :class:`~tidalapi.media.Track` objects containing all of the favorite tracks.
+        """
+        params = {"limit": limit, "offset": offset}
+        return cast(
+            List["MixV2"],
+            self.requests.map_request(
+                f"{self.v2_base_url}/mixes", api_version="v2/", params=params, parse=self.session.parse_v2_mix
+            ),
+        )    

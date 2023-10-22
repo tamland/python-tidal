@@ -358,7 +358,7 @@ class Favorites:
                 f"{self.base_url}/videos", parse=self.session.parse_media
             ),
         )
-        
+
     def mixes(self, limit: Optional[int] = 50, offset: int = 0) -> List["MixV2"]:
         """Get the users favorite tracks.
 
@@ -368,6 +368,9 @@ class Favorites:
         return cast(
             List["MixV2"],
             self.requests.map_request(
-                f"{self.v2_base_url}/mixes", api_version="v2/", params=params, parse=self.session.parse_v2_mix
+                f"{self.v2_base_url}/mixes",
+                api_version="v2/",
+                params=params,
+                parse=self.session.parse_v2_mix,
             ),
-        )    
+        )

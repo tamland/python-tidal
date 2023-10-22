@@ -155,14 +155,16 @@ class Mix:
 
         raise ValueError(f"Invalid resolution {dimensions} x {dimensions}")
 
+
 @dataclass
 class TextInfo:
     text: str
     color: str
 
+
 class MixV2:
-    """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place currently.
-    """
+    """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place currently."""
+
     date_added: Optional[datetime] = None
     title: str = ""
     id: str = ""
@@ -174,13 +176,13 @@ class MixV2:
     sub_title_text_info: Optional[TextInfo] = None
     sub_title: str = ""
     updated: Optional[datetime] = None
-    
+
     def __init__(self, session: Session, mix_id: str):
         self.session = session
         self.request = session.request
         if mix_id is not None:
             self.get(mix_id)
-            
+
     def get(self, mix_id: Optional[str] = None) -> "Mix":
         """Returns information about a mix, and also replaces the mix object used to
         call this function.
@@ -199,7 +201,7 @@ class MixV2:
         self.__dict__.update(result.categories[0].__dict__)
         self._items = result.categories[1].items
         return self
-    
+
     def parse(self, json_obj: JsonObj) -> "MixV2":
         """Parse a mix into a :class:`MixV2`, replaces the calling object.
 
@@ -207,9 +209,7 @@ class MixV2:
         :return: A copy of the parsed mix
         """
         date_added = json_obj.get("dateAdded")
-        self.date_added = (
-            dateutil.parser.isoparse(date_added) if date_added else None
-        )
+        self.date_added = dateutil.parser.isoparse(date_added) if date_added else None
         self.title = json_obj["title"]
         self.id = json_obj["id"]
         self.title = json_obj["title"]
@@ -239,12 +239,10 @@ class MixV2:
         )
         self.sub_title = json_obj["subTitle"]
         updated = json_obj.get("updated")
-        self.date_added = (
-            dateutil.parser.isoparse(updated) if date_added else None
-        )
+        self.date_added = dateutil.parser.isoparse(updated) if date_added else None
 
         return copy.copy(self)
-    
+
     def image(self, dimensions: int = 320) -> str:
         """A URL to a Mix picture.
 

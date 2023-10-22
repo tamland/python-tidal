@@ -625,7 +625,7 @@ class Session(object):
         Calls :class:`tidalapi.MixV2(session=session, mix_id=mix_id) <.Album>` internally.
 
         :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
-        :return: Returns a :class:`.Mix` object that has access to the session instance used.
+        :return: Returns a :class:`.MixV2` object that has access to the session instance used.
         """
 
         return mix.MixV2(session=self, mix_id=mix_id)

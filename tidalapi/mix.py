@@ -24,9 +24,9 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from tidalapi.types import JsonObj
-
 import dateutil.parser
+
+from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
     from tidalapi.media import Track, Video

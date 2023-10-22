@@ -32,9 +32,9 @@ if TYPE_CHECKING:
     from tidalapi.album import Album
     from tidalapi.artist import Artist
     from tidalapi.media import Track, Video
+    from tidalapi.mix import Mix, MixV2
     from tidalapi.playlist import Playlist, UserPlaylist
     from tidalapi.session import Session
-    from tidalapi.mix import Mix, MixV2
 
 
 class User:

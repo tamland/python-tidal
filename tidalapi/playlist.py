@@ -20,38 +20,45 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, List, Optional
+from datetime import datetime
+from typing import TYPE_CHECKING, List, Optional, Sequence, Union, cast
+
+from tidalapi.types import JsonObj
+from tidalapi.user import LoggedInUser
 
 if TYPE_CHECKING:
-    import tidalapi
+    from tidalapi.artist import Artist
+    from tidalapi.media import Track, Video
+    from tidalapi.session import Session
+    from tidalapi.user import User
 
 import dateutil.parser
 
 
-class Playlist(object):
+class Playlist:
     """An object containing various data about a playlist and methods to work with
     them."""
 
-    id = None
-    name = None
-    num_tracks = -1
-    num_videos = -1
-    creator = None
-    description = None
-    duration = -1
-    last_updated = None
-    created = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    num_tracks: int = -1
+    num_videos: int = -1
+    creator: Optional[Union["Artist", "User"]] = None
+    description: Optional[str] = None
+    duration: int = -1
+    last_updated: Optional[datetime] = None
+    created: Optional[datetime] = None
     type = None
     public: Optional[bool] = False
-    popularity = -1
-    promoted_artists = None
-    last_item_added_at = None
+    popularity: Optional[int] = -1
+    promoted_artists: Optional[List["Artist"]] = None
+    last_item_added_at: Optional[datetime] = None
     picture: Optional[str] = None
     square_picture: Optional[str] = None
-    user_date_added = None
-    _etag = None
+    user_date_added: Optional[datetime] = None
+    _etag: Optional[str] = None
 
-    def __init__(self, session, playlist_id):
+    def __init__(self, session: "Session", playlist_id: Optional[str]):
         self.id = playlist_id
         self.session = session
         self.requests = session.request
@@ -61,7 +68,7 @@ class Playlist(object):
             self._etag = request.headers["etag"]
             self.parse(request.json())
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "Playlist":
         """Parses a playlist from tidal, replaces the current playlist object.
 
         :param json_obj: Json data returned from api.tidal.com containing a playlist
@@ -83,7 +90,8 @@ class Playlist(object):
         self.created = dateutil.parser.isoparse(created) if created else None
         public = json_obj.get("publicPlaylist")
         self.public = None if public is None else bool(public)
-        self.popularity = json_obj.get("popularity")
+        popularity = json_obj.get("popularity")
+        self.popularity = int(popularity) if popularity else None
 
         self.type = json_obj["type"]
         self.picture = json_obj["image"]
@@ -112,18 +120,23 @@ class Playlist(object):
 
         return copy.copy(self)
 
-    def factory(self):
-        if self.creator and self.creator.id == self.session.user.id:
+    def factory(self) -> "Playlist":
+        if (
+            self.id
+            and self.creator
+            and isinstance(self.session.user, LoggedInUser)
+            and self.creator.id == self.session.user.id
+        ):
             return UserPlaylist(self.session, self.id)
 
         return self
 
-    def parse_factory(self, json_obj):
+    def parse_factory(self, json_obj: JsonObj) -> "Playlist":
         self.parse(json_obj)
         return copy.copy(self.factory())
 
-    def tracks(self, limit: Optional[int] = None, offset=0) -> List[tidalapi.Track]:
-        """Gets the playlists̈́' tracks from TIDAL.
+    def tracks(self, limit: Optional[int] = None, offset: int = 0) -> List["Track"]:
+        """Gets the playlists' tracks from TIDAL.
 
         :param limit: The amount of items you want returned.
         :param offset: The index of the first item you want included.
@@ -138,7 +151,7 @@ class Playlist(object):
             json_obj=request.json(), parse=self.session.parse_track
         )
 
-    def items(self, limit=100, offset=0):
+    def items(self, limit: int = 100, offset: int = 0) -> List[Union["Track", "Video"]]:
         """Fetches up to the first 100 items, including tracks and videos.
 
         :param limit: The amount of items you want, up to 100.
@@ -152,7 +165,7 @@ class Playlist(object):
         self._etag = request.headers["etag"]
         return self.requests.map_json(request.json(), parse=self.session.parse_media)
 
-    def image(self, dimensions=480):
+    def image(self, dimensions: int = 480) -> str:
         """A URL to a playlist picture.
 
         :param dimensions: The width and height that want from the image
@@ -166,13 +179,17 @@ class Playlist(object):
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
         if self.square_picture is None:
             raise AttributeError("No picture available")
-        return self.session.config.image_url % (
-            self.square_picture.replace("-", "/"),
-            dimensions,
-            dimensions,
+        return cast(
+            str,
+            self.session.config.image_url
+            % (
+                self.square_picture.replace("-", "/"),
+                dimensions,
+                dimensions,
+            ),
         )
 
-    def wide_image(self, width=1080, height=720):
+    def wide_image(self, width: int = 1080, height: int = 720) -> str:
         """Create a url to a wider playlist image.
 
         :param width: The width of the image
@@ -186,20 +203,26 @@ class Playlist(object):
             raise ValueError("Invalid resolution {} x {}".format(width, height))
         if self.picture is None:
             raise AttributeError("No picture available")
-        return self.session.config.image_url % (
-            self.picture.replace("-", "/"),
-            width,
-            height,
+        return cast(
+            str,
+            self.session.config.image_url
+            % (
+                self.picture.replace("-", "/"),
+                width,
+                height,
+            ),
         )
 
 
 class UserPlaylist(Playlist):
-    def _reparse(self):
+    def _reparse(self) -> None:
         request = self.requests.request("GET", self._base_url % self.id)
         self._etag = request.headers["etag"]
         self.requests.map_json(request.json(), parse=self.parse)
 
-    def edit(self, title=None, description=None):
+    def edit(
+        self, title: Optional[str] = None, description: Optional[str] = None
+    ) -> None:
         if not title:
             title = self.name
         if not description:
@@ -208,17 +231,17 @@ class UserPlaylist(Playlist):
         data = {"title": title, "description": description}
         self.requests.request("POST", self._base_url % self.id, data=data)
 
-    def delete(self):
+    def delete(self) -> None:
         self.requests.request("DELETE", self._base_url % self.id)
 
-    def add(self, media_ids):
+    def add(self, media_ids: List[str]) -> None:
         data = {
             "onArtifactNotFound": "SKIP",
             "onDupes": "SKIP",
             "trackIds": ",".join(map(str, media_ids)),
         }
         params = {"limit": 100}
-        headers = {"If-None-Match": self._etag}
+        headers = {"If-None-Match": self._etag} if self._etag else None
         self.requests.request(
             "POST",
             self._base_url % self.id + "/items",
@@ -228,14 +251,14 @@ class UserPlaylist(Playlist):
         )
         self._reparse()
 
-    def remove_by_index(self, index):
-        headers = {"If-None-Match": self._etag}
+    def remove_by_index(self, index: int) -> None:
+        headers = {"If-None-Match": self._etag} if self._etag else None
         self.requests.request(
             "DELETE", (self._base_url + "/items/%i") % (self.id, index), headers=headers
         )
 
-    def remove_by_indices(self, indices):
-        headers = {"If-None-Match": self._etag}
+    def remove_by_indices(self, indices: Sequence[int]) -> None:
+        headers = {"If-None-Match": self._etag} if self._etag else None
         track_index_string = ",".join([str(x) for x in indices])
         self.requests.request(
             "DELETE",
@@ -243,7 +266,7 @@ class UserPlaylist(Playlist):
             headers=headers,
         )
 
-    def _calculate_id(self, media_id):
+    def _calculate_id(self, media_id: str) -> Optional[int]:
         i = 0
         while i < self.num_tracks:
             items = self.items(100, i)
@@ -253,7 +276,9 @@ class UserPlaylist(Playlist):
                     return index + i
 
             i += len(items)
+        return None
 
-    def remove_by_id(self, media_id):
+    def remove_by_id(self, media_id: str) -> None:
         index = self._calculate_id(media_id)
-        self.remove_by_index(index)
+        if index is not None:
+            self.remove_by_index(index)

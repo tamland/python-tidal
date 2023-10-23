@@ -19,15 +19,44 @@ Module for parsing TIDAL's pages format found at https://listen.tidal.com/v1/pag
 """
 
 import copy
-from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Union, cast
+from dataclasses import dataclass
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Union,
+    cast,
+)
 
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
-    import tidalapi
+    from tidalapi.album import Album
+    from tidalapi.artist import Artist
+    from tidalapi.media import Track, Video
+    from tidalapi.mix import Mix
+    from tidalapi.playlist import Playlist, UserPlaylist
+    from tidalapi.request import Requests
+    from tidalapi.session import Session
+
+PageCategories = Union[
+    "Album",
+    "PageLinks",
+    "FeaturedItems",
+    "ItemList",
+    "TextBlock",
+    "LinkList",
+    "Mix",
+]
+
+AllCategories = Union["Artist", PageCategories]
 
 
-class Page(object):
+class Page:
     """
     A page from the https://listen.tidal.com/view/pages/ endpoint
 
@@ -35,26 +64,29 @@ class Page(object):
     However it is an iterable that goes through all the visible items on the page as well, in the natural reading order
     """
 
-    title = ""
-    categories: Optional[List[Any]] = None
-    _categories_iter: Optional[Iterator[Any]] = None
+    title: str = ""
+    categories: Optional[List["AllCategories"]] = None
+    _categories_iter: Optional[Iterator["AllCategories"]] = None
+    _items_iter: Optional[Iterator[Callable[..., Any]]] = None
+    page_category: "PageCategory"
+    request: "Requests"
 
-    def __init__(self, session, title):
+    def __init__(self, session: "Session", title: str):
         self.request = session.request
         self.categories = None
         self.title = title
         self.page_category = PageCategory(session)
 
-    def __iter__(self):
+    def __iter__(self) -> "Page":
         if self.categories is None:
             raise AttributeError("No categories found")
         self._categories_iter = iter(self.categories)
         self._category = next(self._categories_iter)
-        self._items_iter = iter(self._category.items)
+        self._items_iter = iter(cast(List[Callable[..., Any]], self._category.items))
         return self
 
-    def __next__(self):
-        if self._category == StopIteration:
+    def __next__(self) -> Callable[..., Any]:
+        if self._items_iter is None:
             return StopIteration
         try:
             item = next(self._items_iter)
@@ -62,11 +94,13 @@ class Page(object):
             if self._categories_iter is None:
                 raise AttributeError("No categories found")
             self._category = next(self._categories_iter)
-            self._items_iter = iter(self._category.items)
+            self._items_iter = iter(
+                cast(List[Callable[..., Any]], self._category.items)
+            )
             return self.__next__()
         return item
 
-    def next(self):
+    def next(self) -> Callable[..., Any]:
         return self.__next__()
 
     def parse(self, json_obj: JsonObj) -> "Page":
@@ -99,17 +133,31 @@ class Page(object):
         return self.parse(json_obj)
 
 
-class PageCategory(object):
-    type = None
-    title = None
-    description: Optional[str] = ""
-    requests = None
-    _more: Optional[dict[str, Union[dict[str, str], str]]] = None
+@dataclass
+class More:
+    api_path: str
+    title: str
 
-    def __init__(self, session: "tidalapi.session.Session"):
+    @classmethod
+    def parse(cls, json_obj: JsonObj) -> Optional["More"]:
+        show_more = json_obj.get("showMore")
+        if show_more is None:
+            return None
+        else:
+            return cls(api_path=show_more["apiPath"], title=show_more["title"])
+
+
+class PageCategory:
+    type = None
+    title: Optional[str] = None
+    description: Optional[str] = ""
+    request: "Requests"
+    _more: Optional[More] = None
+
+    def __init__(self, session: "Session"):
         self.session = session
         self.request = session.request
-        self.item_types = {
+        self.item_types: Dict[str, Callable[..., Any]] = {
             "ALBUM_LIST": self.session.parse_album,
             "ARTIST_LIST": self.session.parse_artist,
             "TRACK_LIST": self.session.parse_track,
@@ -118,13 +166,11 @@ class PageCategory(object):
             "MIX_LIST": self.session.parse_mix,
         }
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> AllCategories:
         result = None
         category_type = json_obj["type"]
         if category_type in ("PAGE_LINKS_CLOUD", "PAGE_LINKS"):
-            category: Union[
-                PageLinks, FeaturedItems, ItemList, TextBlock, LinkList
-            ] = PageLinks(self.session)
+            category: PageCategories = PageLinks(self.session)
         elif category_type in ("FEATURED_PROMOTIONS", "MULTIPLE_TOP_PROMOTIONS"):
             category = FeaturedItems(self.session)
         elif category_type in self.item_types.keys():
@@ -152,25 +198,19 @@ class PageCategory(object):
             json_obj["items"] = json_obj["socialProfiles"]
             category = LinkList(self.session)
         else:
-            raise NotImplementedError(
-                "PageType {} not implemented".format(category_type)
-            )
+            raise NotImplementedError(f"PageType {category_type} not implemented")
 
         return category.parse(json_obj)
 
-    def show_more(self):
+    def show_more(self) -> Optional[Page]:
         """Get the full list of items on their own :class:`.Page` from a
         :class:`.PageCategory`
 
         :return: A :class:`.Page` more of the items in the category, None if there aren't any
         """
-        if self._more:
-            api_path = self._more["apiPath"]
-            assert isinstance(api_path, str)
-        else:
-            api_path = None
+        api_path = self._more.api_path if self._more else None
         return (
-            Page(self.session, self._more["title"]).get(api_path)
+            Page(self.session, self._more.title).get(api_path)
             if api_path and self._more
             else None
         )
@@ -179,12 +219,12 @@ class PageCategory(object):
 class FeaturedItems(PageCategory):
     """Items that have been featured by TIDAL."""
 
-    items: Optional[list["PageItem"]] = None
+    items: Optional[List["PageItem"]] = None
 
-    def __init__(self, session):
-        super(FeaturedItems, self).__init__(session)
+    def __init__(self, session: "Session"):
+        super().__init__(session)
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "FeaturedItems":
         self.items = []
         self.title = json_obj["title"]
         self.description = json_obj["description"]
@@ -198,15 +238,15 @@ class FeaturedItems(PageCategory):
 class PageLinks(PageCategory):
     """A list of :class:`.PageLink` to other parts of TIDAL."""
 
-    items: Optional[list["PageLink"]] = None
+    items: Optional[List["PageLink"]] = None
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "PageLinks":
         """Parse the list of links from TIDAL.
 
         :param json_obj: The json to be parsed
         :return: A copy of this page category containing the links in the items field
         """
-        self._more = json_obj.get("showMore")
+        self._more = More.parse(json_obj)
         self.title = json_obj["title"]
         self.items = []
         for item in json_obj["pagedList"]["items"]:
@@ -219,20 +259,20 @@ class ItemList(PageCategory):
     """A list of items from TIDAL, can be a list of mixes, for example, or a list of
     playlists and mixes in some cases."""
 
-    items = None
+    items: Optional[List[Any]] = None
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "ItemList":
         """Parse a list of items on TIDAL from the pages endpoints.
 
         :param json_obj: The json from TIDAL to be parsed
         :return: A copy of the ItemList with a list of items
         """
-        self._more = json_obj.get("showMore")
+        self._more = More.parse(json_obj)
         self.title = json_obj["title"]
         item_type = json_obj["type"]
         list_key = "pagedList"
-        session = None
-        parse = None
+        session: Optional["Session"] = None
+        parse: Optional[Callable[..., Any]] = None
 
         if item_type in self.item_types.keys():
             parse = self.item_types[item_type]
@@ -254,15 +294,14 @@ class ItemList(PageCategory):
         return copy.copy(self)
 
 
-class PageLink(object):
+class PageLink:
     """A Link to another :class:`.Page` on TIDAL, Call get() to retrieve the Page."""
 
-    title = None
+    title: str
     icon = None
     image_id = None
-    requests = None
 
-    def __init__(self, session: "tidalapi.session.Session", json_obj):
+    def __init__(self, session: "Session", json_obj: JsonObj):
         self.session = session
         self.request = session.request
         self.title = json_obj["title"]
@@ -270,30 +309,34 @@ class PageLink(object):
         self.api_path = cast(str, json_obj["apiPath"])
         self.image_id = json_obj["imageId"]
 
-    def get(self):
+    def get(self) -> "Page":
         """Requests the linked page from TIDAL :return: A :class:`Page` at the
         api_path."""
-        return self.request.map_request(
-            self.api_path,
-            params={"deviceType": "DESKTOP"},
-            parse=self.session.parse_page,
+        return cast(
+            "Page",
+            self.request.map_request(
+                self.api_path,
+                params={"deviceType": "DESKTOP"},
+                parse=self.session.parse_page,
+            ),
         )
 
 
-class PageItem(object):
+class PageItem:
     """An Item from a :class:`.PageCategory` from the /pages endpoint, call get() to
     retrieve the actual item."""
 
-    header = ""
-    short_header = ""
-    short_sub_header = ""
-    image_id = ""
-    type = ""
-    artifact_id = ""
-    text = ""
-    featured = False
+    header: str = ""
+    short_header: str = ""
+    short_sub_header: str = ""
+    image_id: str = ""
+    type: str = ""
+    artifact_id: str = ""
+    text: str = ""
+    featured: bool = False
+    session: "Session"
 
-    def __init__(self, session, json_obj):
+    def __init__(self, session: "Session", json_obj: JsonObj):
         self.session = session
         self.request = session.request
         self.header = json_obj["header"]
@@ -305,37 +348,34 @@ class PageItem(object):
         self.text = json_obj["text"]
         self.featured = bool(json_obj["featured"])
 
-    def get(self):
+    def get(self) -> Union["Artist", "Playlist", "Track", "UserPlaylist", "Video"]:
         """Retrieve the PageItem with the artifact_id matching the type.
 
         :return: The fully parsed item, e.g. :class:`.Playlist`, :class:`.Video`, :class:`.Track`
         """
         if self.type == "PLAYLIST":
-            result = self.session.playlist(self.artifact_id)
+            return self.session.playlist(self.artifact_id)
         elif self.type == "VIDEO":
-            result = self.session.video(self.artifact_id)
+            return self.session.video(self.artifact_id)
         elif self.type == "TRACK":
-            result = self.session.track(self.artifact_id)
+            return self.session.track(self.artifact_id)
         elif self.type == "ARTIST":
-            result = self.session.artist(self.artifact_id)
-        else:
-            raise NotImplementedError("PageItem type %s not implemented" % self.type)
-
-        return result
+            return self.session.artist(self.artifact_id)
+        raise NotImplementedError(f"PageItem type {self.type} not implemented")
 
 
 class TextBlock(object):
     """A block of text, with a named icon, which seems to be left up to the
     application."""
 
-    text = ""
-    icon = ""
-    items = None
+    text: str = ""
+    icon: str = ""
+    items: Optional[List[str]] = None
 
-    def __init__(self, session):
+    def __init__(self, session: "Session"):
         self.session = session
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "TextBlock":
         self.text = json_obj["text"]
         self.icon = json_obj["icon"]
         self.items = [self.text]
@@ -346,11 +386,11 @@ class TextBlock(object):
 class LinkList(PageCategory):
     """A list of items containing links, e.g. social links or articles."""
 
-    items = None
-    title = None
-    description = None
+    items: Optional[List[Any]] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
 
-    def parse(self, json_obj):
+    def parse(self, json_obj: JsonObj) -> "LinkList":
         self.items = json_obj["items"]
         self.title = json_obj["title"]
         self.description = json_obj["description"]

@@ -47,7 +47,7 @@ def test_playlist(session):
     )
     assert playlist.type == "ARTIST"
     assert playlist.public is True
-    assert playlist.popularity == 0
+    assert playlist.popularity is None
     assert len(playlist.promoted_artists) == 4
 
     creator = playlist.creator
@@ -69,7 +69,7 @@ def test_updated_playlist(session):
     )
     assert playlist.type == "USER"
     assert playlist.public is False
-    assert playlist.popularity == 0
+    assert playlist.popularity is None
     assert playlist.promoted_artists is None
 
     creator = playlist.creator

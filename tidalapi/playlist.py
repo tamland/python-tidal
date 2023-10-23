@@ -50,7 +50,7 @@ class Playlist:
     created: Optional[datetime] = None
     type = None
     public: Optional[bool] = False
-    popularity: Optional[int] = -1
+    popularity: Optional[int] = None
     promoted_artists: Optional[List["Artist"]] = None
     last_item_added_at: Optional[datetime] = None
     picture: Optional[str] = None

@@ -277,7 +277,7 @@ class Favorites:
         :param track_id: TIDAL's identifier of the track.
         :return: A boolean indicating whether the request was successful or not.
         """
-        return self.requests.request("DELETE", f"{self.base_url}tracks/{track_id}").ok
+        return self.requests.request("DELETE", f"{self.base_url}/tracks/{track_id}").ok
 
     def remove_video(self, video_id: str) -> bool:
         """Removes a video from the users favorites.
@@ -285,7 +285,7 @@ class Favorites:
         :param video_id: TIDAL's identifier of the video.
         :return: A boolean indicating whether the request was successful or not.
         """
-        return self.requests.request("DELETE", f"{self.base_url}videos/{video_id}").ok
+        return self.requests.request("DELETE", f"{self.base_url}/videos/{video_id}").ok
 
     def artists(self, limit: Optional[int] = None, offset: int = 0) -> List["Artist"]:
         """Get the users favorite artists.

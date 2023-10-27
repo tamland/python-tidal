@@ -163,7 +163,8 @@ class TextInfo:
 
 
 class MixV2:
-    """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place currently."""
+    """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place
+    currently."""
 
     date_added: Optional[datetime] = None
     title: str = ""

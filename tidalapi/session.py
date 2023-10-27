@@ -622,7 +622,8 @@ class Session(object):
 
     def mixv2(self, mix_id=None) -> tidalapi.MixV2:
         """Function to create a mix object with access to the session instance smoothly
-        Calls :class:`tidalapi.MixV2(session=session, mix_id=mix_id) <.Album>` internally.
+        Calls :class:`tidalapi.MixV2(session=session, mix_id=mix_id) <.Album>`
+        internally.
 
         :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
         :return: Returns a :class:`.MixV2` object that has access to the session instance used.

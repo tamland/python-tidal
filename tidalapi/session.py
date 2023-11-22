@@ -28,12 +28,12 @@ import uuid
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     List,
     Literal,
     Optional,
+    TypedDict,
     Union,
     cast,
     no_type_check,
@@ -42,8 +42,7 @@ from urllib.parse import urljoin
 
 import requests
 
-if TYPE_CHECKING:
-    import tidalapi
+from tidalapi.types import JsonObj
 
 from . import album, artist, genre, media, mix, page, playlist, request, user
 
@@ -192,6 +191,15 @@ class TypeRelation:
     parse: Callable
 
 
+class SearchResults(TypedDict):
+    artists: List[artist.Artist]
+    albums: List[album.Album]
+    tracks: List[media.Track]
+    videos: List[media.Video]
+    playlists: List[Union[playlist.Playlist, playlist.UserPlaylist]]
+    top_hit: Optional[List[Any]]
+
+
 class Session(object):
     """Object for interacting with the TIDAL api and."""
 
@@ -219,8 +227,6 @@ class Session(object):
         self.request = request.Requests(session=self)
         self.genre = genre.Genre(session=self)
 
-        self.parse_album = self.album().parse
-        self.parse_artist = self.artist().parse_artist
         self.parse_artists = self.artist().parse_artists
         self.parse_playlist = self.playlist().parse
 
@@ -231,7 +237,7 @@ class Session(object):
         self.parse_v2_mix = self.mixv2().parse
 
         self.parse_user = user.User(self, None).parse
-        self.page = page.Page(self, None)
+        self.page = page.Page(self, "")
         self.parse_page = self.page.parse
 
         self.type_conversions: List[TypeRelation] = [
@@ -257,14 +263,26 @@ class Session(object):
             )
         ]
 
+    def parse_album(self, obj: JsonObj) -> album.Album:
+        """Parse an album from the given response."""
+        return self.album().parse(obj)
+
+    def parse_artist(self, obj: JsonObj) -> artist.Artist:
+        """Parse an artist from the given response."""
+        return self.artist().parse_artist(obj)
+
+    def parse_mix(self, obj: JsonObj) -> mix.Mix:
+        """Parse a mix from the given response."""
+        return self.mix().parse(obj)
+
     def convert_type(
         self,
-        search,
+        search: str,
         search_type: TypeConversionKeys = "identifier",
         output: TypeConversionKeys = "identifier",
-        case=Case.lower,
-        suffix=True,
-    ):
+        case: Case = Case.lower,
+        suffix: bool = True,
+    ) -> Union[str, Callable]:
         type_relations = next(
             x for x in self.type_conversions if getattr(x, search_type) == search
         )
@@ -484,7 +502,7 @@ class Session(object):
     def video_quality(self, quality):
         self.config.video_quality = media.VideoQuality(quality).value
 
-    def search(self, query, models=None, limit=50, offset=0):
+    def search(self, query, models=None, limit=50, offset=0) -> SearchResults:
         """Searches TIDAL with the specified query, you can also specify what models you
         want to search for. While you can set the offset, there aren't more than 300
         items available in a search.
@@ -505,7 +523,7 @@ class Session(object):
         for model in models:
             if model not in SearchTypes:
                 raise ValueError("Tried to search for an invalid type")
-            types.append(self.convert_type(model, "type"))
+            types.append(cast(str, self.convert_type(model, "type")))
 
         params = {
             "query": query,
@@ -516,7 +534,7 @@ class Session(object):
 
         json_obj = self.request.request("GET", "search", params=params).json()
 
-        result = {
+        result: SearchResults = {
             "artists": self.request.map_json(json_obj["artists"], self.parse_artist),
             "albums": self.request.map_json(json_obj["albums"], self.parse_album),
             "tracks": self.request.map_json(json_obj["tracks"], self.parse_track),
@@ -524,6 +542,7 @@ class Session(object):
             "playlists": self.request.map_json(
                 json_obj["playlists"], self.parse_playlist
             ),
+            "top_hit": None,
         }
 
         # Find the type of the top hit so we can parse it
@@ -531,10 +550,8 @@ class Session(object):
             top_type = json_obj["topHit"]["type"].lower()
             parse = self.convert_type(top_type, output="parse")
             result["top_hit"] = self.request.map_json(
-                json_obj["topHit"]["value"], parse
+                json_obj["topHit"]["value"], cast(Callable[..., Any], parse)
             )
-        else:
-            result["top_hit"] = None
 
         return result
 
@@ -547,8 +564,8 @@ class Session(object):
         ).ok
 
     def playlist(
-        self, playlist_id=None
-    ) -> Union[tidalapi.Playlist, tidalapi.UserPlaylist]:
+        self, playlist_id: Optional[str] = None
+    ) -> Union[playlist.Playlist, playlist.UserPlaylist]:
         """Function to create a playlist object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Playlist(session=session,
         playlist_id=playlist_id) <.Playlist>` internally.
@@ -559,7 +576,9 @@ class Session(object):
 
         return playlist.Playlist(session=self, playlist_id=playlist_id).factory()
 
-    def track(self, track_id=None, with_album=False) -> tidalapi.Track:
+    def track(
+        self, track_id: Optional[str] = None, with_album: bool = False
+    ) -> media.Track:
         """Function to create a Track object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Track(session=session, track_id=track_id)
         <.Track>` internally.
@@ -577,7 +596,7 @@ class Session(object):
 
         return item
 
-    def video(self, video_id=None) -> tidalapi.Video:
+    def video(self, video_id: Optional[str] = None) -> media.Video:
         """Function to create a Video object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Video(session=session, video_id=video_id)
         <.Video>` internally.
@@ -588,7 +607,7 @@ class Session(object):
 
         return media.Video(session=self, media_id=video_id)
 
-    def artist(self, artist_id: Optional[str] = None) -> tidalapi.Artist:
+    def artist(self, artist_id: Optional[str] = None) -> artist.Artist:
         """Function to create a Artist object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Artist(session=session,
         artist_id=artist_id) <.Artist>` internally.
@@ -599,7 +618,7 @@ class Session(object):
 
         return artist.Artist(session=self, artist_id=artist_id)
 
-    def album(self, album_id: Optional[str] = None) -> tidalapi.Album:
+    def album(self, album_id: Optional[str] = None) -> album.Album:
         """Function to create a Album object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Album(session=session, album_id=album_id)
         <.Album>` internally.
@@ -610,7 +629,7 @@ class Session(object):
 
         return album.Album(session=self, album_id=album_id)
 
-    def mix(self, mix_id=None) -> tidalapi.Mix:
+    def mix(self, mix_id: Optional[str] = None) -> mix.Mix:
         """Function to create a mix object with access to the session instance smoothly
         Calls :class:`tidalapi.Mix(session=session, mix_id=mix_id) <.Album>` internally.
 
@@ -633,7 +652,7 @@ class Session(object):
 
     def get_user(
         self, user_id=None
-    ) -> Union[tidalapi.FetchedUser, tidalapi.LoggedInUser, tidalapi.PlaylistCreator]:
+    ) -> Union[user.FetchedUser, user.LoggedInUser, user.PlaylistCreator]:
         """Function to create a User object with access to the session instance in a
         smoother way. Calls :class:`user.User(session=session, user_id=user_id) <.User>`
         internally.

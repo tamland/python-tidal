@@ -196,6 +196,14 @@ class Artist:
             ),
         )
 
+    def items(self) -> list:
+        """The artist page does not supply any items. This only exists for symmetry with
+        other model types.
+
+        :return: An empty list.
+        """
+        return []
+
     def image(self, dimensions: int = 320) -> str:
         """A url to an artist picture.
 

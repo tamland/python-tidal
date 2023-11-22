@@ -19,7 +19,17 @@
 
 import json
 import logging
-from typing import Any, Callable, List, Literal, Mapping, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    List,
+    Literal,
+    Mapping,
+    Optional,
+    Union,
+    cast,
+)
 from urllib.parse import urljoin
 
 from tidalapi.types import JsonObj
@@ -27,6 +37,9 @@ from tidalapi.types import JsonObj
 log = logging.getLogger(__name__)
 
 Params = Mapping[str, Union[str, int, None]]
+
+if TYPE_CHECKING:
+    from tidalapi.session import Session
 
 
 class Requests(object):
@@ -135,10 +148,17 @@ class Requests(object):
         return self.map_json(json_obj, parse=parse)
 
     @classmethod
-    def map_json(cls, json_obj, parse=None, session=None):
+    def map_json(
+        cls,
+        json_obj: JsonObj,
+        parse: Optional[Callable] = None,
+        session: Optional["Session"] = None,
+    ) -> List[Any]:
         items = json_obj.get("items")
 
         if items is None:
+            if parse is None:
+                raise ValueError("A parser must be supplied")
             return parse(json_obj)
 
         if len(items) > 0 and "item" in items[0]:
@@ -147,15 +167,22 @@ class Requests(object):
                 for item in items:
                     item["item"]["dateAdded"] = item["created"]
 
-            lists = []
+            lists: List[Any] = []
             for item in items:
                 if session is not None:
-                    parse = session.convert_type(
-                        item["type"].lower() + "s", output="parse"
+                    parse = cast(
+                        Callable,
+                        session.convert_type(
+                            cast(str, item["type"]).lower() + "s", output="parse"
+                        ),
                     )
+                if parse is None:
+                    raise ValueError("A parser must be supplied")
                 lists.append(parse(item["item"]))
 
             return lists
+        if parse is None:
+            raise ValueError("A parser must be supplied")
         return list(map(parse, items))
 
     def get_items(self, url, parse):

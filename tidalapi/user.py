@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from copy import copy
 from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from urllib.parse import urljoin
 
 from tidalapi.types import JsonObj
 
@@ -392,8 +393,7 @@ class Favorites:
         return cast(
             List["MixV2"],
             self.requests.map_request(
-                f"{self.v2_base_url}/mixes",
-                api_version="v2/",
+                url=urljoin("https://api.tidal.com/v2", f"{self.v2_base_url}/mixes"),
                 params=params,
                 parse=self.session.parse_v2_mix,
             ),

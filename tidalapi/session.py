@@ -112,10 +112,6 @@ class Config:
     ):
         self.quality = quality.value
         self.video_quality = video_quality.value
-        self.api_location = "https://api.tidal.com/"
-        self.image_url = "https://resources.tidal.com/images/%s/%ix%i.jpg"
-        self.video_url = "https://resources.tidal.com/videos/%s/%ix%i.mp4"
-
         self.alac = alac
 
         if item_limit > 10000:

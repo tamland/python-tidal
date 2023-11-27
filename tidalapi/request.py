@@ -60,8 +60,7 @@ class Requests(object):
         path: str,
         params: Optional[Params] = None,
         data: Optional[JsonObj] = None,
-        headers: Optional[MutableMapping[str, str]] = None
-    ,
+        headers: Optional[MutableMapping[str, str]] = None,
     ) -> requests.Response:
         request_params = {
             "sessionId": self.session.session_id,

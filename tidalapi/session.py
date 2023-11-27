@@ -380,7 +380,7 @@ class Session:
         :param password: The password to your TIDAL account
         :return: Returns true if we think the login was successful.
         """
-        url = urljoin(self.config.api_location, "v1/login/username")
+        url = urljoin(self.config.api_location, "login/username")
         headers: dict[str, str] = {"X-Tidal-Token": self.config.api_token}
         payload = {
             "username": username,

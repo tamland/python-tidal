@@ -340,16 +340,26 @@ class Favorites:
             ),
         )
 
-    def tracks(self, limit: Optional[int] = None, offset: int = 0, order: str = "NAME", orderDirection: str = "ASC") -> List["Track"]:
+    def tracks(
+        self,
+        limit: Optional[int] = None,
+        offset: int = 0,
+        order: str = "NAME",
+        order_direction: str = "ASC",
+    ) -> List["Track"]:
         """Get the users favorite tracks.
 
+        :param limit: Optional; The amount of items you want returned.
+        :param offset: The index of the first item you want included.
+        :param order: A :class:`str` describing the ordering type when returning the user favorite tracks. eg.: "NAME, "DATE"
+        :param order_direction: A :class:`str` describing the ordering direction when sorting by `order`. eg.: "ASC", "DESC"
         :return: A :class:`list` of :class:`~tidalapi.media.Track` objects containing all of the favorite tracks.
         """
         params = {
             "limit": limit,
             "offset": offset,
             "order": order,
-            "orderDirection": orderDirection
+            "orderDirection": order_direction,
         }
 
         return cast(

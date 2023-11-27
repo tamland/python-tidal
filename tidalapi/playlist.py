@@ -147,8 +147,10 @@ class Playlist:
             "GET", self._base_url % self.id + "/tracks", params=params
         )
         self._etag = request.headers["etag"]
-        return self.requests.map_json(
-            json_obj=request.json(), parse=self.session.parse_track
+        return list(
+            self.requests.map_json(
+                json_obj=request.json(), parse=self.session.parse_track
+            )
         )
 
     def items(self, limit: int = 100, offset: int = 0) -> List[Union["Track", "Video"]]:
@@ -163,7 +165,9 @@ class Playlist:
             "GET", self._base_url % self.id + "/items", params=params
         )
         self._etag = request.headers["etag"]
-        return self.requests.map_json(request.json(), parse=self.session.parse_media)
+        return list(
+            self.requests.map_json(request.json(), parse=self.session.parse_media)
+        )
 
     def image(self, dimensions: int = 480) -> str:
         """A URL to a playlist picture.
@@ -179,14 +183,10 @@ class Playlist:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
         if self.square_picture is None:
             raise AttributeError("No picture available")
-        return cast(
-            str,
-            self.session.config.image_url
-            % (
-                self.square_picture.replace("-", "/"),
-                dimensions,
-                dimensions,
-            ),
+        return self.session.config.image_url % (
+            self.square_picture.replace("-", "/"),
+            dimensions,
+            dimensions,
         )
 
     def wide_image(self, width: int = 1080, height: int = 720) -> str:
@@ -203,14 +203,10 @@ class Playlist:
             raise ValueError("Invalid resolution {} x {}".format(width, height))
         if self.picture is None:
             raise AttributeError("No picture available")
-        return cast(
-            str,
-            self.session.config.image_url
-            % (
-                self.picture.replace("-", "/"),
-                width,
-                height,
-            ),
+        return self.session.config.image_url % (
+            self.picture.replace("-", "/"),
+            width,
+            height,
         )
 
 

@@ -28,11 +28,13 @@ import uuid
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     List,
     Literal,
     Optional,
+    Tuple,
     TypedDict,
     Union,
     cast,
@@ -46,6 +48,9 @@ from tidalapi.types import JsonObj
 
 from . import album, artist, genre, media, mix, page, playlist, request, user
 
+if TYPE_CHECKING:
+    from tidalapi.user import FetchedUser, LoggedInUser, PlaylistCreator
+
 log = logging.getLogger("__NAME__")
 SearchTypes: List[Optional[Any]] = [
     artist.Artist,
@@ -57,27 +62,27 @@ SearchTypes: List[Optional[Any]] = [
 ]
 
 
-class LinkLogin(object):
+class LinkLogin:
     """The data required for logging in to TIDAL using a remote link, json is the data
     returned from TIDAL."""
 
     #: Amount of seconds until the code expires
-    expires_in = None
+    expires_in: int
     #: The code the user should enter at the uri
-    user_code = None
+    user_code: str
     #: The link the user has to visit
-    verification_uri = None
+    verification_uri: str
     #: The link the user has to visit, with the code already included
-    verification_uri_complete = None
+    verification_uri_complete: str
 
-    def __init__(self, json):
-        self.expires_in = json["expiresIn"]
-        self.user_code = json["userCode"]
-        self.verification_uri = json["verificationUri"]
-        self.verification_uri_complete = json["verificationUriComplete"]
+    def __init__(self, json: JsonObj):
+        self.expires_in = int(json["expiresIn"])
+        self.user_code = str(json["userCode"])
+        self.verification_uri = str(json["verificationUri"])
+        self.verification_uri_complete = str(json["verificationUriComplete"])
 
 
-class Config(object):
+class Config:
     """Configuration for TIDAL services.
 
     The maximum item_limit is 10000, and some endpoints have a maximum of 100 items, which will be shown in the docs.
@@ -87,13 +92,23 @@ class Config(object):
                Additionally, num_videos will turn into num_tracks in playlists.
     """
 
+    api_location: str = "https://api.tidal.com/v1/"
+    api_token: str
+    client_id: str
+    client_secret: str
+    image_url: str = "https://resources.tidal.com/images/%s/%ix%i.jpg"
+    item_limit: int
+    quality: str
+    video_quality: str
+    video_url: str = "https://resources.tidal.com/videos/%s/%ix%i.mp4"
+
     @no_type_check
     def __init__(
         self,
-        quality=media.Quality.low_320k,
-        video_quality=media.VideoQuality.high,
-        item_limit=1000,
-        alac=True,
+        quality: media.Quality = media.Quality.low_320k,
+        video_quality: media.VideoQuality = media.VideoQuality.high,
+        item_limit: int = 1000,
+        alac: bool = True,
     ):
         self.quality = quality.value
         self.video_quality = video_quality.value
@@ -178,7 +193,7 @@ class Case(Enum):
 
     identifier: List[str]
     type: List[Union[object, None]]
-    parse: List[Callable]
+    parse: List[Callable[..., Any]]
 
 
 TypeConversionKeys = Literal["identifier", "type", "parse"]
@@ -188,7 +203,7 @@ TypeConversionKeys = Literal["identifier", "type", "parse"]
 class TypeRelation:
     identifier: str
     type: Optional[Any]
-    parse: Callable
+    parse: Callable[..., Any]
 
 
 class SearchResults(TypedDict):
@@ -200,26 +215,24 @@ class SearchResults(TypedDict):
     top_hit: Optional[List[Any]]
 
 
-class Session(object):
+class Session:
     """Object for interacting with the TIDAL api and."""
 
     #: The TIDAL access token, this is what you use with load_oauth_session
-    access_token = None
+    access_token: Optional[str] = None
     #: A :class:`datetime` object containing the date the access token will expire
-    expiry_time = None
+    expiry_time: Optional[datetime.datetime] = None
     #: A refresh token for retrieving a new access token through refresh_token
-    refresh_token = None
+    refresh_token: Optional[str] = None
     #: The type of access token, e.g. Bearer
-    token_type = None
+    token_type: Optional[str] = None
     #: The id for a TIDAL session, you also need this to use load_oauth_session
-    session_id = None
-    country_code = None
+    session_id: Optional[str] = None
+    country_code: Optional[str] = None
     #: A :class:`.User` object containing the currently logged in user.
-    user: Optional[
-        Union[user.FetchedUser, user.LoggedInUser, user.PlaylistCreator]
-    ] = None
+    user: Optional[Union["FetchedUser", "LoggedInUser", "PlaylistCreator"]] = None
 
-    def __init__(self, config=Config()):
+    def __init__(self, config: Config = Config()):
         self.config = config
         self.request_session = requests.Session()
 
@@ -241,7 +254,9 @@ class Session(object):
         self.parse_page = self.page.parse
 
         self.type_conversions: List[TypeRelation] = [
-            TypeRelation(identifier=identifier, type=type, parse=cast(Callable, parse))
+            TypeRelation(
+                identifier=identifier, type=type, parse=cast(Callable[..., Any], parse)
+            )
             for identifier, type, parse in zip(
                 (
                     "artists",
@@ -277,12 +292,12 @@ class Session(object):
 
     def convert_type(
         self,
-        search: str,
+        search: Any,
         search_type: TypeConversionKeys = "identifier",
         output: TypeConversionKeys = "identifier",
         case: Case = Case.lower,
         suffix: bool = True,
-    ) -> Union[str, Callable]:
+    ) -> Union[str, Callable[..., Any]]:
         type_relations = next(
             x for x in self.type_conversions if getattr(x, search_type) == search
         )
@@ -297,11 +312,14 @@ class Session(object):
             elif case == Case.pascal:
                 result = result[0].upper() + result[1:]
 
-        return result
+        return cast(Callable[..., Any], result)
 
     def load_session(
-        self, session_id, country_code=None, user_id: Optional[int] = None
-    ):
+        self,
+        session_id: str,
+        country_code: Optional[str] = None,
+        user_id: Optional[int] = None,
+    ) -> bool:
         """Establishes TIDAL login details using a previous session id. May return true
         if the session-id is invalid/expired, you should verify the login afterwards.
 
@@ -327,8 +345,12 @@ class Session(object):
         return True
 
     def load_oauth_session(
-        self, token_type, access_token, refresh_token=None, expiry_time=None
-    ):
+        self,
+        token_type: str,
+        access_token: str,
+        refresh_token: Optional[str] = None,
+        expiry_time: Optional[datetime.datetime] = None,
+    ) -> bool:
         """Login to TIDAL using details from a previous OAuth login, automatically
         refreshes expired access tokens if refresh_token is supplied as well.
 
@@ -355,7 +377,7 @@ class Session(object):
 
         return True
 
-    def login(self, username, password):
+    def login(self, username: str, password: str) -> bool:
         """Logs in to the TIDAL api.
 
         :param username: The TIDAL username
@@ -376,12 +398,12 @@ class Session(object):
             request.raise_for_status()
 
         body = request.json()
-        self.session_id = body["sessionId"]
-        self.country_code = body["countryCode"]
+        self.session_id = str(body["sessionId"])
+        self.country_code = str(body["countryCode"])
         self.user = user.User(self, user_id=body["userId"]).factory()
         return True
 
-    def login_oauth_simple(self, function=print):
+    def login_oauth_simple(self, function: Callable[[str], None] = print) -> None:
         """Login to TIDAL using a remote link. You can select what function you want to
         use to display the link.
 
@@ -393,7 +415,7 @@ class Session(object):
         function(text.format(login.verification_uri_complete, login.expires_in))
         future.result()
 
-    def login_oauth(self):
+    def login_oauth(self) -> Tuple[LinkLogin, concurrent.futures.Future[Any]]:
         """Login to TIDAL with a remote link for limited input devices. The function
         will return everything you need to log in through a web browser, and will return
         an future that will run until login.
@@ -405,7 +427,7 @@ class Session(object):
         login, future = self._login_with_link()
         return login, future
 
-    def _login_with_link(self):
+    def _login_with_link(self) -> Tuple[LinkLogin, concurrent.futures.Future[Any]]:
         url = "https://auth.tidal.com/v1/oauth2/device_authorization"
         params = {"client_id": self.config.client_id, "scope": "r_usr w_usr w_sub"}
 
@@ -419,7 +441,7 @@ class Session(object):
         executor = concurrent.futures.ThreadPoolExecutor()
         return LinkLogin(json), executor.submit(self._process_link_login, json)
 
-    def _process_link_login(self, json):
+    def _process_link_login(self, json: JsonObj) -> None:
         json = self._wait_for_link_login(json)
         self.access_token = json["access_token"]
         self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(
@@ -433,9 +455,9 @@ class Session(object):
         self.country_code = json["countryCode"]
         self.user = user.User(self, user_id=json["userId"]).factory()
 
-    def _wait_for_link_login(self, json):
-        expiry = json["expiresIn"]
-        interval = json["interval"]
+    def _wait_for_link_login(self, json: JsonObj) -> Any:
+        expiry = float(json["expiresIn"])
+        interval = float(json["interval"])
         device_code = json["deviceCode"]
         url = "https://auth.tidal.com/v1/oauth2/token"
         params = {
@@ -458,7 +480,7 @@ class Session(object):
 
         raise TimeoutError("You took too long to log in")
 
-    def token_refresh(self, refresh_token):
+    def token_refresh(self, refresh_token: str) -> bool:
         """Retrieves a new access token using the specified parameters, updating the
         current access token.
 
@@ -491,7 +513,7 @@ class Session(object):
         return self.config.quality
 
     @audio_quality.setter
-    def audio_quality(self, quality: str):
+    def audio_quality(self, quality: str) -> None:
         self.config.quality = media.Quality(quality).value
 
     @property
@@ -499,10 +521,16 @@ class Session(object):
         return self.config.video_quality
 
     @video_quality.setter
-    def video_quality(self, quality):
+    def video_quality(self, quality: str) -> None:
         self.config.video_quality = media.VideoQuality(quality).value
 
-    def search(self, query, models=None, limit=50, offset=0) -> SearchResults:
+    def search(
+        self,
+        query: str,
+        models: Optional[List[Optional[Any]]] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> SearchResults:
         """Searches TIDAL with the specified query, you can also specify what models you
         want to search for. While you can set the offset, there aren't more than 300
         items available in a search.
@@ -518,14 +546,14 @@ class Session(object):
         if not models:
             models = SearchTypes
 
-        types = []
+        types: List[str] = []
         # This converts the specified TIDAL models in the models list into the text versions so we can parse it.
         for model in models:
             if model not in SearchTypes:
                 raise ValueError("Tried to search for an invalid type")
             types.append(cast(str, self.convert_type(model, "type")))
 
-        params = {
+        params: request.Params = {
             "query": query,
             "limit": limit,
             "offset": offset,
@@ -555,7 +583,7 @@ class Session(object):
 
         return result
 
-    def check_login(self):
+    def check_login(self) -> bool:
         """Returns true if current session is valid, false otherwise."""
         if self.user is None or not self.user.id or not self.session_id:
             return False
@@ -651,8 +679,8 @@ class Session(object):
         return mix.MixV2(session=self, mix_id=mix_id)
 
     def get_user(
-        self, user_id=None
-    ) -> Union[user.FetchedUser, user.LoggedInUser, user.PlaylistCreator]:
+        self, user_id: Optional[int] = None
+    ) -> Union["FetchedUser", "LoggedInUser", "PlaylistCreator"]:
         """Function to create a User object with access to the session instance in a
         smoother way. Calls :class:`user.User(session=session, user_id=user_id) <.User>`
         internally.
@@ -663,7 +691,7 @@ class Session(object):
 
         return user.User(session=self, user_id=user_id).factory()
 
-    def home(self):
+    def home(self) -> page.Page:
         """
         Retrieves the Home page, as seen on https://listen.tidal.com
 
@@ -671,7 +699,7 @@ class Session(object):
         """
         return self.page.get("pages/home")
 
-    def explore(self):
+    def explore(self) -> page.Page:
         """
         Retrieves the Explore page, as seen on https://listen.tidal.com/view/pages/explore
 
@@ -679,7 +707,7 @@ class Session(object):
         """
         return self.page.get("pages/explore")
 
-    def for_you(self):
+    def for_you(self) -> page.Page:
         """
         Retrieves the For You page, as seen on https://listen.tidal.com/view/pages/for_you
 
@@ -687,7 +715,7 @@ class Session(object):
         """
         return self.page.get("pages/for_you")
 
-    def videos(self):
+    def videos(self) -> page.Page:
         """
         Retrieves the :class:`Videos<.Video>` page, as seen on https://listen.tidal.com/view/pages/videos
 
@@ -695,7 +723,7 @@ class Session(object):
         """
         return self.page.get("pages/videos")
 
-    def genres(self):
+    def genres(self) -> page.Page:
         """
         Retrieves the global Genre page, as seen on https://listen.tidal.com/view/pages/genre_page
 
@@ -703,7 +731,7 @@ class Session(object):
         """
         return self.page.get("pages/genre_page")
 
-    def local_genres(self):
+    def local_genres(self) -> page.Page:
         """
         Retrieves the local Genre page, as seen on https://listen.tidal.com/view/pages/genre_page_local
 
@@ -711,7 +739,7 @@ class Session(object):
         """
         return self.page.get("pages/genre_page_local")
 
-    def moods(self):
+    def moods(self) -> page.Page:
         """
         Retrieves the mood page, as seen on https://listen.tidal.com/view/pages/moods
 
@@ -719,7 +747,7 @@ class Session(object):
         """
         return self.page.get("pages/moods")
 
-    def mixes(self):
+    def mixes(self) -> page.Page:
         """
         Retrieves the current users mixes, as seen on https://listen.tidal.com/view/pages/my_collection_my_mixes
 

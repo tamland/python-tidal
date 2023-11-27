@@ -222,8 +222,7 @@ class Album:
 
         :return: A :class:`Page` containing the different categories, e.g. similar artists and albums
         """
-        page = self.session.page.get("pages/album", params={"albumId": self.id})
-        return cast("Page", page)
+        return self.session.page.get("pages/album", params={"albumId": self.id})
 
     def similar(self) -> List["Album"]:
         """Retrieve albums similar to the current one.

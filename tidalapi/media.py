@@ -70,14 +70,16 @@ class Media:
     volume_num: int = 1
     explicit: bool = False
     popularity: int = -1
-    artist: Optional[tidalapi.Artist] = None
+    artist: Optional["tidalapi.artist.Artist"] = None
     #: For the artist credit page
     artist_roles = None
-    artists: Optional[List[tidalapi.Artist]] = None
-    album: Optional[tidalapi.album.Album] = None
+    artists: Optional[List["tidalapi.artist.Artist"]] = None
+    album: Optional["tidalapi.album.Album"] = None
     type: Optional[str] = None
 
-    def __init__(self, session: tidalapi.Session, media_id: Optional[str] = None):
+    def __init__(
+        self, session: "tidalapi.session.Session", media_id: Optional[str] = None
+    ):
         self.session = session
         self.requests = self.session.request
         self.album = session.album()
@@ -216,7 +218,7 @@ class Track(Media):
         assert not isinstance(lyrics, list)
         return cast("Lyrics", lyrics)
 
-    def get_track_radio(self, limit=100) -> List["Track"]:
+    def get_track_radio(self, limit: int = 100) -> List["Track"]:
         """Queries TIDAL for the track radio, which is a mix of tracks that are similar
         to this track.
 
@@ -341,12 +343,8 @@ class Video(Media):
             raise ValueError("Invalid resolution {} x {}".format(width, height))
         if not self.cover:
             raise AttributeError("No cover image")
-        return cast(
-            str,
-            self.session.config.image_url
-            % (
-                self.cover.replace("-", "/"),
-                width,
-                height,
-            ),
+        return self.session.config.image_url % (
+            self.cover.replace("-", "/"),
+            width,
+            height,
         )

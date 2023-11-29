@@ -68,12 +68,13 @@ def test_get_albums_ep_singles(session):
 
 
 def test_get_albums_other(session):
-    artist = session.artist(16147)
+    artist = session.artist(17123)
     albums = [
-        session.album(108748620),
-        session.album(97216346),
+        session.album(327452387),
+        session.album(322406553),
     ]
-
+    other_albums = artist.get_albums_other
+    # artist_item_ids = [item.id for item in other_albums()]
     find_ids(albums, artist.get_albums_other)
 
 

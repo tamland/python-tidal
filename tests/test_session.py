@@ -98,7 +98,8 @@ def test_search(session):
     assert isinstance(search["tracks"][0], Track)
     assert isinstance(search["videos"][0], Video)
     assert isinstance(search["playlists"][0], Playlist)
-    assert "Walker" in search["top_hit"].artist.name
+    top_hit = search["top_hit"]
+    assert "Walker" in top_hit.name
 
 
 @pytest.mark.xfail(reason="Tidal now returns a video.")
@@ -130,7 +131,7 @@ def test_invalid_search(session):
 
 def test_config(session):
     assert session.config.item_limit == 1000
-    assert session.config.quality == tidalapi.Quality.low_320k.value
+    assert session.config.quality == tidalapi.Quality.low_320k.value # i.e. the default quality for the current session
     assert session.config.video_quality == tidalapi.VideoQuality.high.value
     assert session.config.alac is True
 

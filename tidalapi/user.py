@@ -393,7 +393,7 @@ class Favorites:
         return cast(
             List["MixV2"],
             self.requests.map_request(
-                url=urljoin("https://api.tidal.com/v2", f"{self.v2_base_url}/mixes"),
+                url=urljoin("https://api.tidal.com/v2/", f"{self.v2_base_url}/mixes"),
                 params=params,
                 parse=self.session.parse_v2_mix,
             ),

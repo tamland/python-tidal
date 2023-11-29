@@ -242,6 +242,8 @@ class Session:
         self.parse_track = self.track().parse_track
         self.parse_video = self.video().parse_video
         self.parse_media = self.track().parse_media
+        self.parse_mix = self.mix().parse
+        self.parse_v2_mix = self.mixv2().parse
 
         self.parse_user = user.User(self, None).parse
         self.page = page.Page(self, "")
@@ -660,6 +662,17 @@ class Session:
         """
 
         return mix.Mix(session=self, mix_id=mix_id)
+
+    def mixv2(self, mix_id=None) -> mix.MixV2:
+        """Function to create a mix object with access to the session instance smoothly
+        Calls :class:`tidalapi.MixV2(session=session, mix_id=mix_id) <.Album>`
+        internally.
+
+        :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
+        :return: Returns a :class:`.MixV2` object that has access to the session instance used.
+        """
+
+        return mix.MixV2(session=self, mix_id=mix_id)
 
     def get_user(
         self, user_id: Optional[int] = None

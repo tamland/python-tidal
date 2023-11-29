@@ -70,3 +70,9 @@ prof/
 
 # Local Netlify folder
 .netlify
+
+# Virtual environment
+.venv
+
+# MacOS
+.DS_Store

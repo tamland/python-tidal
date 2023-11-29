@@ -99,7 +99,9 @@ def test_track_streaming(session):
     track = session.track(62392768)
     stream = track.stream()
     assert stream.audio_mode == "STEREO"
-    assert stream.audio_quality == tidalapi.Quality.low_320k.value # i.e. the default quality for the current session
+    assert (
+        stream.audio_quality == tidalapi.Quality.low_320k.value
+    )  # i.e. the default quality for the current session
 
 
 def test_video(session):

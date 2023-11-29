@@ -177,7 +177,7 @@ class Artist:
         return cast(
             List["Artist"],
             self.request.map_request(
-                f"artists/{self.id}/similar", parse=self.parse_artist
+                f"artists/{self.id}/similar", parse=self.session.parse_artist
             ),
         )
 

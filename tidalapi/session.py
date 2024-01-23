@@ -42,7 +42,7 @@ from typing import (
     cast,
     no_type_check,
 )
-from urllib.parse import urlencode, parse_qs, urljoin, urlsplit
+from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
 
 import requests
 
@@ -193,14 +193,17 @@ class Config:
         self.api_token = self.client_id
         # PKCE Authorization. We will keep the former `client_id` as a fallback / will only be used for non PCKE
         # authorizations.
-        self.client_unique_key = format(random.getrandbits(64), '02x')
-        self.code_verifier = base64.urlsafe_b64encode(os.urandom(32))[:-1].decode("utf-8")
+        self.client_unique_key = format(random.getrandbits(64), "02x")
+        self.code_verifier = base64.urlsafe_b64encode(os.urandom(32))[:-1].decode(
+            "utf-8"
+        )
         self.code_challenge = base64.urlsafe_b64encode(
-            hashlib.sha256(self.code_verifier.encode('utf-8')).digest()
+            hashlib.sha256(self.code_verifier.encode("utf-8")).digest()
         )[:-1].decode("utf-8")
         self.client_id_pkce = base64.b64decode(
-            base64.b64decode(b'TmtKRVUxSmtjRXM=') + base64.b64decode(b'NWFIRkZRbFJuVlE9PQ==')
-        ).decode('utf-8')
+            base64.b64decode(b"TmtKRVUxSmtjRXM=")
+            + base64.b64decode(b"NWFIRkZRbFJuVlE9PQ==")
+        ).decode("utf-8")
 
 
 class Case(Enum):
@@ -421,13 +424,14 @@ class Session:
         return True
 
     def login_pkce(self, fn_print: Callable[[str], None] = print) -> None:
-        """Login handler for PKCE based authentication. This is the only way how to get access to HiRes
-        (Up to 24-bit, 192 kHz) FLAC files.
+        """Login handler for PKCE based authentication. This is the only way how to get
+        access to HiRes (Up to 24-bit, 192 kHz) FLAC files.
 
-        This handler will ask you to follow a URL, process with the login in the browser and copy & paste the
-        URL of the redirected browser page.
+        This handler will ask you to follow a URL, process with the login in the browser
+        and copy & paste the URL of the redirected browser page.
 
-        :param fn_print: A function which will be called to print the instructions, defaults to `print()`.
+        :param fn_print: A function which will be called to print the instructions,
+            defaults to `print()`.
         :type fn_print: Callable, optional
         :return:
         """
@@ -436,9 +440,11 @@ class Session:
 
         fn_print("READ CAREFULLY!")
         fn_print("---------------")
-        fn_print("You need to open this link and login with your username and password. "
-                 "Afterwards you will be redirected to an 'Oops' page. "
-                 "To complete the login you must copy the URL from this 'Oops' page and paste it to the input field.")
+        fn_print(
+            "You need to open this link and login with your username and password. "
+            "Afterwards you will be redirected to an 'Oops' page. "
+            "To complete the login you must copy the URL from this 'Oops' page and paste it to the input field."
+        )
         fn_print(url_login)
 
         # Get redirect URL from user input.
@@ -450,51 +456,53 @@ class Session:
         self._process_auth_token(json)
 
     def _pkce_login_url(self) -> str:
-        """ Returns the Login-URL to login via web browser.
+        """Returns the Login-URL to login via web browser.
 
         :return: The URL the user has to use for login.
         :rtype: str
         """
         params: request.Params = {
-            'response_type': 'code',
-            'redirect_uri': self.config.pkce_uri_redirect,
-            'client_id': self.config.client_id_pkce,
-            'lang': 'EN',
-            'appMode': 'android',
-            'client_unique_key': self.config.client_unique_key,
-            'code_challenge': self.config.code_challenge,
-            'code_challenge_method': 'S256',
-            'restrict_signup': 'true'
+            "response_type": "code",
+            "redirect_uri": self.config.pkce_uri_redirect,
+            "client_id": self.config.client_id_pkce,
+            "lang": "EN",
+            "appMode": "android",
+            "client_unique_key": self.config.client_unique_key,
+            "code_challenge": self.config.code_challenge,
+            "code_challenge_method": "S256",
+            "restrict_signup": "true",
         }
 
-        return self.config.api_pkce_auth + '?' + urlencode(params)
+        return self.config.api_pkce_auth + "?" + urlencode(params)
 
     def _pkce_get_auth_token(self, url_redirect: str) -> dict[str, Union[str, int]]:
         """Parses the redirect url to extract access and refresh tokens.
 
-        :param url_redirect: URL of the 'Ooops' page, where the user was redirected to after login.
+        :param url_redirect: URL of the 'Ooops' page, where the user was redirected to
+            after login.
         :type url_redirect: str
-        :return: A parsed JSON object with access and refresh tokens and other information.
+        :return: A parsed JSON object with access and refresh tokens and other
+            information.
         :rtype: dict[str, str | int]
         """
         # w_usr=WRITE_USR, r_usr=READ_USR_DATA, w_sub=WRITE_SUBSCRIPTION
-        scope_default: str = 'r_usr+w_usr+w_sub'
+        scope_default: str = "r_usr+w_usr+w_sub"
 
         # Extract the code parameter from query string
-        if url_redirect and 'https://' in url_redirect:
+        if url_redirect and "https://" in url_redirect:
             code: str = parse_qs(urlsplit(url_redirect).query)["code"][0]
         else:
-            raise Exception('The provided redirect url looks wrong: ' + url_redirect)
+            raise Exception("The provided redirect url looks wrong: " + url_redirect)
 
         # Set post data and call the API
         data: request.Params = {
-            'code': code,
-            'client_id': self.config.client_id_pkce,
-            'grant_type': 'authorization_code',
-            'redirect_uri': self.config.pkce_uri_redirect,
-            'scope':  scope_default,
-            'code_verifier': self.config.code_verifier,
-            'client_unique_key': self.config.client_unique_key
+            "code": code,
+            "client_id": self.config.client_id_pkce,
+            "grant_type": "authorization_code",
+            "redirect_uri": self.config.pkce_uri_redirect,
+            "scope": scope_default,
+            "code_verifier": self.config.code_verifier,
+            "client_unique_key": self.config.client_unique_key,
         }
         response = self.request_session.post(self.config.api_oauth2_token, data)
 
@@ -507,7 +515,7 @@ class Session:
         try:
             token: dict[str, Union[str, int]] = response.json()
         except:
-            raise Exception('Wrong one-time authorization code', response)
+            raise Exception("Wrong one-time authorization code", response)
 
         return token
 
@@ -554,7 +562,8 @@ class Session:
         self._process_auth_token(json)
 
     def _process_auth_token(self, json: dict[str, Union[str, int]]) -> None:
-        """Parses the authorization response and sets the token values to the specific variables for further usage.
+        """Parses the authorization response and sets the token values to the specific
+        variables for further usage.
 
         :param json: Parsed JSON response after login / authorization.
         :type json: dict[str, str | int]

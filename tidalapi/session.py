@@ -188,9 +188,8 @@ class Config:
         for word in token2:
             self.client_id.remove(word)
         self.client_id = "".join(self.client_id)
-        self.client_secret = "xeuPmY7nbpZ9IIbLAcQ93shka1VNheUAqN6IcszjTG8="
-        self.client_id = "6BDSRdpK9hqEBTgU"
-        self.api_token = self.client_id
+        self.client_secret = self.client_id
+        self.client_id = self.api_token
         # PKCE Authorization. We will keep the former `client_id` as a fallback / will only be used for non PCKE
         # authorizations.
         self.client_unique_key = format(random.getrandbits(64), "02x")

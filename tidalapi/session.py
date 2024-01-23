@@ -576,7 +576,7 @@ class Session:
         expiry = float(json["expiresIn"])
         interval = float(json["interval"])
         device_code = json["deviceCode"]
-        url = "https://auth.tidal.com/v1/oauth2/token"
+        url = self.config.api_oauth2_token
         params = {
             "client_id": self.config.client_id,
             "client_secret": self.config.client_secret,
@@ -605,7 +605,7 @@ class Session:
         :return: True if we believe the token was successfully refreshed, otherwise
             False
         """
-        url = "https://auth.tidal.com/v1/oauth2/token"
+        url = self.config.api_oauth2_token
         params = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,

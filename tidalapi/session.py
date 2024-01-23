@@ -45,7 +45,7 @@ from typing import (
     cast,
     no_type_check,
 )
-from urllib.parse import urljoin, urlencode, parse_qs, urljoin, urlsplit
+from urllib.parse import urlencode, parse_qs, urljoin, urlsplit
 
 import requests
 
@@ -97,6 +97,8 @@ class Config:
                Additionally, num_videos will turn into num_tracks in playlists.
     """
 
+    api_oauth2_token: str = "https://auth.tidal.com/v1/oauth2/token"
+    api_pkce_auth: str = "https://login.tidal.com/authorize"
     api_v1_location: str = "https://api.tidal.com/v1/"
     api_v2_location: str = "https://api.tidal.com/v2/"
     api_token: str
@@ -107,6 +109,12 @@ class Config:
     quality: str
     video_quality: str
     video_url: str = "https://resources.tidal.com/videos/%s/%ix%i.mp4"
+    # Necessary for PKCE authorization only
+    client_unique_key: str
+    code_verifier: str
+    code_challenge: str
+    pkce_uri_redirect: str = "https://tidal.com/android/login/auth"
+    client_id_pkce: str
 
     @no_type_check
     def __init__(
@@ -186,6 +194,16 @@ class Config:
         self.client_id = "".join(self.client_id)
         self.client_secret = self.client_id
         self.client_id = self.api_token
+        # PKCE Authorization. We will keep the former `client_id` as a fallback / will only be used for non PCKE
+        # authorizations.
+        self.client_unique_key = format(random.getrandbits(64), '02x')
+        self.code_verifier = base64.urlsafe_b64encode(os.urandom(32))[:-1].decode("utf-8")
+        self.code_challenge = base64.urlsafe_b64encode(
+            hashlib.sha256(self.code_verifier.encode('utf-8')).digest()
+        )[:-1].decode("utf-8")
+        self.client_id_pkce = base64.b64decode(
+            base64.b64decode(b'TmtKRVUxSmtjRXM=') + base64.b64decode(b'NWFIRkZRbFJuVlE9PQ==')
+        ).decode('utf-8')
 
 
 class Case(Enum):
@@ -361,7 +379,7 @@ class Session:
         :param refresh_token: (Optional) A refresh token that lets you get a new access
             token after it has expired
         :param expiry_time: (Optional) The datetime the access token will expire
-        :return: True if we believe the log in was successful, otherwise false.
+        :return: True if we believe the login was successful, otherwise false.
         """
         self.token_type = token_type
         self.access_token = access_token
@@ -433,29 +451,96 @@ class Session:
             log.info("TIDAL Login KO")
             return False
 
-    def login_pkce(self):
-        pkce: Pkce = Pkce()
-        url_login: str = pkce.get_login_url()
+    def login_pkce(self, fn_print: Callable[[str], None] = print) -> None:
+        """Login handler for PKCE based authentication. This is the only way how to get access to HiRes
+        (Up to 24-bit, 192 kHz) FLAC files.
 
-        print(url_login)
+        This handler will ask you to follow a URL, process with the login in the browser and copy & paste the
+        URL of the redirected browser page.
 
-        url_redirect: str = input('Paste URL:')
+        :param fn_print: A function which will be called to print the instructions, defaults to `print()`.
+        :type fn_print: Callable, optional
+        :return:
+        """
+        # Get login url
+        url_login: str = self._pkce_login_url()
 
-        json: dict = pkce.get_auth_token(url_redirect)
+        fn_print("READ CAREFULLY!")
+        fn_print("---------------")
+        fn_print("You need to open this link and login with your username and password. "
+                 "Afterwards you will be redirected to an 'Oops' page. "
+                 "To complete the login you must copy the URL from this 'Oops' page and paste it to the input field.")
+        fn_print(url_login)
 
-        self.access_token = json["access_token"]
-        self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(
-            seconds=json["expires_in"]
-        )
-        self.refresh_token = json["refresh_token"]
-        self.token_type = json["token_type"]
-        session = self.request.request("GET", "sessions")
-        json = session.json()
-        self.session_id = json["sessionId"]
-        self.country_code = json["countryCode"]
-        self.user = user.User(self, user_id=json["userId"]).factory()
+        # Get redirect URL from user input.
+        url_redirect: str = input("Paste 'Ooops' page URL here and press <ENTER>:")
+        # Query for auth tokens
+        json: dict[str, Union[str, int]] = self._pkce_get_auth_token(url_redirect)
 
-        print(json)
+        # Parse and set tokens.
+        self._process_auth_token(json)
+
+    def _pkce_login_url(self) -> str:
+        """ Returns the Login-URL to login via web browser.
+
+        :return: The URL the user has to use for login.
+        :rtype: str
+        """
+        params: request.Params = {
+            'response_type': 'code',
+            'redirect_uri': self.config.pkce_uri_redirect,
+            'client_id': self.config.client_id_pkce,
+            'lang': 'EN',
+            'appMode': 'android',
+            'client_unique_key': self.config.client_unique_key,
+            'code_challenge': self.config.code_challenge,
+            'code_challenge_method': 'S256',
+            'restrict_signup': 'true'
+        }
+
+        return self.config.api_pkce_auth + '?' + urlencode(params)
+
+    def _pkce_get_auth_token(self, url_redirect: str) -> dict[str, Union[str, int]]:
+        """Parses the redirect url to extract access and refresh tokens.
+
+        :param url_redirect: URL of the 'Ooops' page, where the user was redirected to after login.
+        :type url_redirect: str
+        :return: A parsed JSON object with access and refresh tokens and other information.
+        :rtype: dict[str, str | int]
+        """
+        # w_usr=WRITE_USR, r_usr=READ_USR_DATA, w_sub=WRITE_SUBSCRIPTION
+        scope_default: str = 'r_usr+w_usr+w_sub'
+
+        # Extract the code parameter from query string
+        if url_redirect and 'https://' in url_redirect:
+            code: str = parse_qs(urlsplit(url_redirect).query)["code"][0]
+        else:
+            raise Exception('The provided redirect url looks wrong: ' + url_redirect)
+
+        # Set post data and call the API
+        data: request.Params = {
+            'code': code,
+            'client_id': self.config.client_id_pkce,
+            'grant_type': 'authorization_code',
+            'redirect_uri': self.config.pkce_uri_redirect,
+            'scope':  scope_default,
+            'code_verifier': self.config.code_verifier,
+            'client_unique_key': self.config.client_unique_key
+        }
+        response = self.request_session.post(self.config.api_oauth2_token, data)
+
+        # Check response
+        if not response.ok:
+            log.error("Login failed: %s", response.text)
+            response.raise_for_status()
+
+        # Parse the JSON response.
+        try:
+            token: dict[str, Union[str, int]] = response.json()
+        except:
+            raise Exception('Wrong one-time authorization code', response)
+
+        return token
 
     def login_oauth_simple(self, function: Callable[[str], None] = print) -> None:
         """Login to TIDAL using a remote link. You can select what function you want to
@@ -522,6 +607,15 @@ class Session:
 
     def _process_link_login(self, json: JsonObj) -> None:
         json = self._wait_for_link_login(json)
+        self._process_auth_token(json)
+
+    def _process_auth_token(self, json: dict[str, Union[str, int]]) -> None:
+        """Parses the authorization response and sets the token values to the specific variables for further usage.
+
+        :param json: Parsed JSON response after login / authorization.
+        :type json: dict[str, str | int]
+        :return: None
+        """
         self.access_token = json["access_token"]
         self.expiry_time = datetime.datetime.utcnow() + datetime.timedelta(
             seconds=json["expires_in"]
@@ -833,68 +927,3 @@ class Session:
         :return: A list of :class:`.Mix`
         """
         return self.page.get("pages/my_collection_my_mixes")
-
-class Pkce(object):
-    def __init__(self):
-        self.client_unique_key = format(random.getrandbits(64), '02x')
-        self.code_verifier = base64.urlsafe_b64encode(os.urandom(32))[:-1].decode("utf-8")
-        self.code_challenge = base64.urlsafe_b64encode(hashlib.sha256(self.code_verifier.encode('utf-8')).digest())[:-1].decode("utf-8")
-        # TODO: Move to constant file and use it everywhere.
-        self.user_agent = 'Mozilla/5.0 (Linux; Android 12; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Safari/537.36'
-        self.params = { 'response_type': 'code',
-                        'redirect_uri': 'https://tidal.com/android/login/auth',
-                        'client_id': '6BDSRdpK9hqEBTgU',
-                        # TODO: Use from config
-                        'lang': 'DE',
-                        'appMode': 'android',
-                        'client_unique_key': self.client_unique_key,
-                        'code_challenge': self.code_challenge,
-                        'code_challenge_method': 'S256',
-                        'restrict_signup': 'true'
-                        }
-        self.code = None
-
-    def check_response(self, r):
-        log.info('%s %s' % (r.request.method, r.request.url))
-        if not r.ok:
-            log.error(repr(r))
-            try:
-                log.error('response: %s' % json.dumps(r.json(), indent=4))
-            except:
-                pass
-        return r
-
-    def get_login_url(self):
-        """ Returns the Login-URL to login via web browser """
-        # TODO: Refactor login url
-        return urljoin('https://login.tidal.com/', 'authorize') + '?' + urlencode(self.params)
-
-    def get_auth_token(self, url_redirect: str):
-        """ Using one-time authorization code to get the access and refresh tokens (last step of the login sequence) """
-        # TODO: Refactor scopes
-        DEFAULT_SCOPE = 'r_usr+w_usr+w_sub' # w_usr=WRITE_USR, r_usr=READ_USR_DATA, w_sub=WRITE_SUBSCRIPTION
-        REFRESH_SCOPE = 'r_usr+w_usr'
-
-        if url_redirect and 'https://' in url_redirect:
-            self.code = parse_qs(urlsplit(url_redirect).query)["code"][0]
-
-        data = { 'code': self.code,
-                 'client_id': self.params['client_id'],
-                 'grant_type': 'authorization_code',
-                 'redirect_uri': self.params['redirect_uri'],
-                 'scope':  DEFAULT_SCOPE,
-                 'code_verifier': self.code_verifier,
-                 'client_unique_key': self.client_unique_key
-                 }
-        r = requests.post(urljoin('https://auth.tidal.com/v1/oauth2/', 'token'), data=data, headers={'User-Agent': self.user_agent})
-        r = self.check_response(r)
-
-        try:
-            self.token = {}
-            self.token = r.json()
-        except:
-            log.error('Wrong one-time authorization code')
-
-            raise Exception('Wrong one-time authorization code', r)
-
-        return self.token

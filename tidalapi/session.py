@@ -21,14 +21,14 @@ from __future__ import annotations, print_function, unicode_literals
 import base64
 import concurrent.futures
 import datetime
-import logging
 import json
+import logging
 import random
 import time
 import uuid
-from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -402,8 +402,8 @@ class Session:
         return True
 
     def login_oauth_file(self, oauth_file: Path) -> bool:
-        """Logs in to the TIDAL api using an existing OAuth session file.
-        If no OAuth session json file exists, a new one will be created after successful login
+        """Logs in to the TIDAL api using an existing OAuth session file. If no OAuth
+        session json file exists, a new one will be created after successful login.
 
         :param oauth_file: The OAuth session json file
         :return: Returns true if we think the login was successful.
@@ -458,10 +458,12 @@ class Session:
         # create a new session
         if self.check_login():
             # store current OAuth session
-            data = {"token_type": {"data": self.token_type},
-                    "session_id": {"data": self.session_id},
-                    "access_token": {"data": self.access_token},
-                    "refresh_token": {"data": self.refresh_token}}
+            data = {
+                "token_type": {"data": self.token_type},
+                "session_id": {"data": self.session_id},
+                "access_token": {"data": self.access_token},
+                "refresh_token": {"data": self.refresh_token},
+            }
             with oauth_file.open("w") as outfile:
                 json.dump(data, outfile)
             self._oauth_saved = True

@@ -80,7 +80,7 @@ class Requests(object):
             headers["authorization"] = (
                 self.session.token_type + " " + self.session.access_token
             )
-        url = urljoin(self.session.config.api_location, path)
+        url = urljoin(self.session.config.api_v1_location, path)
         request = self.session.request_session.request(
             method, url, params=request_params, data=data, headers=headers
         )

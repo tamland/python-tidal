@@ -76,3 +76,9 @@ prof/
 
 # MacOS
 .DS_Store
+
+# OAuth json session files
+*tidal-oauth*
+
+# Misc. csv. files that might be generated when executing examples
+*.csv

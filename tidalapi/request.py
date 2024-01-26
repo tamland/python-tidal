@@ -128,7 +128,12 @@ class Requests(object):
 
         request = self.basic_request(method, path, params, data, headers)
         log.debug("request: %s", request.request.url)
-        request.raise_for_status()
+        try:
+            request.raise_for_status()
+        except Exception as e:
+            print("Got exception", e)
+            print("Response was", e.response)
+            print("Response json was", e.response.json())
         if request.content:
             log.debug("response: %s", json.dumps(request.json(), indent=4))
         return request

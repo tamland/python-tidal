@@ -22,9 +22,11 @@ import base64
 import concurrent.futures
 import datetime
 import logging
+import json
 import random
 import time
 import uuid
+from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
@@ -399,6 +401,34 @@ class Session:
         self.user = user.User(self, user_id=body["userId"]).factory()
         return True
 
+    def login_oauth_file(self, oauth_file: Path) -> bool:
+        """Logs in to the TIDAL api using an existing OAuth session file.
+        If no OAuth session json file exists, a new one will be created after successful login
+
+        :param oauth_file: The OAuth session json file
+        :return: Returns true if we think the login was successful.
+        """
+        try:
+            # attempt to reload existing session from file
+            with open(oauth_file) as f:
+                log.info("Loading OAuth session from %s...", oauth_file)
+                data = json.load(f)
+                self._load_oauth_session_from_file(**data)
+        except Exception as e:
+            log.info("Could not load OAuth session from %s: %s", oauth_file, e)
+
+        if not self.check_login():
+            log.info("Creating new OAuth session...")
+            self.login_oauth_simple()
+
+        if self.check_login():
+            log.info("TIDAL Login OK")
+            self._save_oauth_session_to_file(oauth_file)
+            return True
+        else:
+            log.info("TIDAL Login KO")
+            return False
+
     def login_oauth_simple(self, function: Callable[[str], None] = print) -> None:
         """Login to TIDAL using a remote link. You can select what function you want to
         use to display the link.
@@ -406,6 +436,7 @@ class Session:
         :param function: The function you want to display the link with
         :raises: TimeoutError: If the login takes too long
         """
+
         login, future = self.login_oauth()
         text = "Visit https://{0} to log in, the code will expire in {1} seconds"
         function(text.format(login.verification_uri_complete, login.expires_in))
@@ -422,6 +453,28 @@ class Session:
         """
         login, future = self._login_with_link()
         return login, future
+
+    def _save_oauth_session_to_file(self, oauth_file: Path):
+        # create a new session
+        if self.check_login():
+            # store current OAuth session
+            data = {"token_type": {"data": self.token_type},
+                    "session_id": {"data": self.session_id},
+                    "access_token": {"data": self.access_token},
+                    "refresh_token": {"data": self.refresh_token}}
+            with oauth_file.open("w") as outfile:
+                json.dump(data, outfile)
+            self._oauth_saved = True
+
+    def _load_oauth_session_from_file(self, **data):
+        assert self, "No session loaded"
+        args = {
+            "token_type": data.get("token_type", {}).get("data"),
+            "access_token": data.get("access_token", {}).get("data"),
+            "refresh_token": data.get("refresh_token", {}).get("data"),
+        }
+
+        self.load_oauth_session(**args)
 
     def _login_with_link(self) -> Tuple[LinkLogin, concurrent.futures.Future[Any]]:
         url = "https://auth.tidal.com/v1/oauth2/device_authorization"

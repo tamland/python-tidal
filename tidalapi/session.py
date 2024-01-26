@@ -22,11 +22,11 @@ import base64
 import concurrent.futures
 import datetime
 import json
+import locale
 import logging
 import random
 import time
 import uuid
-import locale
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path

@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-oauth_file1 = Path("tidal-oauth-userA.json")
+oauth_file1 = Path("tidal-oauth-user.json")
 oauth_file2 = Path("tidal-oauth-userB.json")
 
 

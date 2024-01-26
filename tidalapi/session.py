@@ -26,6 +26,7 @@ import logging
 import random
 import time
 import uuid
+import locale
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -94,7 +95,8 @@ class Config:
                Additionally, num_videos will turn into num_tracks in playlists.
     """
 
-    api_location: str = "https://api.tidal.com/v1/"
+    api_v1_location: str = "https://api.tidal.com/v1/"
+    api_v2_location: str = "https://api.tidal.com/v2/"
     api_token: str
     client_id: str
     client_secret: str
@@ -382,7 +384,7 @@ class Session:
         :param password: The password to your TIDAL account
         :return: Returns true if we think the login was successful.
         """
-        url = urljoin(self.config.api_location, "login/username")
+        url = urljoin(self.config.api_v1_location, "login/username")
         headers: dict[str, str] = {"X-Tidal-Token": self.config.api_token}
         payload = {
             "username": username,

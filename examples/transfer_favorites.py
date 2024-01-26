@@ -15,10 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#######################
-# transfer_favorites.py
-# Use this script to transfer your Tidal favourites from Tidal user A to Tidal user B
-#######################
+"""transfer_favorites.py: Use this script to transfer your Tidal favourites from Tidal user A to Tidal user B"""
 import logging
 from pathlib import Path
 import csv

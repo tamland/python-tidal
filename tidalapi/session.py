@@ -207,6 +207,10 @@ class Config:
             base64.b64decode(b"TmtKRVUxSmtjRXM=")
             + base64.b64decode(b"NWFIRkZRbFJuVlE9PQ==")
         ).decode("utf-8")
+        self.client_secret_pkce = base64.b64decode(
+            base64.b64decode(b"ZUdWMVVHMVpOMjVpY0ZvNVNVbGlURUZqVVQ=")
+            + base64.b64decode(b"a3pjMmhyWVRGV1RtaGxWVUZ4VGpaSlkzTjZhbFJIT0QwPQ==")
+        ).decode("utf-8")
 
 
 class Case(Enum):
@@ -467,7 +471,7 @@ class Session:
         :return:
         """
         # Get login url
-        url_login: str = self._pkce_login_url()
+        url_login: str = self.pkce_login_url()
 
         fn_print("READ CAREFULLY!")
         fn_print("---------------")
@@ -481,12 +485,19 @@ class Session:
         # Get redirect URL from user input.
         url_redirect: str = input("Paste 'Ooops' page URL here and press <ENTER>:")
         # Query for auth tokens
-        json: dict[str, Union[str, int]] = self._pkce_get_auth_token(url_redirect)
+        json: dict[str, Union[str, int]] = self.pkce_get_auth_token(url_redirect)
 
         # Parse and set tokens.
-        self._process_auth_token(json)
+        self.process_auth_token(json)
 
-    def _pkce_login_url(self) -> str:
+        # Swap the client_id and secret
+        #self.client_enable_hires()
+
+    def client_enable_hires(self):
+        self.config.client_id = self.config.client_id_pkce
+        self.config.client_secret = self.config.client_secret_pkce
+
+    def pkce_login_url(self) -> str:
         """Returns the Login-URL to login via web browser.
 
         :return: The URL the user has to use for login.
@@ -506,7 +517,7 @@ class Session:
 
         return self.config.api_pkce_auth + "?" + urlencode(params)
 
-    def _pkce_get_auth_token(self, url_redirect: str) -> dict[str, Union[str, int]]:
+    def pkce_get_auth_token(self, url_redirect: str) -> dict[str, Union[str, int]]:
         """Parses the redirect url to extract access and refresh tokens.
 
         :param url_redirect: URL of the 'Ooops' page, where the user was redirected to
@@ -615,9 +626,9 @@ class Session:
 
     def _process_link_login(self, json: JsonObj) -> None:
         json = self._wait_for_link_login(json)
-        self._process_auth_token(json)
+        self.process_auth_token(json)
 
-    def _process_auth_token(self, json: dict[str, Union[str, int]]) -> None:
+    def process_auth_token(self, json: dict[str, Union[str, int]]) -> None:
         """Parses the authorization response and sets the token values to the specific
         variables for further usage.
 
@@ -641,7 +652,7 @@ class Session:
         expiry = float(json["expiresIn"])
         interval = float(json["interval"])
         device_code = json["deviceCode"]
-        url = "https://auth.tidal.com/v1/oauth2/token"
+        url = self.config.api_oauth2_token
         params = {
             "client_id": self.config.client_id,
             "client_secret": self.config.client_secret,
@@ -670,7 +681,7 @@ class Session:
         :return: True if we believe the token was successfully refreshed, otherwise
             False
         """
-        url = "https://auth.tidal.com/v1/oauth2/token"
+        url = self.config.api_oauth2_token
         params = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,

@@ -50,7 +50,11 @@ if TYPE_CHECKING:
 class Requests(object):
     """A class for handling api requests to TIDAL."""
 
+    user_agent: str
+
     def __init__(self, session: "Session"):
+        # More Android User-Agents here: https://user-agents.net/browsers/android
+        self.user_agent = "Mozilla/5.0 (Linux; Android 12; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Safari/537.36"
         self.session = session
         self.config = session.config
 
@@ -76,6 +80,10 @@ class Requests(object):
 
         if not headers:
             headers = {}
+
+        if "User-Agent" not in headers:
+            headers["User-Agent"] = self.user_agent
+
         if self.session.token_type and self.session.access_token is not None:
             headers["authorization"] = (
                 self.session.token_type + " " + self.session.access_token

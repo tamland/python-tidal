@@ -196,6 +196,7 @@ class Track(Media):
         return cast("Track", track)
 
     def get_url(self) -> str:
+        assert not self.session.is_pkce
         params = {
             "urlusagemode": "STREAM",
             "audioquality": self.session.config.quality,

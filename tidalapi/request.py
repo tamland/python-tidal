@@ -159,13 +159,16 @@ class Requests(object):
 
         :param url: TIDAL api endpoint that contains the data
         :param params: TIDAL parameters to use when getting the data
-        :param parse: The method used to parse the data at the url
+        :param parse: (Optional) The method used to parse the data at the url. If not
+            set, jsonObj will be returned
         :return: The object(s) at the url, with the same type as the class of the parse
             method.
         """
         json_obj = self.request("GET", url, params).json()
-
-        return self.map_json(json_obj, parse=parse)
+        if parse:
+            return self.map_json(json_obj, parse=parse)
+        else:
+            return json_obj
 
     @classmethod
     def map_json(

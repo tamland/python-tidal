@@ -28,16 +28,18 @@ session = tidalapi.Session()
 session.login_oauth_file(oauth_file1)
 # Override the required playback quality, if necessary
 # Note: Set the quality according to your subscription.
+# Low: Quality.low_96k
 # Normal: Quality.low_320k
 # HiFi: Quality.high_lossless
 # HiFi+ Quality.hi_res_lossless
 session.audio_quality = Quality.low_320k
 
-album = session.album(66236918) # Electric For Life Episode 099
+album = session.album(110827651) # Let's Rock // The Black Keys
 tracks = album.tracks()
 print(album.name)
 # list album tracks
 for track in tracks:
     print(track.name)
+    print(track.get_url())
     for artist in track.artists:
         print(' by: ', artist.name)

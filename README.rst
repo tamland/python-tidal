@@ -22,10 +22,10 @@ Install from `PyPI <https://pypi.python.org/pypi/tidalapi/>`_ using ``pip``:
 
 
 
-Example usage
+Usage
 -------------
 
-For examples on how to use the api, see the `examples` directory.
+For examples on how to use the api, see the `examples <https://github.com/tamland/python-tidal/tree/master/examples>`_  directory.
 
 Documentation
 -------------

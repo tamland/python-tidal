@@ -21,11 +21,12 @@ import tidalapi
 from tidalapi import Quality
 from pathlib import Path
 
-oauth_file1 = Path("tidal-oauth-user.json")
+session_file1 = Path("tidal-session-oauth.json")
 
 session = tidalapi.Session()
-# Will run until you visit the printed url and link your account
-session.login_oauth_file(oauth_file1)
+# Load session from file; create a new session if necessary
+session.login_session_file(session_file1)
+
 # Override the required playback quality, if necessary
 # Note: Set the quality according to your subscription.
 # Low: Quality.low_96k
@@ -34,12 +35,13 @@ session.login_oauth_file(oauth_file1)
 # HiFi+ Quality.hi_res_lossless
 session.audio_quality = Quality.low_320k
 
-album = session.album(110827651) # Let's Rock // The Black Keys
+album = session.album("110827651") # Let's Rock // The Black Keys
 tracks = album.tracks()
 print(album.name)
 # list album tracks
 for track in tracks:
     print(track.name)
     print(track.get_url())
+    # print(track.get_stream())
     for artist in track.artists:
         print(' by: ', artist.name)

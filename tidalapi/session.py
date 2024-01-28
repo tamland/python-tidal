@@ -280,7 +280,7 @@ class Session:
         self.page = page.Page(self, "")
         self.parse_page = self.page.parse
 
-        self.is_pkce = False # True if session is PKCE type, otherwise false
+        self.is_pkce = False  # True if session is PKCE type, otherwise false
 
         self.type_conversions: List[TypeRelation] = [
             TypeRelation(
@@ -432,7 +432,9 @@ class Session:
         self.user = user.User(self, user_id=body["userId"]).factory()
         return True
 
-    def login_session_file(self, session_file: Path, do_pkce: Optional[bool] = False) -> bool:
+    def login_session_file(
+        self, session_file: Path, do_pkce: Optional[bool] = False
+    ) -> bool:
         """Logs in to the TIDAL api using an existing OAuth/PKCE session file. If no
         session json file exists, a new one will be created after successful login.
 
@@ -500,7 +502,7 @@ class Session:
         self.is_pkce = True
 
         # Swap the client_id and secret
-        #self.client_enable_hires()
+        # self.client_enable_hires()
 
     def client_enable_hires(self):
         self.config.client_id = self.config.client_id_pkce

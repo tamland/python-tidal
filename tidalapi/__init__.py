@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+# Copyright (C) 2023- The Tidalapi Developers
+
 from .album import Album  # noqa: F401
 from .artist import Artist, Role  # noqa: F401
 from .genre import Genre  # noqa: F401

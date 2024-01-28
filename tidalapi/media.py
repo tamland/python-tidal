@@ -231,7 +231,7 @@ class Track(Media):
         assert isinstance(tracks, list)
         return cast(List["Track"], tracks)
 
-    def stream(self) -> "Stream":
+    def get_stream(self) -> "Stream":
         """Retrieves the track streaming object, allowing for audio transmission.
 
         :return: A :class:`Stream` object which holds audio file properties and

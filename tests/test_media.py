@@ -74,10 +74,9 @@ def test_lyrics(session):
 
 def test_no_lyrics(session):
     track = session.track(17626400)
-    with pytest.raises(requests.HTTPError) as exception:
+    # Tracks with no lyrics should trigger AttributeError (response: 404)
+    with pytest.raises(AttributeError):
         track.lyrics()
-
-    assert exception.value.response.status_code == 404
 
 
 def test_right_to_left(session):
@@ -97,7 +96,7 @@ def test_track_with_album(session):
 
 def test_track_streaming(session):
     track = session.track(62392768)
-    stream = track.stream()
+    stream = track.get_stream()
     assert stream.audio_mode == "STEREO"
     assert (
         stream.audio_quality == tidalapi.Quality.low_320k.value

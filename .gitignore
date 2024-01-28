@@ -82,3 +82,6 @@ prof/
 
 # Misc. csv. files that might be generated when executing examples
 *.csv
+
+# Json session files
+tidal*.json

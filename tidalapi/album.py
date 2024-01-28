@@ -225,15 +225,19 @@ class Album:
         return self.session.page.get("pages/album", params={"albumId": self.id})
 
     def similar(self) -> List["Album"]:
-        """Retrieve albums similar to the current one.
+        """Retrieve albums similar to the current one. AttributeError is raised, when no
+        similar albums exists.
 
         :return: A :any:`list` of similar albums
         """
-        albums = self.requests.map_request(
-            "albums/%s/similar" % self.id, parse=self.session.parse_album
-        )
-        assert isinstance(albums, list)
-        return cast(List["Album"], albums)
+        json_obj = self.requests.map_request("albums/%s/similar" % self.id)
+        if json_obj.get("status"):
+            assert json_obj.get("status") == 404
+            raise AttributeError("No similar albums exist for this album")
+        else:
+            albums = self.requests.map_json(json_obj, parse=self.session.parse_album)
+            assert isinstance(albums, list)
+            return cast(List["Album"], albums)
 
     def review(self) -> str:
         """Retrieve the album review.

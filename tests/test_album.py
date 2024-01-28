@@ -109,7 +109,12 @@ def test_default_image_used_if_no_cover_art(mocker):
 def test_similar(session):
     album = session.album(108043414)
     for alb in album.similar():
-        assert isinstance(alb.similar()[0], tidalapi.Album)
+        if alb.id == 64522277:
+            # Album with no similar albums should trigger AttributeError (response: 404)
+            with pytest.raises(AttributeError):
+                alb.similar()
+        else:
+            assert isinstance(alb.similar()[0], tidalapi.Album)
 
 
 def test_review(session):

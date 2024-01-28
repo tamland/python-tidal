@@ -3,6 +3,17 @@
 History
 =======
 
+v0.7.4
+------
+* Load/store OAuth/PKCE session to file - tehkillerbee_
+* Add PKCE login for HiRes - exislow_, arnesongit_
+* Include request response on error. Print as warning - tehkillerbee_
+* Fix tests - tehkillerbee_
+* Bugfixes (artist.get_similar) - tehkillerbee_
+* Favourite mixes refactoring - jozefKruszynski_
+* Add typings for Playlist, UserPlaylist, Pages - arusahni_
+* Update favorites.tracks to accept order and orderDirection params - Jimmyscene_
+
 v0.7.3
 ------
 * Official support for HI_RES FLAC quality - tehkillerbee_
@@ -138,6 +149,9 @@ v0.6.2
 .. _PretzelVector: https://github.com/PretzelVector
 .. _tehkillerbee: https://github.com/tehkillerbee
 .. _JoshMock: https://github.com/JoshMock
+.. _exislow: https://github.com/exislow
+.. _arnesongit: https://github.com/arnesongit
+.. _Jimmyscene: https://github.com/Jimmyscene
 
 
 

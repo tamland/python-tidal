@@ -21,11 +21,11 @@ import tidalapi
 from tidalapi import Quality
 from pathlib import Path
 
-session_file1 = Path("tidal-session-oauth.json")
+session_file1 = Path("tidal-session-pkce.json")
 
 session = tidalapi.Session()
 # Load session from file; create a new session if necessary
-session.login_session_file(session_file1)
+session.login_session_file(session_file1, do_pkce=True)
 
 # Override the required playback quality, if necessary
 # Note: Set the quality according to your subscription.
@@ -33,15 +33,14 @@ session.login_session_file(session_file1)
 # Normal: Quality.low_320k
 # HiFi: Quality.high_lossless
 # HiFi+ Quality.hi_res_lossless
-session.audio_quality = Quality.low_320k
+session.audio_quality = Quality.hi_res_lossless.value
 
 album = session.album("110827651") # Let's Rock // The Black Keys
 tracks = album.tracks()
-print(album.name)
 # list album tracks
 for track in tracks:
     print(track.name)
-    print(track.get_url())
-    # print(track.get_stream())
+    # MPEG-DASH Stream is only supported when HiRes mode is used!
+    print(track.get_stream())
     for artist in track.artists:
         print(' by: ', artist.name)

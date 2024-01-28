@@ -280,6 +280,8 @@ class Session:
         self.page = page.Page(self, "")
         self.parse_page = self.page.parse
 
+        self.is_pkce = False  # True if session is PKCE type, otherwise false
+
         self.type_conversions: List[TypeRelation] = [
             TypeRelation(
                 identifier=identifier, type=type, parse=cast(Callable[..., Any], parse)
@@ -430,29 +432,36 @@ class Session:
         self.user = user.User(self, user_id=body["userId"]).factory()
         return True
 
-    def login_oauth_file(self, oauth_file: Path) -> bool:
-        """Logs in to the TIDAL api using an existing OAuth session file. If no OAuth
+    def login_session_file(
+        self, session_file: Path, do_pkce: Optional[bool] = False
+    ) -> bool:
+        """Logs in to the TIDAL api using an existing OAuth/PKCE session file. If no
         session json file exists, a new one will be created after successful login.
 
-        :param oauth_file: The OAuth session json file
+        :param session_file: The session json file
+        :param do_pkce: Perform PKCE login. Default: Use OAuth logon
         :return: Returns true if we think the login was successful.
         """
         try:
             # attempt to reload existing session from file
-            with open(oauth_file) as f:
-                log.info("Loading OAuth session from %s...", oauth_file)
+            with open(session_file) as f:
+                log.info("Loading OAuth session from %s...", session_file)
                 data = json.load(f)
-                self._load_oauth_session_from_file(**data)
+                self._load_session_from_file(**data)
         except Exception as e:
-            log.info("Could not load OAuth session from %s: %s", oauth_file, e)
+            log.info("Could not load OAuth session from %s: %s", session_file, e)
 
         if not self.check_login():
-            log.info("Creating new OAuth session...")
-            self.login_oauth_simple()
+            if do_pkce:
+                log.info("Creating new PKCE session...")
+                self.login_pkce()
+            else:
+                log.info("Creating new OAuth session...")
+                self.login_oauth_simple()
 
         if self.check_login():
             log.info("TIDAL Login OK")
-            self._save_oauth_session_to_file(oauth_file)
+            self._save_session_to_file(session_file)
             return True
         else:
             log.info("TIDAL Login KO")
@@ -490,8 +499,10 @@ class Session:
         # Parse and set tokens.
         self.process_auth_token(json)
 
+        self.is_pkce = True
+
         # Swap the client_id and secret
-        #self.client_enable_hires()
+        # self.client_enable_hires()
 
     def client_enable_hires(self):
         self.config.client_id = self.config.client_id_pkce
@@ -586,26 +597,28 @@ class Session:
         login, future = self._login_with_link()
         return login, future
 
-    def _save_oauth_session_to_file(self, oauth_file: Path):
+    def _save_session_to_file(self, oauth_file: Path):
         # create a new session
         if self.check_login():
-            # store current OAuth session
+            # store current session session
             data = {
                 "token_type": {"data": self.token_type},
                 "session_id": {"data": self.session_id},
                 "access_token": {"data": self.access_token},
                 "refresh_token": {"data": self.refresh_token},
+                # "expiry_time": {"data": self.expiry_time},
             }
             with oauth_file.open("w") as outfile:
                 json.dump(data, outfile)
             self._oauth_saved = True
 
-    def _load_oauth_session_from_file(self, **data):
+    def _load_session_from_file(self, **data):
         assert self, "No session loaded"
         args = {
             "token_type": data.get("token_type", {}).get("data"),
             "access_token": data.get("access_token", {}).get("data"),
             "refresh_token": data.get("refresh_token", {}).get("data"),
+            # "expiry_time": data.get("expiry_time", {}).get("data"),
         }
 
         self.load_oauth_session(**args)

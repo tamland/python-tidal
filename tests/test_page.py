@@ -29,7 +29,6 @@ def test_explore(session):
     assert explore
 
 
-@pytest.mark.xfail
 def test_get_explore_items(session):
     explore = session.explore()
     iterator = iter(explore)
@@ -79,7 +78,7 @@ def test_page_iterator(session):
 
 def test_get_video_items(session):
     videos = session.videos()
-    mix = videos.categories[1].items[0].get()
+    mix = videos.categories[1].items[0]
     for item in mix.items():
         assert isinstance(item, tidalapi.Video)
 
@@ -110,7 +109,7 @@ def test_genres(session):
 def test_moods(session):
     moods = session.moods()
     first = next(iter(moods))
-    assert first.title == "Collabs"
+    assert first.title == "For DJs"
     assert isinstance(next(iter(first.get())), tidalapi.Playlist)
 
 

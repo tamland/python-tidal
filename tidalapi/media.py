@@ -196,6 +196,7 @@ class Track(Media):
         return cast("Track", track)
 
     def get_url(self) -> str:
+        assert not self.session.is_pkce
         params = {
             "urlusagemode": "STREAM",
             "audioquality": self.session.config.quality,
@@ -212,11 +213,15 @@ class Track(Media):
         :return: A :class:`Lyrics` object containing the lyrics
         :raises: A :class:`requests.HTTPError` if there aren't any lyrics
         """
-        lyrics = self.requests.map_request(
-            "tracks/%s/lyrics" % self.id, parse=Lyrics().parse
-        )
-        assert not isinstance(lyrics, list)
-        return cast("Lyrics", lyrics)
+
+        json_obj = self.requests.map_request("tracks/%s/lyrics" % self.id)
+        if json_obj.get("status"):
+            assert json_obj.get("status") == 404
+            raise AttributeError("No lyrics exists for this track")
+        else:
+            lyrics = self.requests.map_json(json_obj, parse=Lyrics().parse)
+            assert not isinstance(lyrics, list)
+            return cast("Lyrics", lyrics)
 
     def get_track_radio(self, limit: int = 100) -> List["Track"]:
         """Queries TIDAL for the track radio, which is a mix of tracks that are similar
@@ -231,7 +236,7 @@ class Track(Media):
         assert isinstance(tracks, list)
         return cast(List["Track"], tracks)
 
-    def stream(self) -> "Stream":
+    def get_stream(self) -> "Stream":
         """Retrieves the track streaming object, allowing for audio transmission.
 
         :return: A :class:`Stream` object which holds audio file properties and

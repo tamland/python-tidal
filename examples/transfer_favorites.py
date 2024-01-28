@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-oauth_file1 = Path("tidal-oauth-user.json")
-oauth_file2 = Path("tidal-oauth-userB.json")
+oauth_file1 = Path("tidal-session.json")
+oauth_file2 = Path("tidal-session-B.json")
 
 
 class TidalSession:
@@ -84,11 +84,11 @@ class TidalTransfer:
         session_src = self.session_src.get_session()
         session_dst = self.session_dst.get_session()
         logger.info("Login to user A (source)...")
-        if not session_src.login_oauth_file(oauth_file1):
+        if not session_src.login_session_file(oauth_file1):
             logger.error("Login to Tidal user...FAILED!")
             exit(1)
         logger.info("Login to user B (destination)...")
-        if not session_dst.login_oauth_file(oauth_file2):
+        if not session_dst.login_session_file(oauth_file2):
             logger.error("Login to Tidal user...FAILED!")
             exit(1)
 

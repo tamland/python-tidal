@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+# Copyright (C) 2023- The Tidalapi Developers
 # Copyright (C) 2021-2022 morguldir
 #
 # This program is free software: you can redistribute it and/or modify

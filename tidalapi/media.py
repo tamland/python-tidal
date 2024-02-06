@@ -34,7 +34,17 @@ import dateutil.parser
 if TYPE_CHECKING:
     import tidalapi
 
+import base64
+import json
+import re
+
+import isodate
+from mpegdash.parser import MPEGDASHParser
+
+from tidalapi.exceptions import *
 from tidalapi.types import JsonObj
+
+# from mpd_parser.parser import Parser
 
 
 class Quality(Enum):
@@ -49,6 +59,84 @@ class VideoQuality(Enum):
     high = "HIGH"
     medium = "MEDIUM"
     low = "LOW"
+
+
+class AudioMode(Enum):
+    stereo = "STEREO"
+    sony_360 = "SONY_360RA"
+    dolby_atmos = "DOLBY_ATMOS"
+
+
+# class MediaMetadataTags(Enum):
+#    mqa = 'MQA'
+#    hires_lossless = 'HIRES_LOSSLESS'
+#    lossless = 'LOSSLESS'
+#    sony_360 = 'SONY_360RA'
+#    dolby_atmos = 'DOLBY_ATMOS'
+
+
+class AudioExtensions(Enum):
+    FLAC = ".flac"
+    M4A = ".m4a"
+    MP4 = ".mp4"
+
+
+class VideoExtensions(Enum):
+    TS = ".ts"
+
+
+class ManifestMimeType(Enum):
+    # EMU: str = "application/vnd.tidal.emu"
+    # APPL: str = "application/vnd.apple.mpegurl"
+    MPD: str = "application/dash+xml"
+    BTS: str = "application/vnd.tidal.bts"
+    VIDEO: str = "video/mp2t"
+
+
+class Codec:
+    MP3: str = "MP3"
+    AAC: str = "AAC"
+    M4A: str = "MP4A"
+    FLAC: str = "FLAC"
+    MQA: str = "MQA"
+    Atmos: str = "EAC3"
+    AC4: str = "AC4"
+    SONY360RA: str = "MHA1"
+    LowResCodecs: [str] = [MP3, AAC, M4A]
+    PremiumCodecs: [str] = [MQA, Atmos, AC4]
+    HQCodecs: [str] = PremiumCodecs + [FLAC]
+
+
+class MimeType:
+    audio_mpeg = "audio/mpeg"
+    audio_mp3 = "audio/mp3"
+    audio_m4a = "audio/m4a"
+    audio_flac = "audio/flac"
+    audio_xflac = "audio/x-flac"
+    audio_eac3 = "audio/eac3"
+    audio_ac4 = "audio/mp4"
+    audio_m3u8 = "audio/mpegurl"
+    video_mp4 = "video/mp4"
+    video_m3u8 = "video/mpegurl"
+    audio_map = {
+        Codec.MP3: audio_mp3,
+        Codec.AAC: audio_m4a,
+        Codec.M4A: audio_m4a,
+        Codec.FLAC: audio_xflac,
+        Codec.MQA: audio_xflac,
+        Codec.Atmos: audio_eac3,
+        Codec.AC4: audio_ac4,
+    }
+
+    @staticmethod
+    def from_audio_codec(codec):
+        return MimeType.audio_map.get(codec, MimeType.audio_m4a)
+
+    @staticmethod
+    def is_FLAC(mime_type):
+        return (
+            True if mime_type in [MimeType.audio_flac, MimeType.audio_xflac] else False
+        )
 
 
 class Media:
@@ -270,8 +358,8 @@ class Stream:
     """
 
     track_id: int = -1
-    audio_mode: str = ""
-    audio_quality: str = "LOW"
+    audio_mode: str = AudioMode.stereo.value  # STEREO, SONY_360RA, DOLBY_ATMOS
+    audio_quality: str = Quality.low_96k.value  # LOW, HIGH, LOSSLESS, HI_RES
     manifest_mime_type: str = ""
     manifest_hash: str = ""
     manifest: str = ""
@@ -285,6 +373,254 @@ class Stream:
         self.manifest = json_obj["manifest"]
 
         return copy.copy(self)
+
+    def get_stream_manifest(self) -> "StreamManifest":
+        return StreamManifest(self)
+
+
+# @dataclass
+# class StreamManifest:
+#    codecs: str
+#    mime_type: str
+#    urls: [str]
+#    file_extension: str
+#    encryption_type: str | None = None
+#    encryption_key: str | None = None
+
+
+class StreamManifest:
+    manifest: str = None
+    manifest_mime_type: str = None
+    manifest_parsed: str = None
+    codecs: str = None  # MP3, AAC, FLAC, ALAC, MQA, EAC3, AC4, MHA1
+    encryption_key = None
+    encryption_type = None
+    # bit_depth: int = 16
+    sample_rate: int = 44100
+    urls: [str] = []
+    mime_type: MimeType = MimeType.audio_mpeg
+    file_extension = None
+    dash_info: DashInfo = None
+
+    def __init__(self, stream: Stream):
+        self.stream_manifest_parse(stream.manifest, stream.manifest_mime_type)
+
+    def stream_manifest_parse(self, manifest: str, mime_type: str):
+        self.manifest = manifest
+        self.manifest_mime_type = mime_type
+        if self.manifest_mime_type == ManifestMimeType.MPD.value:
+            # Stream Manifest is base64 encoded.
+            self.dash_info = DashInfo.from_base64(manifest)
+            self.urls = self.dash_info.urls
+            self.codecs = self.dash_info.codecs
+            self.mime_type = self.dash_info.mimeType
+            # self.bit_depth
+            self.sample_rate = self.dash_info.audioSamplingRate
+            # TODO: Handle encryption key.
+            self.encryption_type = "NONE"
+            self.encryption_key = None
+        elif self.manifest_mime_type == ManifestMimeType.BTS.value:
+            # Stream Manifest is base64 encoded.
+            self.manifest_parsed: str = base64.b64decode(manifest).decode("utf-8")
+            # JSON string to object.
+            stream_manifest = json.loads(self.manifest_parsed)
+            # TODO: Handle more than one download URL
+            self.urls = stream_manifest["urls"]
+            self.codecs = stream_manifest["codecs"].upper().split(".")[0]
+            self.mime_type = stream_manifest["mimeType"]
+            # self.bit_depth
+            # self.sample_rate
+            self.encryption_type = stream_manifest["encryptionType"]
+            self.encryption_key = (
+                stream_manifest["encryptionKey"] if self.is_encrypted else None
+            )
+        else:
+            raise UnknownManifestFormat
+
+        self.file_extension = self.get_file_extension(self.urls[0])
+
+    def get_manifest_data(self):
+        try:
+            return base64.b64decode(self.manifest).decode("utf-8")
+        except:
+            raise StreamManifestDecodeError
+        return ""
+
+    def get_urls(self):
+        return self.urls
+
+    def get_hls(self):
+        if self.is_DASH:
+            return self.dash_info.get_hls()
+        else:
+            # TODO
+            assert "Not avail"
+            return ""
+
+    def get_codecs(self):
+        return self.dash_info.codecs
+
+    def get_sampling_rate(self):
+        return self.dash_info.audioSamplingRate
+
+    @staticmethod
+    def get_mimetype(stream_codec, stream_url: Optional[str] = None):
+        if stream_codec:
+            return MimeType.from_audio_codec(stream_codec)
+        if not stream_url:
+            return MimeType.audio_m4a
+        else:
+            if AudioExtensions.FLAC.value in stream_url:
+                return MimeType.audio_xflac
+            elif AudioExtensions.MP4.value in stream_url:
+                return MimeType.audio_m4a
+
+    @staticmethod
+    def get_file_extension(stream_url: str, stream_codec: Optional[str] = None) -> str:
+        if AudioExtensions.FLAC.value in stream_url:
+            result: str = AudioExtensions.FLAC.value
+        elif AudioExtensions.MP4.value in stream_url:
+            # TODO: Need to investigate, what the correct extension is.
+            # if "ac4" in stream_codec or "mha1" in stream_codec:
+            #     result = ".mp4"
+            # elif "flac" in stream_codec:
+            #     result = ".flac"
+            # else:
+            #     result = ".m4a"
+            result: str = AudioExtensions.MP4.value
+        elif VideoExtensions.TS.value in stream_url:
+            result: str = VideoExtensions.TS.value
+        else:
+            result: str = AudioExtensions.M4A.value
+
+        return result
+
+    @property
+    def is_encrypted(self):
+        return True if self.encryption_key else False
+
+    @property
+    def is_DASH(self):
+        return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
+
+
+class DashInfo:
+    @staticmethod
+    def from_stream(stream):
+        try:
+            if stream.is_DASH and not stream.is_encrypted:
+                return DashInfo(stream.get_manifest_data())
+        except:
+            return None
+
+    @staticmethod
+    def from_base64(mpd_manifest_base64):
+        try:
+            return DashInfo(base64.b64decode(mpd_manifest_base64).decode("utf-8"))
+        except:
+            return None
+
+    def __init__(self, mpd_xml):
+        self.manifest = mpd_xml
+
+        mpd = MPEGDASHParser.parse(mpd_xml.split("?>")[1])
+        self.duration = isodate.parse_duration(mpd.media_presentation_duration)
+        self.contentType = mpd.periods[0].adaptation_sets[0].content_type
+        self.mimeType = mpd.periods[0].adaptation_sets[0].mime_type
+        self.codecs = mpd.periods[0].adaptation_sets[0].representations[0].codecs
+        self.firstUrl = (
+            mpd.periods[0]
+            .adaptation_sets[0]
+            .representations[0]
+            .segment_templates[0]
+            .initialization
+        )
+        self.mediaUrl = (
+            mpd.periods[0]
+            .adaptation_sets[0]
+            .representations[0]
+            .segment_templates[0]
+            .media
+        )
+        # self.startNumber = mpd.periods[0].adaptation_sets[0].representations[0].segment_templates[0].start_number
+        self.timescale = (
+            mpd.periods[0]
+            .adaptation_sets[0]
+            .representations[0]
+            .segment_templates[0]
+            .timescale
+        )
+        self.audioSamplingRate = int(
+            mpd.periods[0].adaptation_sets[0].representations[0].audio_sampling_rate
+        )
+        self.chunksize = (
+            mpd.periods[0]
+            .adaptation_sets[0]
+            .representations[0]
+            .segment_templates[0]
+            .segment_timelines[0]
+            .Ss[0]
+            .d
+        )
+        # self.chunkcount = mpd.periods[0].adaptation_sets[0].representations[0].segment_templates[0].segment_timelines[0].Ss[0].r + 1
+        self.lastchunksize = (
+            mpd.periods[0]
+            .adaptation_sets[0]
+            .representations[0]
+            .segment_templates[0]
+            .segment_timelines[0]
+            .Ss[1]
+            .d
+        )
+
+        self.urls = self.get_urls(mpd)
+
+    @staticmethod
+    def get_urls(mpd):
+        # min segments count; i.e. .initialization + the very first of .media;
+        # See https://developers.broadpeak.io/docs/foundations-dash
+        segments_count = 1 + 1
+
+        for s in (
+            mpd.periods[0]
+            .adaptation_sets[0]
+            .representations[0]
+            .segment_templates[0]
+            .segment_timelines[0]
+            .Ss
+        ):
+            segments_count += s.r if s.r else 1
+
+        # Populate segment urls.
+        segment_template = (
+            mpd.periods[0]
+            .adaptation_sets[0]
+            .representations[0]
+            .segment_templates[0]
+            .media
+        )
+        stream_urls: list[str] = []
+
+        for index in range(segments_count):
+            stream_urls.append(segment_template.replace("$Number$", str(index)))
+
+        return stream_urls
+
+    def get_hls(self):
+        hls = "#EXTM3U\n"
+        hls += "#EXT-X-TARGETDURATION:%s\n" % int(self.duration.seconds)
+        hls += "#EXT-X-VERSION:3\n"
+        items = self.urls
+        chunk_duration = "#EXTINF:%0.3f,\n" % (
+            float(self.chunksize) / float(self.timescale)
+        )
+        hls += "\n".join(chunk_duration + item for item in items[0:-1])
+        chunk_duration = "#EXTINF:%0.3f,\n" % (
+            float(self.lastchunksize) / float(self.timescale)
+        )
+        hls += "\n" + chunk_duration + items[-1] + "\n"
+        hls += "#EXT-X-ENDLIST\n"
+        return hls
 
 
 class Lyrics:

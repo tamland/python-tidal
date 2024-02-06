@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-"""simple.py: A simple example script that describes how to get started using tidalapi"""
+"""pkce_login.py: A simple example script that describes how to use PKCE login and MPEG-DASH streams"""
 
 import tidalapi
 from tidalapi import Quality
@@ -32,15 +32,17 @@ session.login_session_file(session_file1, do_pkce=True)
 # Low: Quality.low_96k
 # Normal: Quality.low_320k
 # HiFi: Quality.high_lossless
+# HiFi+ Quality.hi_res
 # HiFi+ Quality.hi_res_lossless
 session.audio_quality = Quality.hi_res_lossless.value
-
-album = session.album("110827651") # Let's Rock // The Black Keys
+album_id = "77646169" #
+album = session.album(album_id) # The Ballad of Darren
 tracks = album.tracks()
 # list album tracks
 for track in tracks:
     print(track.name)
-    # MPEG-DASH Stream is only supported when HiRes mode is used!
-    print(track.get_stream())
-    for artist in track.artists:
-        print(' by: ', artist.name)
+    # MPEG-DASH Stream is only supported when hi_res_lossless mode is used!
+    stream = track.get_stream()
+    hls = stream.get_stream_manifest().get_hls()
+    with open("dash_{}_{}.m3u8".format(album_id, track.id), "w") as my_file:
+        my_file.write(hls)

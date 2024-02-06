@@ -203,10 +203,13 @@ class Track(Media):
             "audioquality": self.session.config.quality,
             "assetpresentation": "FULL",
         }
-        request = self.requests.request(
-            "GET", "tracks/%s/urlpostpaywall" % self.id, params
+        json_obj = self.requests.map_request(
+            "tracks/%s/urlpostpaywall" % self.id, params
         )
-        return cast(str, request.json()["urls"][0])
+        if json_obj.get("status") and json_obj.get("status") == 404:
+            raise AttributeError("URL not available for this track")
+        else:
+            return cast(str, json_obj["urls"][0])
 
     def lyrics(self) -> "Lyrics":
         """Retrieves the lyrics for a song.
@@ -216,7 +219,7 @@ class Track(Media):
         """
 
         json_obj = self.requests.map_request("tracks/%s/lyrics" % self.id)
-        if json_obj.get("status"):
+        if json_obj.get("status") and json_obj.get("status") == 404:
             assert json_obj.get("status") == 404
             raise AttributeError("No lyrics exists for this track")
         else:

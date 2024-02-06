@@ -71,8 +71,14 @@ class Album:
         self.requests = session.request
         self.artist = session.artist()
         self.id = album_id
+
         if self.id:
-            self.requests.map_request(f"albums/{album_id}", parse=self.parse)
+            json_obj = self.requests.map_request("albums/%s" % self.id)
+            if json_obj.get("status"):
+                assert json_obj.get("status") == 404
+                raise AttributeError("Album not found")
+            else:
+                self.requests.map_json(json_obj, parse=self.parse)
 
     def parse(
         self,

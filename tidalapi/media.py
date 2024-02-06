@@ -197,7 +197,12 @@ class Track(Media):
         return cast("Track", track)
 
     def get_url(self) -> str:
-        assert not self.session.is_pkce
+        if self.session.is_pkce:
+            raise Exception(
+                "Track URL not available with quality:'{}'".format(
+                    self.session.config.quality
+                )
+            )
         params = {
             "urlusagemode": "STREAM",
             "audioquality": self.session.config.quality,

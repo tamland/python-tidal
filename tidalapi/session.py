@@ -380,6 +380,7 @@ class Session:
         access_token: str,
         refresh_token: Optional[str] = None,
         expiry_time: Optional[datetime.datetime] = None,
+        is_pkce: Optional[bool] = False,
     ) -> bool:
         """Login to TIDAL using details from a previous OAuth login, automatically
         refreshes expired access tokens if refresh_token is supplied as well.
@@ -389,12 +390,14 @@ class Session:
         :param refresh_token: (Optional) A refresh token that lets you get a new access
             token after it has expired
         :param expiry_time: (Optional) The datetime the access token will expire
+        :param is_pkce: (Optional) Is session pkce?
         :return: True if we believe the login was successful, otherwise false.
         """
         self.token_type = token_type
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.expiry_time = expiry_time
+        self.is_pkce = is_pkce
 
         request = self.request.request("GET", "sessions")
         json = request.json()
@@ -607,6 +610,7 @@ class Session:
                 "session_id": {"data": self.session_id},
                 "access_token": {"data": self.access_token},
                 "refresh_token": {"data": self.refresh_token},
+                "is_pkce": {"data": self.is_pkce},
                 # "expiry_time": {"data": self.expiry_time},
             }
             with oauth_file.open("w") as outfile:
@@ -619,6 +623,7 @@ class Session:
             "token_type": data.get("token_type", {}).get("data"),
             "access_token": data.get("access_token", {}).get("data"),
             "refresh_token": data.get("refresh_token", {}).get("data"),
+            "is_pkce": data.get("is_pkce", {}).get("data"),
             # "expiry_time": data.get("expiry_time", {}).get("data"),
         }
 

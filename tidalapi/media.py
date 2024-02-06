@@ -220,7 +220,6 @@ class Track(Media):
 
         json_obj = self.requests.map_request("tracks/%s/lyrics" % self.id)
         if json_obj.get("status") and json_obj.get("status") == 404:
-            assert json_obj.get("status") == 404
             raise AttributeError("No lyrics exists for this track")
         else:
             lyrics = self.requests.map_json(json_obj, parse=Lyrics().parse)

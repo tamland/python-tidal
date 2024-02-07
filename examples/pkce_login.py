@@ -19,6 +19,7 @@
 
 import tidalapi
 from tidalapi import Quality
+from tidalapi.media import ManifestMimeType
 from pathlib import Path
 
 session_file1 = Path("tidal-session-pkce.json")
@@ -29,20 +30,35 @@ session.login_session_file(session_file1, do_pkce=True)
 
 # Override the required playback quality, if necessary
 # Note: Set the quality according to your subscription.
-# Low: Quality.low_96k
-# Normal: Quality.low_320k
-# HiFi: Quality.high_lossless
-# HiFi+ Quality.hi_res
-# HiFi+ Quality.hi_res_lossless
+# Low: Quality.low_96k          (m4a 96k)
+# Normal: Quality.low_320k      (m4a 320k)
+# HiFi: Quality.high_lossless   (FLAC)
+# HiFi+ Quality.hi_res          (MQA)
+# HiFi+ Quality.hi_res_lossless (FLAC HI_RES)
 session.audio_quality = Quality.hi_res_lossless.value
-album_id = "77646169" #
-album = session.album(album_id) # The Ballad of Darren
+#album_id = "77640617"    # U2 / Achtung Baby            (Max quality: HI_RES MQA, 16bit/44100Hz)
+#album_id = "110827651"   # The Black Keys / Let's Rock  (Max quality: LOSSLESS FLAC, 24bit/48000Hz)
+album_id = "77646169"   # Beck / Sea Change            (Max quality: HI_RES_LOSSLESS FLAC, 24bit/192000Hz)
+album = session.album(album_id)
 tracks = album.tracks()
 # list album tracks
 for track in tracks:
-    print(track.name)
-    # MPEG-DASH Stream is only supported when hi_res_lossless mode is used!
+    print("{}: '{}' by '{}'".format(track.id, track.name, track.artist.name))
     stream = track.get_stream()
-    hls = stream.get_stream_manifest().get_hls()
-    with open("dash_{}_{}.m3u8".format(album_id, track.id), "w") as my_file:
-        my_file.write(hls)
+    manifest = stream.get_stream_manifest()
+    print("MimeType:{}".format(stream.manifest_mime_type))
+    print("Quality: track:{}, (quality:{}, codec:{}, {}bit/{}Hz)".format(track.id,
+                                                                                   stream.audio_quality,
+                                                                                   manifest.get_codecs(),
+                                                                                   stream.bit_depth,
+                                                                                   stream.sample_rate))
+    if stream.manifest_mime_type == ManifestMimeType.MPD.value:
+        # When Quality is HI_RES_LOSSLESS only MPEG-DASH (HLS) stream is supported
+        hls = manifest.get_hls()
+        #if hls:
+        #    with open("dash_{}_{}.m3u8".format(album_id, track.id), "w") as my_file:
+        #        my_file.write(hls)
+    elif stream.manifest_mime_type == ManifestMimeType.BTS.value:
+        # Direct URL is available for Quality < HI_RES_LOSSLESS
+        url = manifest.get_urls()
+    break

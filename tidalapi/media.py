@@ -409,6 +409,7 @@ class StreamManifest:
         self.manifest = manifest
         self.manifest_mime_type = mime_type
         if self.manifest_mime_type == ManifestMimeType.MPD.value:
+            # See https://ottverse.com/structure-of-an-mpeg-dash-mpd/ for more details
             # Stream Manifest is base64 encoded.
             self.dash_info = DashInfo.from_base64(manifest)
             self.urls = self.dash_info.urls

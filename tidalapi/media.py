@@ -368,6 +368,13 @@ class Stream:
     manifest_mime_type: str = ""
     manifest_hash: str = ""
     manifest: str = ""
+    asset_presentation: str = "FULL"
+    album_replay_gain: float = 1.0
+    album_peak_amplitude: float = 1.0
+    track_replay_gain: float = 1.0
+    track_peak_amplitude: float = 1.0
+    bit_depth: int = 16
+    sample_rate: int = 44100
 
     def parse(self, json_obj: JsonObj) -> "Stream":
         self.track_id = json_obj["trackId"]
@@ -376,6 +383,14 @@ class Stream:
         self.manifest_mime_type = json_obj["manifestMimeType"]
         self.manifest_hash = json_obj["manifestHash"]
         self.manifest = json_obj["manifest"]
+        self.album_replay_gain = json_obj["albumReplayGain"]
+        self.album_peak_amplitude = json_obj["albumPeakAmplitude"]
+        self.track_replay_gain = json_obj["trackReplayGain"]
+        self.track_peak_amplitude = json_obj["trackPeakAmplitude"]
+        if not (self.audio_quality == Quality.low_96k.value or self.audio_quality == Quality.low_320k.value or self.audio_quality == Quality.hi_res.value):
+            # Bit depth, Sample rate not available for low quality modes. Assuming 16bit/44100Hz
+            self.bit_depth = json_obj["bitDepth"]
+            self.sample_rate = json_obj["sampleRate"]
 
         return copy.copy(self)
 

@@ -450,12 +450,10 @@ class StreamManifest:
         return self.urls
 
     def get_hls(self):
-        if self.is_DASH:
+        if self.is_MPD:
             return self.dash_info.get_hls()
         else:
-            # TODO
-            assert "Not avail"
-            return ""
+            raise MPDUnavailableError("HLS stream requires MPD MetaData")
 
     def get_codecs(self):
         return self.dash_info.codecs
@@ -500,7 +498,7 @@ class StreamManifest:
         return True if self.encryption_key else False
 
     @property
-    def is_DASH(self):
+    def is_MPD(self):
         return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
 
 
@@ -508,7 +506,7 @@ class DashInfo:
     @staticmethod
     def from_stream(stream):
         try:
-            if stream.is_DASH and not stream.is_encrypted:
+            if stream.is_MPD and not stream.is_encrypted:
                 return DashInfo(stream.get_manifest_data())
         except:
             return None

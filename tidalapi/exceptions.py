@@ -1,4 +1,4 @@
-class LoginError(Exception):
+class AuthenticationError(Exception):
     pass
 
 
@@ -15,4 +15,8 @@ class MediaMissing(Exception):
 
 
 class StreamManifestDecodeError(Exception):
+    pass
+
+
+class MPDUnavailableError(Exception):
     pass

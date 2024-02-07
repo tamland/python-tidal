@@ -50,6 +50,7 @@ from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
 
 import requests
 
+from tidalapi.exceptions import *
 from tidalapi.types import JsonObj
 
 from . import album, artist, genre, media, mix, page, playlist, request, user
@@ -627,7 +628,7 @@ class Session:
             # "expiry_time": data.get("expiry_time", {}).get("data"),
         }
 
-        self.load_oauth_session(**args)
+        return self.load_oauth_session(**args)
 
     def _login_with_link(self) -> Tuple[LinkLogin, concurrent.futures.Future[Any]]:
         url = "https://auth.tidal.com/v1/oauth2/device_authorization"
@@ -704,12 +705,15 @@ class Session:
         params = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,
-            "client_id": self.config.client_id,
-            "client_secret": self.config.client_secret,
+            "client_id": self.config.client_id_pkce if self.is_pkce else self.config.client_id,
+            "client_secret": self.config.client_secret_pkce if self.is_pkce else self.config.client_secret,
         }
 
         request = self.request_session.post(url, params)
         json = request.json()
+        if request.status_code != 200:
+            raise AuthenticationError("Authentication failed")
+            # raise AuthenticationError(Authentication failed json["error"], json["error_description"])
         if not request.ok:
             log.warning("The refresh token has expired, a new login is required.")
             return False

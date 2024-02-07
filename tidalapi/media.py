@@ -465,10 +465,12 @@ class StreamManifest:
             return base64.b64decode(self.manifest).decode("utf-8")
         except:
             raise StreamManifestDecodeError
-        return ""
 
     def get_urls(self):
-        return self.urls
+        if self.is_MPD:
+            return self.urls
+        else:
+            return self.urls[0]
 
     def get_hls(self):
         if self.is_MPD:
@@ -477,7 +479,7 @@ class StreamManifest:
             raise MPDUnavailableError("HLS stream requires MPD MetaData")
 
     def get_codecs(self):
-        return self.dash_info.codecs
+        return self.codecs
 
     def get_sampling_rate(self):
         return self.dash_info.audioSamplingRate

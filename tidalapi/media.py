@@ -387,7 +387,11 @@ class Stream:
         self.album_peak_amplitude = json_obj["albumPeakAmplitude"]
         self.track_replay_gain = json_obj["trackReplayGain"]
         self.track_peak_amplitude = json_obj["trackPeakAmplitude"]
-        if not (self.audio_quality == Quality.low_96k.value or self.audio_quality == Quality.low_320k.value or self.audio_quality == Quality.hi_res.value):
+        if not (
+            self.audio_quality == Quality.low_96k.value
+            or self.audio_quality == Quality.low_320k.value
+            or self.audio_quality == Quality.hi_res.value
+        ):
             # Bit depth, Sample rate not available for low quality modes. Assuming 16bit/44100Hz
             self.bit_depth = json_obj["bitDepth"]
             self.sample_rate = json_obj["sampleRate"]

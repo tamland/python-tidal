@@ -343,11 +343,16 @@ class Track(Media):
             "audioquality": self.session.config.quality,
             "assetpresentation": "FULL",
         }
-        stream = self.requests.map_request(
-            "tracks/%s/playbackinfopostpaywall" % self.id, params, parse=Stream().parse
+
+        json_obj = self.requests.map_request(
+            "tracks/%s/playbackinfopostpaywall" % self.id, params
         )
-        assert not isinstance(stream, list)
-        return cast("Stream", stream)
+        if json_obj.get("status") and json_obj.get("status") == 404:
+            raise AttributeError("Stream not available for this track")
+        else:
+            stream = self.requests.map_json(json_obj, parse=Stream().parse)
+            assert not isinstance(stream, list)
+            return cast("Stream", stream)
 
 
 class Stream:

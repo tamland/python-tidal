@@ -86,3 +86,4 @@ prof/
 # Json session files
 tidal*.json
 *.m3u8
+*.mpd

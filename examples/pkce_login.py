@@ -19,7 +19,6 @@
 
 import tidalapi
 from tidalapi import Quality
-from tidalapi.media import ManifestMimeType
 from pathlib import Path
 
 session_file1 = Path("tidal-session-pkce.json")
@@ -33,7 +32,7 @@ session.login_session_file(session_file1, do_pkce=True)
 # Low: Quality.low_96k          (m4a 96k)
 # Normal: Quality.low_320k      (m4a 320k)
 # HiFi: Quality.high_lossless   (FLAC)
-# HiFi+ Quality.hi_res          (MQA)
+# HiFi+ Quality.hi_res          (FLAC MQA)
 # HiFi+ Quality.hi_res_lossless (FLAC HI_RES)
 session.audio_quality = Quality.hi_res_lossless.value
 #album_id = "77640617"    # U2 / Achtung Baby            (Max quality: HI_RES MQA, 16bit/44100Hz)
@@ -45,20 +44,25 @@ tracks = album.tracks()
 for track in tracks:
     print("{}: '{}' by '{}'".format(track.id, track.name, track.artist.name))
     stream = track.get_stream()
-    manifest = stream.get_stream_manifest()
     print("MimeType:{}".format(stream.manifest_mime_type))
-    print("Quality: track:{}, (quality:{}, codec:{}, {}bit/{}Hz)".format(track.id,
+
+    manifest = stream.get_stream_manifest()
+    print("track:{}, (quality:{}, codec:{}, {}bit/{}Hz)".format(track.id,
                                                                                    stream.audio_quality,
                                                                                    manifest.get_codecs(),
                                                                                    stream.bit_depth,
                                                                                    stream.sample_rate))
-    if stream.manifest_mime_type == ManifestMimeType.MPD.value:
-        # When Quality is HI_RES_LOSSLESS only MPEG-DASH (HLS) stream is supported
+    if stream.is_MPD:
+        # HI_RES_LOSSLESS quality supported when using MPEG-DASH stream (PKCE only!)
+        # 1. Export as MPD manifest
+        mpd = stream.get_manifest_data()
+        # 2. Export as HLS m3u8 playlist
         hls = manifest.get_hls()
-        #if hls:
-        #    with open("dash_{}_{}.m3u8".format(album_id, track.id), "w") as my_file:
-        #        my_file.write(hls)
-    elif stream.manifest_mime_type == ManifestMimeType.BTS.value:
-        # Direct URL is available for Quality < HI_RES_LOSSLESS
+        # with open("{}_{}.mpd".format(album_id, track.id), "w") as my_file:
+        #    my_file.write(mpd)
+        # with open("{}_{}.m3u8".format(album_id, track.id), "w") as my_file:
+        #    my_file.write(hls)
+    elif stream.is_BTS:
+        # Direct URL (m4a or flac) is available for Quality < HI_RES_LOSSLESS
         url = manifest.get_urls()
     break

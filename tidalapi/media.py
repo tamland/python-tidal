@@ -401,15 +401,20 @@ class Stream:
     def get_stream_manifest(self) -> "StreamManifest":
         return StreamManifest(self)
 
+    def get_manifest_data(self):
+        try:
+            # Stream Manifest is base64 encoded.
+            return base64.b64decode(self.manifest).decode("utf-8")
+        except:
+            raise StreamManifestDecodeError
 
-# @dataclass
-# class StreamManifest:
-#    codecs: str
-#    mime_type: str
-#    urls: [str]
-#    file_extension: str
-#    encryption_type: str | None = None
-#    encryption_key: str | None = None
+    @property
+    def is_MPD(self):
+        return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
+
+    @property
+    def is_BTS(self):
+        return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
 
 
 class StreamManifest:
@@ -419,7 +424,6 @@ class StreamManifest:
     codecs: str = None  # MP3, AAC, FLAC, ALAC, MQA, EAC3, AC4, MHA1
     encryption_key = None
     encryption_type = None
-    # bit_depth: int = 16
     sample_rate: int = 44100
     urls: [str] = []
     mime_type: MimeType = MimeType.audio_mpeg
@@ -427,34 +431,27 @@ class StreamManifest:
     dash_info: DashInfo = None
 
     def __init__(self, stream: Stream):
-        self.stream_manifest_parse(stream.manifest, stream.manifest_mime_type)
-
-    def stream_manifest_parse(self, manifest: str, mime_type: str):
-        self.manifest = manifest
-        self.manifest_mime_type = mime_type
-        if self.manifest_mime_type == ManifestMimeType.MPD.value:
+        self.manifest = stream.manifest
+        self.manifest_mime_type = stream.manifest_mime_type
+        if stream.is_MPD:
             # See https://ottverse.com/structure-of-an-mpeg-dash-mpd/ for more details
-            # Stream Manifest is base64 encoded.
-            self.dash_info = DashInfo.from_base64(manifest)
+            self.dash_info = DashInfo.from_mpd(stream.get_manifest_data())
             self.urls = self.dash_info.urls
             self.codecs = self.dash_info.codecs
             self.mime_type = self.dash_info.mimeType
-            # self.bit_depth
             self.sample_rate = self.dash_info.audioSamplingRate
             # TODO: Handle encryption key.
             self.encryption_type = "NONE"
             self.encryption_key = None
-        elif self.manifest_mime_type == ManifestMimeType.BTS.value:
+        elif stream.is_BTS:
             # Stream Manifest is base64 encoded.
-            self.manifest_parsed: str = base64.b64decode(manifest).decode("utf-8")
+            self.manifest_parsed = stream.get_manifest_data()
             # JSON string to object.
             stream_manifest = json.loads(self.manifest_parsed)
             # TODO: Handle more than one download URL
             self.urls = stream_manifest["urls"]
             self.codecs = stream_manifest["codecs"].upper().split(".")[0]
             self.mime_type = stream_manifest["mimeType"]
-            # self.bit_depth
-            # self.sample_rate
             self.encryption_type = stream_manifest["encryptionType"]
             self.encryption_key = (
                 stream_manifest["encryptionKey"] if self.is_encrypted else None
@@ -463,12 +460,6 @@ class StreamManifest:
             raise UnknownManifestFormat
 
         self.file_extension = self.get_file_extension(self.urls[0])
-
-    def get_manifest_data(self):
-        try:
-            return base64.b64decode(self.manifest).decode("utf-8")
-        except:
-            raise StreamManifestDecodeError
 
     def get_urls(self):
         if self.is_MPD:
@@ -528,6 +519,10 @@ class StreamManifest:
     def is_MPD(self):
         return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
 
+    @property
+    def is_BTS(self):
+        return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
+
 
 class DashInfo:
     @staticmethod
@@ -536,19 +531,19 @@ class DashInfo:
             if stream.is_MPD and not stream.is_encrypted:
                 return DashInfo(stream.get_manifest_data())
         except:
-            return None
+            raise MPDDecodeError
 
     @staticmethod
-    def from_base64(mpd_manifest_base64):
+    def from_mpd(mpd_manifest):
         try:
-            return DashInfo(base64.b64decode(mpd_manifest_base64).decode("utf-8"))
+            return DashInfo(mpd_manifest)
         except:
-            return None
+            raise MPDDecodeError
 
     def __init__(self, mpd_xml):
-        self.manifest = mpd_xml
-
-        mpd = MPEGDASHParser.parse(mpd_xml.split("?>")[1])
+        mpd = MPEGDASHParser.parse(
+            mpd_xml.split("<?xml version='1.0' encoding='UTF-8'?>")[1]
+        )
         self.duration = isodate.parse_duration(mpd.media_presentation_duration)
         self.contentType = mpd.periods[0].adaptation_sets[0].content_type
         self.mimeType = mpd.periods[0].adaptation_sets[0].mime_type

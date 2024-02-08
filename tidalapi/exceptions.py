@@ -20,3 +20,7 @@ class StreamManifestDecodeError(Exception):
 
 class MPDUnavailableError(Exception):
     pass
+
+
+class MPDDecodeError(Exception):
+    pass

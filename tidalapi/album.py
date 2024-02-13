@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from tidalapi.page import Page
     from tidalapi.session import Session
 
+
 DEFAULT_ALBUM_IMAGE = (
     "https://tidal.com/browse/assets/images/defaultImages/defaultAlbumImage.png"
 )

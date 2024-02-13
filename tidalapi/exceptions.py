@@ -2,10 +2,6 @@ class AuthenticationError(Exception):
     pass
 
 
-class MediaUnknown(Exception):
-    pass
-
-
 class AssetNotAvailable(Exception):
     pass
 

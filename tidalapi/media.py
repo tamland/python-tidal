@@ -287,6 +287,7 @@ class Track(Media):
 
         request = self.requests.request("GET", "tracks/%s" % media_id)
         if request.status_code and request.status_code == 404:
+            # TODO Handle track not found or not available due to permissions
             raise AssetNotAvailable("Track not available or not found")
         else:
             json_obj = request.json()
@@ -426,23 +427,25 @@ class Stream:
     def get_stream_manifest(self) -> "StreamManifest":
         return StreamManifest(self)
 
-    def get_manifest_data(self):
+    def get_manifest_data(self) -> str:
         try:
             # Stream Manifest is base64 encoded.
             return base64.b64decode(self.manifest).decode("utf-8")
         except:
-            raise StreamManifestDecodeError
+            raise ManifestDecodeError
 
     @property
-    def is_MPD(self):
+    def is_MPD(self) -> bool:
         return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
 
     @property
-    def is_BTS(self):
+    def is_BTS(self) -> bool:
         return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
 
 
 class StreamManifest:
+    """An object containing a parsed StreamManifest."""
+
     manifest: str = None
     manifest_mime_type: str = None
     manifest_parsed: str = None
@@ -463,8 +466,8 @@ class StreamManifest:
             self.dash_info = DashInfo.from_mpd(stream.get_manifest_data())
             self.urls = self.dash_info.urls
             self.codecs = self.dash_info.codecs
-            self.mime_type = self.dash_info.mimeType
-            self.sample_rate = self.dash_info.audioSamplingRate
+            self.mime_type = self.dash_info.mime_type
+            self.sample_rate = self.dash_info.audio_sampling_rate
             # TODO: Handle encryption key.
             self.encryption_type = "NONE"
             self.encryption_key = None
@@ -484,28 +487,28 @@ class StreamManifest:
         else:
             raise UnknownManifestFormat
 
-        self.file_extension = self.get_file_extension(self.urls[0])
+        self.file_extension = self.get_file_extension(self.urls[0], self.codecs)
 
-    def get_urls(self):
+    def get_urls(self) -> [str]:
         if self.is_MPD:
             return self.urls
         else:
             return self.urls[0]
 
-    def get_hls(self):
+    def get_hls(self) -> str:
         if self.is_MPD:
             return self.dash_info.get_hls()
         else:
-            raise MPDUnavailableError("HLS stream requires MPD MetaData")
+            raise MPDNotAvailableError("HLS stream requires MPD MetaData")
 
-    def get_codecs(self):
+    def get_codecs(self) -> str:
         return self.codecs
 
-    def get_sampling_rate(self):
-        return self.dash_info.audioSamplingRate
+    def get_sampling_rate(self) -> int:
+        return self.dash_info.audio_sampling_rate
 
     @staticmethod
-    def get_mimetype(stream_codec, stream_url: Optional[str] = None):
+    def get_mimetype(stream_codec, stream_url: Optional[str] = None) -> str:
         if stream_codec:
             return MimeType.from_audio_codec(stream_codec)
         if not stream_url:
@@ -521,13 +524,12 @@ class StreamManifest:
         if AudioExtensions.FLAC.value in stream_url:
             result: str = AudioExtensions.FLAC.value
         elif AudioExtensions.MP4.value in stream_url:
-            # TODO: Need to investigate, what the correct extension is.
-            # if "ac4" in stream_codec or "mha1" in stream_codec:
-            #     result = ".mp4"
-            # elif "flac" in stream_codec:
-            #     result = ".flac"
-            # else:
-            #     result = ".m4a"
+            if "ac4" in stream_codec or "mha1" in stream_codec:
+                result = ".mp4"
+            elif "flac" in stream_codec:
+                result = ".flac"
+            else:
+                result = ".m4a"
             result: str = AudioExtensions.MP4.value
         elif VideoExtensions.TS.value in stream_url:
             result: str = VideoExtensions.TS.value
@@ -537,50 +539,65 @@ class StreamManifest:
         return result
 
     @property
-    def is_encrypted(self):
+    def is_encrypted(self) -> bool:
         return True if self.encryption_key else False
 
     @property
-    def is_MPD(self):
+    def is_MPD(self) -> bool:
         return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
 
     @property
-    def is_BTS(self):
+    def is_BTS(self) -> bool:
         return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
 
 
 class DashInfo:
+    """An object containing the decoded MPEG-DASH / MPD manifest."""
+
+    duration: datetime = timedelta()
+    content_type: str = "audio"
+    mime_type: MimeType = MimeType.audio_ac4
+    codecs: str = Codec.FLAC
+    first_url: str = ""
+    media_url: str = ""
+    timescale: int = 44100
+    audio_sampling_rate: int = 44100
+    chunk_size: int = -1
+    last_chunk_size: int = -1
+    urls: [str] = [""]
+
     @staticmethod
-    def from_stream(stream):
+    def from_stream(stream) -> "DashInfo":
         try:
             if stream.is_MPD and not stream.is_encrypted:
                 return DashInfo(stream.get_manifest_data())
         except:
-            raise MPDDecodeError
+            raise ManifestDecodeError
 
     @staticmethod
-    def from_mpd(mpd_manifest):
+    def from_mpd(mpd_manifest) -> "DashInfo":
         try:
             return DashInfo(mpd_manifest)
         except:
-            raise MPDDecodeError
+            raise ManifestDecodeError
 
     def __init__(self, mpd_xml):
         mpd = MPEGDASHParser.parse(
             mpd_xml.split("<?xml version='1.0' encoding='UTF-8'?>")[1]
         )
-        self.duration = isodate.parse_duration(mpd.media_presentation_duration)
-        self.contentType = mpd.periods[0].adaptation_sets[0].content_type
-        self.mimeType = mpd.periods[0].adaptation_sets[0].mime_type
+
+        self.duration = parse_duration(mpd.media_presentation_duration)
+        self.content_type = mpd.periods[0].adaptation_sets[0].content_type
+        self.mime_type = mpd.periods[0].adaptation_sets[0].mime_type
         self.codecs = mpd.periods[0].adaptation_sets[0].representations[0].codecs
-        self.firstUrl = (
+        self.first_url = (
             mpd.periods[0]
             .adaptation_sets[0]
             .representations[0]
             .segment_templates[0]
             .initialization
         )
-        self.mediaUrl = (
+        self.media_url = (
             mpd.periods[0]
             .adaptation_sets[0]
             .representations[0]
@@ -595,10 +612,10 @@ class DashInfo:
             .segment_templates[0]
             .timescale
         )
-        self.audioSamplingRate = int(
+        self.audio_sampling_rate = int(
             mpd.periods[0].adaptation_sets[0].representations[0].audio_sampling_rate
         )
-        self.chunksize = (
+        self.chunk_size = (
             mpd.periods[0]
             .adaptation_sets[0]
             .representations[0]
@@ -608,7 +625,7 @@ class DashInfo:
             .d
         )
         # self.chunkcount = mpd.periods[0].adaptation_sets[0].representations[0].segment_templates[0].segment_timelines[0].Ss[0].r + 1
-        self.lastchunksize = (
+        self.last_chunk_size = (
             mpd.periods[0]
             .adaptation_sets[0]
             .representations[0]
@@ -621,7 +638,7 @@ class DashInfo:
         self.urls = self.get_urls(mpd)
 
     @staticmethod
-    def get_urls(mpd):
+    def get_urls(mpd) -> list[str]:
         # min segments count; i.e. .initialization + the very first of .media;
         # See https://developers.broadpeak.io/docs/foundations-dash
         segments_count = 1 + 1
@@ -651,17 +668,17 @@ class DashInfo:
 
         return stream_urls
 
-    def get_hls(self):
+    def get_hls(self) -> str:
         hls = "#EXTM3U\n"
         hls += "#EXT-X-TARGETDURATION:%s\n" % int(self.duration.seconds)
         hls += "#EXT-X-VERSION:3\n"
         items = self.urls
         chunk_duration = "#EXTINF:%0.3f,\n" % (
-            float(self.chunksize) / float(self.timescale)
+            float(self.chunk_size) / float(self.timescale)
         )
         hls += "\n".join(chunk_duration + item for item in items[0:-1])
         chunk_duration = "#EXTINF:%0.3f,\n" % (
-            float(self.lastchunksize) / float(self.timescale)
+            float(self.last_chunk_size) / float(self.timescale)
         )
         hls += "\n" + chunk_duration + items[-1] + "\n"
         hls += "#EXT-X-ENDLIST\n"
@@ -669,6 +686,8 @@ class DashInfo:
 
 
 class Lyrics:
+    """An object containing lyrics for a track."""
+
     track_id: int = -1
     provider: str = ""
     provider_track_id: int = -1

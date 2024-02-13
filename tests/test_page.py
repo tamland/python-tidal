@@ -44,8 +44,8 @@ def test_get_explore_items(session):
     genres = explore.categories[1].show_more()
     iterator = iter(genres)
     next(iterator)
-    assert next(iterator).title == "Africa"
     assert next(iterator).title == "Blues"
+    assert next(iterator).title == "Classical"
 
 
 def test_for_you(session):
@@ -97,7 +97,7 @@ def test_page_links(session):
 def test_genres(session):
     genres = session.genres()
     first = next(iter(genres))
-    assert first.title == "Africa"
+    assert first.title == "Blues"
     assert isinstance(next(iter(first.get())), tidalapi.Playlist)
 
     # NOTE local genres seems broken, and the first entry is no longer available

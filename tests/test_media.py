@@ -48,7 +48,7 @@ def test_track(session):
     assert track.version is None
     assert (
         track.copyright
-        == "(P) 2019 MER under exclusive license to Sony Music Entertainment Sweden AB"
+        == "(P) 2019 Kreatell Music under exclusive license to Sony Music Entertainment Sweden AB"
     )
     assert track.isrc == "NOG841907010"
     assert track.explicit is False

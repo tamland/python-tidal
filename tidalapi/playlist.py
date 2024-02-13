@@ -24,6 +24,7 @@ import copy
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Sequence, Union, cast
 
+from tidalapi.exceptions import ObjectNotFound
 from tidalapi.types import JsonObj
 from tidalapi.user import LoggedInUser
 
@@ -65,9 +66,12 @@ class Playlist:
         self.requests = session.request
         self._base_url = "playlists/%s"
         if playlist_id:
-            request = self.requests.request("GET", self._base_url % playlist_id)
-            self._etag = request.headers["etag"]
-            self.parse(request.json())
+            request = self.requests.request("GET", self._base_url % self.id)
+            if request.status_code and request.status_code == 404:
+                raise ObjectNotFound("Playlist not found")
+            else:
+                self._etag = request.headers["etag"]
+                self.parse(request.json())
 
     def parse(self, json_obj: JsonObj) -> "Playlist":
         """Parses a playlist from tidal, replaces the current playlist object.

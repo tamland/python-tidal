@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, List, Optional, Union, cast
 
 import dateutil.parser
 
+from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -68,17 +69,16 @@ class Album:
 
     def __init__(self, session: "Session", album_id: Optional[str]):
         self.session = session
-        self.requests = session.request
+        self.request = session.request
         self.artist = session.artist()
         self.id = album_id
 
         if self.id:
-            json_obj = self.requests.map_request("albums/%s" % self.id)
-            if json_obj.get("status"):
-                assert json_obj.get("status") == 404
-                raise AttributeError("Album not found")
+            request = self.request.request("GET", "albums/%s" % self.id)
+            if request.status_code and request.status_code == 404:
+                raise ObjectNotFound("Album not found")
             else:
-                self.requests.map_json(json_obj, parse=self.parse)
+                self.request.map_json(request.json(), parse=self.parse)
 
     def parse(
         self,
@@ -133,7 +133,7 @@ class Album:
 
     @property
     def year(self) -> Optional[int]:
-        """Convenience function to get the year using :class:`available_release_date`
+        """Get the year using :class:`available_release_date`
 
         :return: An :any:`python:int` containing the year the track was released
         """
@@ -161,7 +161,8 @@ class Album:
         :return: A list of the :class:`Tracks <.Track>` in the album.
         """
         params = {"limit": limit, "offset": offset}
-        tracks = self.requests.map_request(
+
+        tracks = self.request.map_request(
             "albums/%s/tracks" % self.id, params, parse=self.session.parse_track
         )
         assert isinstance(tracks, list)
@@ -175,7 +176,7 @@ class Album:
         :return: A list of :class:`Tracks<.Track>` and :class:`Videos`<.Video>`
         """
         params = {"offset": offset, "limit": limit}
-        items = self.requests.map_request(
+        items = self.request.map_request(
             "albums/%s/items" % self.id, params=params, parse=self.session.parse_media
         )
         assert isinstance(items, list)
@@ -232,17 +233,18 @@ class Album:
         return self.session.page.get("pages/album", params={"albumId": self.id})
 
     def similar(self) -> List["Album"]:
-        """Retrieve albums similar to the current one. AttributeError is raised, when no
-        similar albums exists.
+        """Retrieve albums similar to the current one. MetadataNotAvailable is raised,
+        when no similar albums exist.
 
         :return: A :any:`list` of similar albums
         """
-        json_obj = self.requests.map_request("albums/%s/similar" % self.id)
-        if json_obj.get("status"):
-            assert json_obj.get("status") == 404
-            raise AttributeError("No similar albums exist for this album")
+        request = self.request.request("GET", "albums/%s/similar" % self.id)
+        if request.status_code and request.status_code == 404:
+            raise MetadataNotAvailable("No similar albums exist for this album")
         else:
-            albums = self.requests.map_json(json_obj, parse=self.session.parse_album)
+            albums = self.request.map_json(
+                request.json(), parse=self.session.parse_album
+            )
             assert isinstance(albums, list)
             return cast(List["Album"], albums)
 
@@ -253,7 +255,7 @@ class Album:
         :raises: :class:`requests.HTTPError` if there isn't a review yet
         """
         # morguldir: TODO: Add parsing of wimplinks?
-        review = self.requests.request("GET", "albums/%s/review" % self.id).json()[
+        review = self.request.request("GET", "albums/%s/review" % self.id).json()[
             "text"
         ]
         assert isinstance(review, str)

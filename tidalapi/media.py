@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import copy
 from abc import abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, List, Optional, Union, cast
 
@@ -36,15 +36,20 @@ if TYPE_CHECKING:
 
 import base64
 import json
-import re
 
-import isodate
+from isodate import parse_duration
 from mpegdash.parser import MPEGDASHParser
 
-from tidalapi.exceptions import *
+from tidalapi.exceptions import (
+    AssetNotAvailable,
+    ManifestDecodeError,
+    MetadataNotAvailable,
+    MPDNotAvailableError,
+    StreamNotAvailable,
+    UnknownManifestFormat,
+    URLNotAvailable,
+)
 from tidalapi.types import JsonObj
-
-# from mpd_parser.parser import Parser
 
 
 class Quality(Enum):
@@ -279,14 +284,24 @@ class Track(Media):
         :param media_id: TIDAL's identifier of the track
         :return: A :class:`Track` object containing all the information about the track
         """
-        parse = self.parse_track
-        track = self.requests.map_request("tracks/%s" % media_id, parse=parse)
-        assert not isinstance(track, list)
-        return cast("Track", track)
+
+        request = self.requests.request("GET", "tracks/%s" % media_id)
+        if request.status_code and request.status_code == 404:
+            raise AssetNotAvailable("Track not available or not found")
+        else:
+            json_obj = request.json()
+            track = self.requests.map_json(json_obj, parse=self.parse_track)
+            assert not isinstance(track, list)
+            return cast("Track", track)
 
     def get_url(self) -> str:
+        """Retrieves the URL for a track.
+
+        :return: A `str` object containing the direct track URL
+        :raises: A :class:`exceptions.URLNotAvailable` if no URL is available for this track
+        """
         if self.session.is_pkce:
-            raise Exception(
+            raise URLNotAvailable(
                 "Track URL not available with quality:'{}'".format(
                     self.session.config.quality
                 )
@@ -296,25 +311,26 @@ class Track(Media):
             "audioquality": self.session.config.quality,
             "assetpresentation": "FULL",
         }
-        json_obj = self.requests.map_request(
-            "tracks/%s/urlpostpaywall" % self.id, params
+        request = self.requests.request(
+            "GET", "tracks/%s/urlpostpaywall" % self.id, params
         )
-        if json_obj.get("status") and json_obj.get("status") == 404:
-            raise AttributeError("URL not available for this track")
+        if request.status_code and request.status_code == 404:
+            raise URLNotAvailable("URL not available for this track")
         else:
+            json_obj = request.json()
             return cast(str, json_obj["urls"][0])
 
     def lyrics(self) -> "Lyrics":
         """Retrieves the lyrics for a song.
 
         :return: A :class:`Lyrics` object containing the lyrics
-        :raises: A :class:`requests.HTTPError` if there aren't any lyrics
+        :raises: A :class:`exceptions.MetadataNotAvailable` if there aren't any lyrics
         """
-
-        json_obj = self.requests.map_request("tracks/%s/lyrics" % self.id)
-        if json_obj.get("status") and json_obj.get("status") == 404:
-            raise AttributeError("No lyrics exists for this track")
+        request = self.requests.request("GET", "tracks/%s/lyrics" % self.id)
+        if request.status_code and request.status_code == 404:
+            raise MetadataNotAvailable("No lyrics exists for this track")
         else:
+            json_obj = request.json()
             lyrics = self.requests.map_json(json_obj, parse=Lyrics().parse)
             assert not isinstance(lyrics, list)
             return cast("Lyrics", lyrics)
@@ -324,19 +340,27 @@ class Track(Media):
         to this track.
 
         :return: A list of :class:`Tracks <tidalapi.media.Track>`
+        :raises: A :class:`exceptions.MetadataNotAvailable` if no track radio is available
         """
         params = {"limit": limit}
-        tracks = self.requests.map_request(
-            "tracks/%s/radio" % self.id, params=params, parse=self.session.parse_track
+
+        request = self.requests.request(
+            "GET", "tracks/%s/radio" % self.id, params=params
         )
-        assert isinstance(tracks, list)
-        return cast(List["Track"], tracks)
+        if request.status_code and request.status_code == 404:
+            raise MetadataNotAvailable("Track radio not available for this track")
+        else:
+            json_obj = request.json()
+            tracks = self.requests.map_json(json_obj, parse=self.session.parse_track)
+            assert isinstance(tracks, list)
+            return cast(List["Track"], tracks)
 
     def get_stream(self) -> "Stream":
         """Retrieves the track streaming object, allowing for audio transmission.
 
         :return: A :class:`Stream` object which holds audio file properties and
             parameters needed for streaming via `MPEG-DASH` protocol.
+        :raises: A :class:`exceptions.StreamNotAvailable` if there is no stream available for this track
         """
         params = {
             "playbackmode": "STREAM",
@@ -344,12 +368,13 @@ class Track(Media):
             "assetpresentation": "FULL",
         }
 
-        json_obj = self.requests.map_request(
-            "tracks/%s/playbackinfopostpaywall" % self.id, params
+        request = self.requests.request(
+            "GET", "tracks/%s/playbackinfopostpaywall" % self.id, params
         )
-        if json_obj.get("status") and json_obj.get("status") == 404:
-            raise AttributeError("Stream not available for this track")
+        if request.status_code and request.status_code == 404:
+            raise StreamNotAvailable("Stream not available for this track")
         else:
+            json_obj = request.json()
             stream = self.requests.map_json(json_obj, parse=Stream().parse)
             assert not isinstance(stream, list)
             return cast("Stream", stream)
@@ -697,15 +722,25 @@ class Video(Media):
         return cast("Video", video)
 
     def get_url(self) -> str:
+        """Retrieves the URL for a video.
+
+        :return: A `str` object containing the direct video URL
+        :raises: A :class:`exceptions.URLNotAvailable` if no URL is available for this video
+        """
         params = {
             "urlusagemode": "STREAM",
             "videoquality": self.session.config.video_quality,
             "assetpresentation": "FULL",
         }
+
         request = self.requests.request(
             "GET", "videos/%s/urlpostpaywall" % self.id, params
         )
-        return cast(str, request.json()["urls"][0])
+        if request.status_code and request.status_code == 404:
+            raise URLNotAvailable("URL not available for this video")
+        else:
+            json_obj = request.json()
+            return cast(str, json_obj["urls"][0])
 
     def image(self, width: int = 1080, height: int = 720) -> str:
         if (width, height) not in [(160, 107), (480, 320), (750, 500), (1080, 720)]:

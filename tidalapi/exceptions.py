@@ -6,21 +6,33 @@ class MediaUnknown(Exception):
     pass
 
 
+class AssetNotAvailable(Exception):
+    pass
+
+
+class URLNotAvailable(Exception):
+    pass
+
+
+class StreamNotAvailable(Exception):
+    pass
+
+
+class MetadataNotAvailable(Exception):
+    pass
+
+
+class ObjectNotFound(Exception):
+    pass
+
+
 class UnknownManifestFormat(Exception):
     pass
 
 
-class MediaMissing(Exception):
+class ManifestDecodeError(Exception):
     pass
 
 
-class StreamManifestDecodeError(Exception):
-    pass
-
-
-class MPDUnavailableError(Exception):
-    pass
-
-
-class MPDDecodeError(Exception):
+class MPDNotAvailableError(Exception):
     pass

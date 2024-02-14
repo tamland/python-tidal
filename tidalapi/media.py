@@ -42,10 +42,10 @@ from mpegdash.parser import MPEGDASHParser
 
 from tidalapi.exceptions import (
     AssetNotAvailable,
-    ObjectNotFound,
     ManifestDecodeError,
     MetadataNotAvailable,
     MPDNotAvailableError,
+    ObjectNotFound,
     StreamNotAvailable,
     UnknownManifestFormat,
     URLNotAvailable,
@@ -737,8 +737,7 @@ class Video(Media):
         :return: A :class:`Video` object containing all the information about the video.
         """
 
-        request = self.requests.request(
-            "GET", "videos/%s" % self.id)
+        request = self.requests.request("GET", "videos/%s" % self.id)
         if request.status_code and request.status_code == 404:
             raise ObjectNotFound("Video not found or unavailable")
         else:

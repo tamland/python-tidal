@@ -58,7 +58,7 @@ from . import album, artist, genre, media, mix, page, playlist, request, user
 if TYPE_CHECKING:
     from tidalapi.user import FetchedUser, LoggedInUser, PlaylistCreator
 
-log = logging.getLogger("__NAME__")
+log = logging.getLogger(__name__)
 SearchTypes: List[Optional[Any]] = [
     artist.Artist,
     album.Album,

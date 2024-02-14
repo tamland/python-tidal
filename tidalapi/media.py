@@ -42,6 +42,7 @@ from mpegdash.parser import MPEGDASHParser
 
 from tidalapi.exceptions import (
     AssetNotAvailable,
+    ObjectNotFound,
     ManifestDecodeError,
     MetadataNotAvailable,
     MPDNotAvailableError,
@@ -288,7 +289,7 @@ class Track(Media):
         request = self.requests.request("GET", "tracks/%s" % media_id)
         if request.status_code and request.status_code == 404:
             # TODO Handle track not found or not available due to permissions
-            raise AssetNotAvailable("Track not available or not found")
+            raise ObjectNotFound("Track not found or unavailable")
         else:
             json_obj = request.json()
             track = self.requests.map_json(json_obj, parse=self.parse_track)
@@ -735,10 +736,16 @@ class Video(Media):
         :param media_id: TIDAL's identifier of the video
         :return: A :class:`Video` object containing all the information about the video.
         """
-        parse = self.parse_video
-        video = self.requests.map_request("videos/%s" % media_id, parse=parse)
-        assert not isinstance(video, list)
-        return cast("Video", video)
+
+        request = self.requests.request(
+            "GET", "videos/%s" % self.id)
+        if request.status_code and request.status_code == 404:
+            raise ObjectNotFound("Video not found or unavailable")
+        else:
+            json_obj = request.json()
+            video = self.requests.map_json(json_obj, parse=self.parse_video)
+            assert not isinstance(video, list)
+            return cast("Video", video)
 
     def get_url(self) -> str:
         """Retrieves the URL for a video.

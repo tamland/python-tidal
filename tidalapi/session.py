@@ -438,35 +438,32 @@ class Session:
         return True
 
     def login_session_file(
-        self, session_file: Path, do_pkce: Optional[bool] = False
+        self,
+        session_file: Path,
+        do_pkce: Optional[bool] = False,
     ) -> bool:
         """Logs in to the TIDAL api using an existing OAuth/PKCE session file. If no
         session json file exists, a new one will be created after successful login.
 
         :param session_file: The session json file
         :param do_pkce: Perform PKCE login. Default: Use OAuth logon
+        :param fn_print: function for printing login prompts
         :return: Returns true if we think the login was successful.
         """
-        try:
-            # attempt to reload existing session from file
-            with open(session_file) as f:
-                log.info("Loading OAuth session from %s...", session_file)
-                data = json.load(f)
-                self._load_session_from_file(**data)
-        except Exception as e:
-            log.info("Could not load OAuth session from %s: %s", session_file, e)
+        self.load_session_from_file(session_file)
 
+        # Session could not be loaded, attempt to create a new session
         if not self.check_login():
             if do_pkce:
-                log.info("Creating new PKCE session...")
+                log.info("Creating new session (PKCE)...")
                 self.login_pkce()
             else:
-                log.info("Creating new OAuth session...")
+                log.info("Creating new session (OAuth)...")
                 self.login_oauth_simple()
 
         if self.check_login():
             log.info("TIDAL Login OK")
-            self._save_session_to_file(session_file)
+            self.save_session_to_file(session_file)
             return True
         else:
             log.info("TIDAL Login KO")
@@ -602,7 +599,7 @@ class Session:
         login, future = self._login_with_link()
         return login, future
 
-    def _save_session_to_file(self, oauth_file: Path):
+    def save_session_to_file(self, session_file: Path):
         # create a new session
         if self.check_login():
             # store current session session
@@ -614,11 +611,18 @@ class Session:
                 "is_pkce": {"data": self.is_pkce},
                 # "expiry_time": {"data": self.expiry_time},
             }
-            with oauth_file.open("w") as outfile:
+            with session_file.open("w") as outfile:
                 json.dump(data, outfile)
-            self._oauth_saved = True
 
-    def _load_session_from_file(self, **data):
+    def load_session_from_file(self, session_file: Path):
+        try:
+            with open(session_file) as f:
+                log.info("Loading session from %s...", session_file)
+                data = json.load(f)
+        except Exception as e:
+            log.info("Could not load session from %s: %s", session_file, e)
+            return False
+
         assert self, "No session loaded"
         args = {
             "token_type": data.get("token_type", {}).get("data"),

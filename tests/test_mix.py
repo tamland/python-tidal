@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import tidalapi
 import pytest
 
+import tidalapi
 from tidalapi.exceptions import ObjectNotFound
 
 from .cover import verify_image_cover

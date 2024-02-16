@@ -27,8 +27,8 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import dateutil.parser
 
-from tidalapi.types import JsonObj
 from tidalapi.exceptions import ObjectNotFound
+from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
     from tidalapi.media import Track, Video
@@ -170,6 +170,7 @@ class TextInfo:
 class MixV2:
     """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place
     currently."""
+
     # tehkillerbee: TODO Doesn't look like this is using the v2 endpoint anyways!?
 
     date_added: Optional[datetime] = None

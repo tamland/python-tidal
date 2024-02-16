@@ -18,6 +18,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import tidalapi
+import pytest
+
+from tidalapi.exceptions import ObjectNotFound
 
 from .cover import verify_image_cover
 
@@ -32,3 +35,13 @@ def test_image(session):
     mixes = session.mixes()
     first = next(iter(mixes))
     verify_image_cover(session, first, [320, 640, 1500])
+
+
+def test_mix_unavailable(session):
+    with pytest.raises(ObjectNotFound):
+        mix = session.mix("12345678")
+
+
+def test_mixv2_unavailable(session):
+    with pytest.raises(ObjectNotFound):
+        mix = session.mixv2("12345678")

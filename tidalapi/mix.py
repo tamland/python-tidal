@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import dateutil.parser
 
 from tidalapi.types import JsonObj
+from tidalapi.exceptions import ObjectNotFound
 
 if TYPE_CHECKING:
     from tidalapi.media import Track, Video
@@ -93,13 +94,16 @@ class Mix:
             mix_id = self.id
 
         params = {"mixId": mix_id, "deviceType": "BROWSER"}
-        parse = self.session.parse_page
-        result = self.request.map_request("pages/mix", parse=parse, params=params)
-        assert not isinstance(result, list)
-        self._retrieved = True
-        self.__dict__.update(result.categories[0].__dict__)
-        self._items = result.categories[1].items
-        return self
+        request = self.request.request("GET", "pages/mix", params=params)
+        if request.status_code and request.status_code == 404:
+            raise ObjectNotFound("Mix not found")
+        else:
+            result = self.session.parse_page(request.json())
+            assert not isinstance(result, list)
+            self._retrieved = True
+            self.__dict__.update(result.categories[0].__dict__)
+            self._items = result.categories[1].items
+            return self
 
     def parse(self, json_obj: JsonObj) -> "Mix":
         """Parse a mix into a :class:`Mix`, replaces the calling object.
@@ -166,6 +170,7 @@ class TextInfo:
 class MixV2:
     """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place
     currently."""
+    # tehkillerbee: TODO Doesn't look like this is using the v2 endpoint anyways!?
 
     date_added: Optional[datetime] = None
     title: str = ""
@@ -196,13 +201,16 @@ class MixV2:
             mix_id = self.id
 
         params = {"mixId": mix_id, "deviceType": "BROWSER"}
-        parse = self.session.parse_page
-        result = self.request.map_request("pages/mix", parse=parse, params=params)
-        assert not isinstance(result, list)
-        self._retrieved = True
-        self.__dict__.update(result.categories[0].__dict__)
-        self._items = result.categories[1].items
-        return self
+        request = self.request.request("GET", "pages/mix", params=params)
+        if request.status_code and request.status_code == 404:
+            raise ObjectNotFound("Mix not found")
+        else:
+            result = self.session.parse_page(request.json())
+            assert not isinstance(result, list)
+            self._retrieved = True
+            self.__dict__.update(result.categories[0].__dict__)
+            self._items = result.categories[1].items
+            return self
 
     def parse(self, json_obj: JsonObj) -> "MixV2":
         """Parse a mix into a :class:`MixV2`, replaces the calling object.

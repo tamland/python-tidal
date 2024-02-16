@@ -825,8 +825,11 @@ class Session:
         :param playlist_id: (Optional) The TIDAL id of the playlist. You may want access to the methods without an id.
         :return: Returns a :class:`.Playlist` object that has access to the session instance used.
         """
-
-        return playlist.Playlist(session=self, playlist_id=playlist_id).factory()
+        try:
+            return playlist.Playlist(session=self, playlist_id=playlist_id).factory()
+        except ObjectNotFound:
+            log.warning("Playlist '%s' is unavailable", playlist_id)
+            raise
 
     def track(
         self, track_id: Optional[str] = None, with_album: bool = False
@@ -839,14 +842,16 @@ class Session:
         :param with_album: (Optional) Whether to fetch the complete :class:`.Album` for the track or not
         :return: Returns a :class:`.Track` object that has access to the session instance used.
         """
-
-        item = media.Track(session=self, media_id=track_id)
-        if item.album and with_album:
-            album = self.album(item.album.id)
-            if album:
-                item.album = album
-
-        return item
+        try:
+            item = media.Track(session=self, media_id=track_id)
+            if item.album and with_album:
+                alb = self.album(item.album.id)
+                if alb:
+                    item.album = alb
+            return item
+        except ObjectNotFound:
+            log.warning("Track '%s' is unavailable", track_id)
+            raise
 
     def video(self, video_id: Optional[str] = None) -> media.Video:
         """Function to create a Video object with access to the session instance in a
@@ -856,8 +861,11 @@ class Session:
         :param video_id: (Optional) The TIDAL id of the Video. You may want access to the methods without an id.
         :return: Returns a :class:`.Video` object that has access to the session instance used.
         """
-
-        return media.Video(session=self, media_id=video_id)
+        try:
+            return media.Video(session=self, media_id=video_id)
+        except ObjectNotFound:
+            log.warning("Video '%s' is unavailable", video_id)
+            raise
 
     def artist(self, artist_id: Optional[str] = None) -> artist.Artist:
         """Function to create a Artist object with access to the session instance in a
@@ -867,8 +875,11 @@ class Session:
         :param artist_id: (Optional) The TIDAL id of the Artist. You may want access to the methods without an id.
         :return: Returns a :class:`.Artist` object that has access to the session instance used.
         """
-
-        return artist.Artist(session=self, artist_id=artist_id)
+        try:
+            return artist.Artist(session=self, artist_id=artist_id)
+        except ObjectNotFound:
+            log.warning("Artist '%s' is unavailable", artist_id)
+            raise
 
     def album(self, album_id: Optional[str] = None) -> album.Album:
         """Function to create a Album object with access to the session instance in a
@@ -878,8 +889,11 @@ class Session:
         :param album_id: (Optional) The TIDAL id of the Album. You may want access to the methods without an id.
         :return: Returns a :class:`.Album` object that has access to the session instance used.
         """
-
-        return album.Album(session=self, album_id=album_id)
+        try:
+            return album.Album(session=self, album_id=album_id)
+        except ObjectNotFound:
+            log.warning("Album '%s' is unavailable", album_id)
+            raise
 
     def mix(self, mix_id: Optional[str] = None) -> mix.Mix:
         """Function to create a mix object with access to the session instance smoothly
@@ -888,8 +902,11 @@ class Session:
         :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
         :return: Returns a :class:`.Mix` object that has access to the session instance used.
         """
-
-        return mix.Mix(session=self, mix_id=mix_id)
+        try:
+            return mix.Mix(session=self, mix_id=mix_id)
+        except ObjectNotFound:
+            log.warning("Mix '%s' is unavailable", mix_id)
+            raise
 
     def mixv2(self, mix_id=None) -> mix.MixV2:
         """Function to create a mix object with access to the session instance smoothly
@@ -899,8 +916,11 @@ class Session:
         :param mix_id: (Optional) The TIDAL id of the Mix. You may want access to the mix methods without an id.
         :return: Returns a :class:`.MixV2` object that has access to the session instance used.
         """
-
-        return mix.MixV2(session=self, mix_id=mix_id)
+        try:
+            return mix.MixV2(session=self, mix_id=mix_id)
+        except ObjectNotFound:
+            log.warning("Mix '%s' is unavailable", mix_id)
+            raise
 
     def get_user(
         self, user_id: Optional[int] = None

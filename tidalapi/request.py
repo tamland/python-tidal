@@ -140,9 +140,8 @@ class Requests(object):
         try:
             request.raise_for_status()
         except Exception as e:
-            print("Got exception", e)
-            print("Response was", e.response)
-            print("Response json was", e.response.json())
+            log.info("Got exception {}".format(e))
+            log.debug("Response json was {}".format(e.response.json()))
         if request.content:
             log.debug("response: %s", json.dumps(request.json(), indent=4))
         return request

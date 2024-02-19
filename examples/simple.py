@@ -24,24 +24,26 @@ from pathlib import Path
 session_file1 = Path("tidal-session-oauth.json")
 
 session = tidalapi.Session()
-# Load session from file; create a new session if necessary
+# Load session from file; create a new OAuth session if necessary
 session.login_session_file(session_file1)
 
 # Override the required playback quality, if necessary
 # Note: Set the quality according to your subscription.
-# Low: Quality.low_96k
-# Normal: Quality.low_320k
-# HiFi: Quality.high_lossless
-# HiFi+ Quality.hi_res_lossless
-session.audio_quality = Quality.low_320k
+# Low: Quality.low_96k          (m4a 96k)
+# Normal: Quality.low_320k      (m4a 320k)
+# HiFi: Quality.high_lossless   (FLAC)
+# HiFi+ Quality.hi_res          (FLAC MQA)
+# HiFi+ Quality.hi_res_lossless (FLAC HI_RES)
+session.audio_quality = Quality.hi_res_lossless.value
 
-album = session.album("110827651") # Let's Rock // The Black Keys
+# album_id = "77640617"    # U2 / Achtung Baby            (Max quality: HI_RES MQA, 16bit/44100Hz)
+# album_id = "110827651"   # The Black Keys / Let's Rock  (Max quality: LOSSLESS FLAC, 24bit/48000Hz)
+album_id = "77646169"   # Beck / Sea Change            (Max quality: HI_RES_LOSSLESS FLAC, 24bit/192000Hz)
+album = session.album(album_id)
 tracks = album.tracks()
+# list album tracks
 print(album.name)
 # list album tracks
 for track in tracks:
-    print(track.name)
+    print("{}: '{}' by '{}'".format(track.id, track.name, track.artist.name))
     print(track.get_url())
-    # print(track.get_stream())
-    for artist in track.artists:
-        print(' by: ', artist.name)

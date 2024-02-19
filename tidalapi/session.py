@@ -282,7 +282,7 @@ class Session:
         self.page = page.Page(self, "")
         self.parse_page = self.page.parse
 
-        self.is_pkce = False  # True if session is PKCE type, otherwise false
+        self.is_pkce = False  # True if current session is PKCE type, otherwise false
 
         self.type_conversions: List[TypeRelation] = [
             TypeRelation(
@@ -447,7 +447,6 @@ class Session:
 
         :param session_file: The session json file
         :param do_pkce: Perform PKCE login. Default: Use OAuth logon
-        :param fn_print: function for printing login prompts
         :return: Returns true if we think the login was successful.
         """
         self.load_session_from_file(session_file)

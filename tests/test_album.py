@@ -24,6 +24,7 @@ from dateutil import tz
 
 import tidalapi
 from tidalapi.album import Album
+from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
 
 from .cover import verify_image_cover, verify_video_cover
 
@@ -110,12 +111,19 @@ def test_default_image_used_if_no_cover_art(mocker):
 def test_similar(session):
     album = session.album(108043414)
     for alb in album.similar():
-        if alb.id == 64522277:
-            # Album with no similar albums should trigger AttributeError (response: 404)
-            with pytest.raises(AttributeError):
-                alb.similar()
-        else:
-            assert isinstance(alb.similar()[0], tidalapi.Album)
+        assert isinstance(alb.similar()[0], tidalapi.Album)
+        # if alb.id == 64522277:
+        #    # Album with no similar albums should trigger MetadataNotAvailable (response: 404)
+        #    # TODO Find an album with no similar albums related to it
+        #    with pytest.raises(MetadataNotAvailable):
+        #        alb.similar()
+        # else:
+        #    assert isinstance(alb.similar()[0], tidalapi.Album)
+
+
+def test_album_not_found(session):
+    with pytest.raises(ObjectNotFound):
+        session.album(123456789)
 
 
 def test_review(session):

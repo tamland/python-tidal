@@ -21,6 +21,7 @@ import pytest
 import requests
 
 import tidalapi
+from tidalapi.exceptions import ObjectNotFound
 
 from .cover import verify_image_cover
 
@@ -40,6 +41,11 @@ def test_artist(session):
     assert requests.get(artist.image(480)).status_code == 200
     assert requests.get(artist.image(320)).status_code == 200
     assert requests.get(artist.image(160)).status_code == 200
+
+
+def test_artist_not_found(session):
+    with pytest.raises(ObjectNotFound):
+        session.artist(123456789)
 
 
 def test_get_albums(session):

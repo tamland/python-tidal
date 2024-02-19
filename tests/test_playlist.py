@@ -23,6 +23,7 @@ import pytest
 from dateutil import tz
 
 import tidalapi
+from tidalapi.exceptions import ObjectNotFound
 
 from .cover import verify_image_cover, verify_image_resolution
 
@@ -76,6 +77,11 @@ def test_updated_playlist(session):
     creator = playlist.creator
     assert creator.id == 169584258
     assert creator.name == "user"
+
+
+def test_playlist_not_found(session):
+    with pytest.raises(ObjectNotFound):
+        session.playlist("12345678")
 
 
 def test_video_playlist(session):

@@ -24,8 +24,9 @@ from enum import Enum
 from typing import TYPE_CHECKING, List, Mapping, Optional, Union, cast
 
 import dateutil.parser
-from typing_extensions import Never
+from typing_extensions import NoReturn
 
+from tidalapi.exceptions import ObjectNotFound
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -45,17 +46,26 @@ class Artist:
     bio: Optional[str] = None
 
     def __init__(self, session: "Session", artist_id: Optional[str]):
+        """Initialize the :class:`Artist` object, given a TIDAL artist ID :param
+        session: The current TIDAL :class:`Session` :param str artist_id: TIDAL artist
+        ID :raises: Raises :class:`exceptions.ObjectNotFound`"""
         self.session = session
         self.request = self.session.request
         self.id = artist_id
+
         if self.id:
-            self.request.map_request(f"artists/{artist_id}", parse=self.parse_artist)
+            request = self.request.request("GET", "artists/%s" % self.id)
+            if request.status_code and request.status_code == 404:
+                raise ObjectNotFound("Artist not found")
+            else:
+                self.request.map_json(request.json(), parse=self.parse_artist)
 
     def parse_artist(self, json_obj: JsonObj) -> "Artist":
-        """
+        """Parses a TIDAL artist, replaces the current :class:`Artist` object. Made for
+        use within the python tidalapi module.
 
-        :param json_obj:
-        :return:
+        :param json_obj: :class:`JsonObj` containing the artist metadata
+        :return: Returns a copy of the :class:`Artist` object
         """
         self.id = json_obj["id"]
         self.name = json_obj["name"]
@@ -81,11 +91,11 @@ class Artist:
         return copy.copy(self)
 
     def parse_artists(self, json_obj: List[JsonObj]) -> List["Artist"]:
-        """Parses a TIDAL artist, replaces the current artist object. Made for use
-        inside of the python tidalapi module.
+        """Parses a list of TIDAL artists, returns a list of :class:`Artist` objects
+        Made for use within the python tidalapi module.
 
-        :param json_obj: Json data returned from api.tidal.com containing an artist
-        :return: Returns a copy of the original :exc: 'Artist': object
+        :param List[JsonObj] json_obj: List of :class:`JsonObj` containing the artist metadata for each artist
+        :return: Returns a list of :class:`Artist` objects
         """
         return list(map(self.parse_artist, json_obj))
 
@@ -198,7 +208,7 @@ class Artist:
             ),
         )
 
-    def items(self) -> List[Never]:
+    def items(self) -> List[NoReturn]:
         """The artist page does not supply any items. This only exists for symmetry with
         other model types.
 

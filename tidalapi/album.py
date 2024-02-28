@@ -300,4 +300,3 @@ class Album:
         else:
             # Return for first track only
             return [self.tracks()[0].get_stream().get_audio_resolution()]
-

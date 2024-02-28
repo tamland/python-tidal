@@ -34,11 +34,13 @@ session.login_session_file(session_file1, do_pkce=True)
 # HiFi: Quality.high_lossless   (FLAC)
 # HiFi+ Quality.hi_res          (FLAC MQA)
 # HiFi+ Quality.hi_res_lossless (FLAC HI_RES)
-session.audio_quality = Quality.hi_res_lossless.value
-#album_id = "77640617"    # U2 / Achtung Baby            (Max quality: HI_RES MQA, 16bit/44100Hz)
-#album_id = "110827651"   # The Black Keys / Let's Rock  (Max quality: LOSSLESS FLAC, 24bit/48000Hz)
-album_id = "77646169"   # Beck / Sea Change            (Max quality: HI_RES_LOSSLESS FLAC, 24bit/192000Hz)
+session.audio_quality = Quality.hi_res_lossless
+# album_id = "249593867"  # Alice In Chains / We Die Young (Max quality: HI_RES MHA1 SONY360)
+# album_id = "77640617"   # U2 / Achtung Baby              (Max quality: HI_RES MQA, 16bit/44100Hz)
+# album_id = "110827651"  # The Black Keys / Let's Rock    (Max quality: LOSSLESS FLAC, 24bit/48000Hz)
+album_id = "77646169"    # Beck / Sea Change               (Max quality: HI_RES_LOSSLESS FLAC, 24bit/192000Hz)
 album = session.album(album_id)
+res = album.get_audio_resolution()
 tracks = album.tracks()
 # list album tracks
 for track in tracks:
@@ -47,11 +49,13 @@ for track in tracks:
     print("MimeType:{}".format(stream.manifest_mime_type))
 
     manifest = stream.get_stream_manifest()
+    audio_resolution = stream.get_audio_resolution()
+
     print("track:{}, (quality:{}, codec:{}, {}bit/{}Hz)".format(track.id,
-                                                                                   stream.audio_quality,
-                                                                                   manifest.get_codecs(),
-                                                                                   stream.bit_depth,
-                                                                                   stream.sample_rate))
+                                                                stream.audio_quality,
+                                                                manifest.get_codecs(),
+                                                                audio_resolution[0],
+                                                                audio_resolution[1]))
     if stream.is_MPD:
         # HI_RES_LOSSLESS quality supported when using MPEG-DASH stream (PKCE only!)
         # 1. Export as MPD manifest

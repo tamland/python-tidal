@@ -255,6 +255,7 @@ class Track(Media):
     peak = None
     isrc = None
     audio_quality: Optional[str] = None
+    audio_modes: Optional[List[str]] = None
     version = None
     full_name: Optional[str] = None
     copyright = None
@@ -269,6 +270,7 @@ class Track(Media):
             self.isrc = json_obj["isrc"]
             self.copyright = json_obj["copyright"]
         self.audio_quality = json_obj["audioQuality"]
+        self.audio_modes = json_obj["audioModes"]
         self.version = json_obj["version"]
         self.media_metadata_tags = json_obj["mediaMetadata"]["tags"]
 
@@ -381,6 +383,48 @@ class Track(Media):
             stream = self.requests.map_json(json_obj, parse=Stream().parse)
             assert not isinstance(stream, list)
             return cast("Stream", stream)
+
+    @property
+    def is_Mqa(self) -> bool:
+        try:
+            if self.media_metadata_tags:
+                return (
+                    True
+                    if MediaMetadataTags.mqa in self.media_metadata_tags
+                    and not self.is_Sony360RA
+                    and not self.is_DolbyAtmos
+                    else False
+                )
+        except:
+            pass
+        # Fallback to old method
+        return True if self.audio_quality == Quality.hi_res else False
+
+    @property
+    def is_HiRes(self) -> bool:
+        try:
+            if (
+                self.media_metadata_tags
+                and MediaMetadataTags.hires_lossless in self.media_metadata_tags
+            ):
+                return True
+        except:
+            pass
+        return False
+
+    @property
+    def is_DolbyAtmos(self) -> bool:
+        try:
+            return True if AudioMode.dolby_atmos in self.audio_modes else False
+        except:
+            return False
+
+    @property
+    def is_Sony360RA(self) -> bool:
+        try:
+            return True if AudioMode.sony_360 in self.audio_modes else False
+        except:
+            return False
 
 
 class Stream:

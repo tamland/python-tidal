@@ -53,45 +53,46 @@ from tidalapi.exceptions import (
 from tidalapi.types import JsonObj
 
 
-class Quality(Enum):
-    low_96k = "LOW"
-    low_320k = "HIGH"
-    high_lossless = "LOSSLESS"
-    hi_res = "HI_RES"
-    hi_res_lossless = "HI_RES_LOSSLESS"
+class Quality:
+    low_96k: str = "LOW"
+    low_320k: str = "HIGH"
+    high_lossless: str = "LOSSLESS"
+    hi_res: str = "HI_RES"
+    hi_res_lossless: str = "HI_RES_LOSSLESS"
 
 
-class VideoQuality(Enum):
-    high = "HIGH"
-    medium = "MEDIUM"
-    low = "LOW"
+class VideoQuality:
+    high: str = "HIGH"
+    medium: str = "MEDIUM"
+    low: str = "LOW"
+    audio_only: str = "AUDIO_ONLY"
 
 
-class AudioMode(Enum):
-    stereo = "STEREO"
-    sony_360 = "SONY_360RA"
-    dolby_atmos = "DOLBY_ATMOS"
+class AudioMode:
+    stereo: str = "STEREO"
+    sony_360: str = "SONY_360RA"
+    dolby_atmos: str = "DOLBY_ATMOS"
 
 
-# class MediaMetadataTags(Enum):
-#    mqa = 'MQA'
-#    hires_lossless = 'HIRES_LOSSLESS'
-#    lossless = 'LOSSLESS'
-#    sony_360 = 'SONY_360RA'
-#    dolby_atmos = 'DOLBY_ATMOS'
+class MediaMetadataTags:
+    mqa: str = "MQA"
+    hires_lossless: str = "HIRES_LOSSLESS"
+    lossless: str = "LOSSLESS"
+    sony_360: str = "SONY_360RA"
+    dolby_atmos: str = "DOLBY_ATMOS"
 
 
-class AudioExtensions(Enum):
-    FLAC = ".flac"
-    M4A = ".m4a"
-    MP4 = ".mp4"
+class AudioExtensions:
+    FLAC: str = ".flac"
+    M4A: str = ".m4a"
+    MP4: str = ".mp4"
 
 
-class VideoExtensions(Enum):
-    TS = ".ts"
+class VideoExtensions:
+    TS: str = ".ts"
 
 
-class ManifestMimeType(Enum):
+class ManifestMimeType:
     # EMU: str = "application/vnd.tidal.emu"
     # APPL: str = "application/vnd.apple.mpegurl"
     MPD: str = "application/dash+xml"
@@ -253,7 +254,7 @@ class Track(Media):
     replay_gain = None
     peak = None
     isrc = None
-    audio_quality: Optional[Quality] = None
+    audio_quality: Optional[str] = None
     version = None
     full_name: Optional[str] = None
     copyright = None
@@ -267,7 +268,7 @@ class Track(Media):
             self.peak = json_obj["peak"]
             self.isrc = json_obj["isrc"]
             self.copyright = json_obj["copyright"]
-        self.audio_quality = Quality(json_obj["audioQuality"])
+        self.audio_quality = json_obj["audioQuality"]
         self.version = json_obj["version"]
         self.media_metadata_tags = json_obj["mediaMetadata"]["tags"]
 
@@ -390,8 +391,8 @@ class Stream:
     """
 
     track_id: int = -1
-    audio_mode: str = AudioMode.stereo.value  # STEREO, SONY_360RA, DOLBY_ATMOS
-    audio_quality: str = Quality.low_96k.value  # LOW, HIGH, LOSSLESS, HI_RES
+    audio_mode: str = AudioMode.stereo  # STEREO, SONY_360RA, DOLBY_ATMOS
+    audio_quality: str = Quality.low_320k  # LOW, HIGH, LOSSLESS, HI_RES, HI_RES_LOSSLESS
     manifest_mime_type: str = ""
     manifest_hash: str = ""
     manifest: str = ""
@@ -437,11 +438,11 @@ class Stream:
 
     @property
     def is_MPD(self) -> bool:
-        return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.MPD in self.manifest_mime_type else False
 
     @property
     def is_BTS(self) -> bool:
-        return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.BTS in self.manifest_mime_type else False
 
 
 class StreamManifest:
@@ -515,27 +516,27 @@ class StreamManifest:
         if not stream_url:
             return MimeType.audio_m4a
         else:
-            if AudioExtensions.FLAC.value in stream_url:
+            if AudioExtensions.FLAC in stream_url:
                 return MimeType.audio_xflac
-            elif AudioExtensions.MP4.value in stream_url:
+            elif AudioExtensions.MP4 in stream_url:
                 return MimeType.audio_m4a
 
     @staticmethod
     def get_file_extension(stream_url: str, stream_codec: Optional[str] = None) -> str:
-        if AudioExtensions.FLAC.value in stream_url:
-            result: str = AudioExtensions.FLAC.value
-        elif AudioExtensions.MP4.value in stream_url:
+        if AudioExtensions.FLAC in stream_url:
+            result: str = AudioExtensions.FLAC
+        elif AudioExtensions.MP4 in stream_url:
             if "ac4" in stream_codec or "mha1" in stream_codec:
                 result = ".mp4"
             elif "flac" in stream_codec:
                 result = ".flac"
             else:
                 result = ".m4a"
-            result: str = AudioExtensions.MP4.value
-        elif VideoExtensions.TS.value in stream_url:
-            result: str = VideoExtensions.TS.value
+            result: str = AudioExtensions.MP4
+        elif VideoExtensions.TS in stream_url:
+            result: str = VideoExtensions.TS
         else:
-            result: str = AudioExtensions.M4A.value
+            result: str = AudioExtensions.M4A
 
         return result
 
@@ -545,11 +546,11 @@ class StreamManifest:
 
     @property
     def is_MPD(self) -> bool:
-        return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.MPD in self.manifest_mime_type else False
 
     @property
     def is_BTS(self) -> bool:
-        return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.BTS in self.manifest_mime_type else False
 
 
 class DashInfo:

@@ -121,13 +121,13 @@ class Config:
     @no_type_check
     def __init__(
         self,
-        quality: media.Quality = media.Quality.low_320k,
-        video_quality: media.VideoQuality = media.VideoQuality.high,
+        quality: str = media.Quality.low_320k,
+        video_quality: str = media.VideoQuality.high,
         item_limit: int = 1000,
         alac: bool = True,
     ):
-        self.quality = quality.value
-        self.video_quality = video_quality.value
+        self.quality = quality
+        self.video_quality = video_quality
         self.alac = alac
 
         if item_limit > 10000:
@@ -737,7 +737,7 @@ class Session:
 
     @audio_quality.setter
     def audio_quality(self, quality: str) -> None:
-        self.config.quality = media.Quality(quality).value
+        self.config.quality = quality
 
     @property
     def video_quality(self) -> str:
@@ -745,7 +745,7 @@ class Session:
 
     @video_quality.setter
     def video_quality(self, quality: str) -> None:
-        self.config.video_quality = media.VideoQuality(quality).value
+        self.config.video_quality = quality
 
     def search(
         self,

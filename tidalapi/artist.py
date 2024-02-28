@@ -35,6 +35,8 @@ if TYPE_CHECKING:
     from tidalapi.page import Page
     from tidalapi.session import Session
 
+DEFAULT_ARTIST_IMG = "1e01cdb6-f15d-4d8b-8440-a047976c1cac"
+
 
 class Artist:
     id: Optional[str] = None
@@ -81,7 +83,10 @@ class Artist:
             self.roles = roles
             self.role = roles[0]
 
+        # Get artist picture or use default
         self.picture = json_obj.get("picture")
+        if self.picture is None:
+            self.picture = DEFAULT_ARTIST_IMG
 
         user_date_added = json_obj.get("dateAdded")
         self.user_date_added = (

@@ -950,6 +950,14 @@ class Session:
         """
         return self.page.get("pages/explore")
 
+    def hires_page(self) -> page.Page:
+        """
+        Retrieves the HiRes page, as seen on https://listen.tidal.com/view/pages/hires
+
+        :return: A :class:`.Page` object with the :class:`.PageCategory` list from the explore page
+        """
+        return self.page.get("pages/hires")
+
     def for_you(self) -> page.Page:
         """
         Retrieves the For You page, as seen on https://listen.tidal.com/view/pages/for_you

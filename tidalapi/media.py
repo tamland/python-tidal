@@ -449,26 +449,27 @@ class Stream:
     sample_rate: int = 44100
 
     def parse(self, json_obj: JsonObj) -> "Stream":
-        self.track_id = json_obj["trackId"]
-        self.audio_mode = json_obj["audioMode"]
-        self.audio_quality = json_obj["audioQuality"]
-        self.manifest_mime_type = json_obj["manifestMimeType"]
-        self.manifest_hash = json_obj["manifestHash"]
-        self.manifest = json_obj["manifest"]
-        self.album_replay_gain = json_obj["albumReplayGain"]
-        self.album_peak_amplitude = json_obj["albumPeakAmplitude"]
-        self.track_replay_gain = json_obj["trackReplayGain"]
-        self.track_peak_amplitude = json_obj["trackPeakAmplitude"]
-        if not (
-            self.audio_quality == Quality.low_96k.value
-            or self.audio_quality == Quality.low_320k.value
-            or self.audio_quality == Quality.hi_res.value
-        ):
-            # Bit depth, Sample rate not available for low quality modes. Assuming 16bit/44100Hz
-            self.bit_depth = json_obj["bitDepth"]
-            self.sample_rate = json_obj["sampleRate"]
+        self.track_id = json_obj.get("trackId")
+        self.audio_mode = json_obj.get("audioMode")
+        self.audio_quality = json_obj.get("audioQuality")
+        self.manifest_mime_type = json_obj.get("manifestMimeType")
+        self.manifest_hash = json_obj.get("manifestHash")
+        self.manifest = json_obj.get("manifest")
+
+        # Use default values for gain, amplitude if unavailable
+        self.album_replay_gain = json_obj.get("albumReplayGain", 1.0)
+        self.album_peak_amplitude = json_obj.get("albumPeakAmplitude", 1.0)
+        self.track_replay_gain = json_obj.get("trackReplayGain", 1.0)
+        self.track_peak_amplitude = json_obj.get("trackPeakAmplitude", 1.0)
+
+        # Bit depth, Sample rate not available for low,hi_res quality modes. Assuming 16bit/44100Hz
+        self.bit_depth = json_obj.get("bitDepth", 16)
+        self.sample_rate = json_obj.get("sampleRate", 44100)
 
         return copy.copy(self)
+
+    def get_audio_resolution(self):
+        return self.bit_depth, self.sample_rate
 
     def get_stream_manifest(self) -> "StreamManifest":
         return StreamManifest(self)

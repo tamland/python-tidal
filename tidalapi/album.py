@@ -33,9 +33,7 @@ if TYPE_CHECKING:
     from tidalapi.session import Session
 
 
-DEFAULT_ALBUM_IMAGE = (
-    "https://tidal.com/browse/assets/images/defaultImages/defaultAlbumImage.png"
-)
+DEFAULT_ALBUM_IMG = "0dfd3368-3aa1-49a3-935f-10ffb39803c0"
 
 
 class Album:
@@ -204,7 +202,7 @@ class Album:
         assert isinstance(items, list)
         return cast(List[Union["Track", "Video"]], items)
 
-    def image(self, dimensions: int = 320, default: str = DEFAULT_ALBUM_IMAGE) -> str:
+    def image(self, dimensions: int = 320, default: str = DEFAULT_ALBUM_IMG) -> str:
         """A url to an album image cover.
 
         :param dimensions: The width and height that you want from the image
@@ -213,17 +211,22 @@ class Album:
 
         Valid resolutions: 80x80, 160x160, 320x320, 640x640, 1280x1280
         """
-        if not self.cover:
-            return default
 
         if dimensions not in [80, 160, 320, 640, 1280]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
 
-        return self.session.config.image_url % (
-            self.cover.replace("-", "/"),
-            dimensions,
-            dimensions,
-        )
+        if not self.cover:
+            return self.session.config.image_url % (
+                default.replace("-", "/"),
+                dimensions,
+                dimensions,
+            )
+        else:
+            return self.session.config.image_url % (
+                self.cover.replace("-", "/"),
+                dimensions,
+                dimensions,
+            )
 
     def video(self, dimensions: int) -> str:
         """Creates a url to an mp4 video cover for the album.

@@ -41,12 +41,12 @@ from isodate import parse_duration
 from mpegdash.parser import MPEGDASHParser
 
 from tidalapi.exceptions import (
-    AssetNotAvailable,
     ManifestDecodeError,
     MetadataNotAvailable,
     MPDNotAvailableError,
     ObjectNotFound,
     StreamNotAvailable,
+    TooManyRequests,
     UnknownManifestFormat,
     URLNotAvailable,
 )
@@ -289,10 +289,12 @@ class Track(Media):
         :return: A :class:`Track` object containing all the information about the track
         """
 
-        request = self.requests.request("GET", "tracks/%s" % media_id)
-        if request.status_code and request.status_code == 404:
-            # TODO Handle track not found or not available due to permissions
+        try:
+            request = self.requests.request("GET", "tracks/%s" % media_id)
+        except ObjectNotFound:
             raise ObjectNotFound("Track not found or unavailable")
+        except TooManyRequests:
+            raise TooManyRequests("Track unavailable")
         else:
             json_obj = request.json()
             track = self.requests.map_json(json_obj, parse=self.parse_track)
@@ -316,11 +318,14 @@ class Track(Media):
             "audioquality": self.session.config.quality,
             "assetpresentation": "FULL",
         }
-        request = self.requests.request(
-            "GET", "tracks/%s/urlpostpaywall" % self.id, params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "tracks/%s/urlpostpaywall" % self.id, params
+            )
+        except ObjectNotFound:
             raise URLNotAvailable("URL not available for this track")
+        except TooManyRequests:
+            raise TooManyRequests("URL Unavailable")
         else:
             json_obj = request.json()
             return cast(str, json_obj["urls"][0])
@@ -331,9 +336,12 @@ class Track(Media):
         :return: A :class:`Lyrics` object containing the lyrics
         :raises: A :class:`exceptions.MetadataNotAvailable` if there aren't any lyrics
         """
-        request = self.requests.request("GET", "tracks/%s/lyrics" % self.id)
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request("GET", "tracks/%s/lyrics" % self.id)
+        except ObjectNotFound:
             raise MetadataNotAvailable("No lyrics exists for this track")
+        except TooManyRequests:
+            raise TooManyRequests("Lyrics unavailable")
         else:
             json_obj = request.json()
             lyrics = self.requests.map_json(json_obj, parse=Lyrics().parse)
@@ -349,11 +357,14 @@ class Track(Media):
         """
         params = {"limit": limit}
 
-        request = self.requests.request(
-            "GET", "tracks/%s/radio" % self.id, params=params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "tracks/%s/radio" % self.id, params=params
+            )
+        except ObjectNotFound:
             raise MetadataNotAvailable("Track radio not available for this track")
+        except TooManyRequests:
+            raise TooManyRequests("Track radio unavailable)")
         else:
             json_obj = request.json()
             tracks = self.requests.map_json(json_obj, parse=self.session.parse_track)
@@ -373,11 +384,14 @@ class Track(Media):
             "assetpresentation": "FULL",
         }
 
-        request = self.requests.request(
-            "GET", "tracks/%s/playbackinfopostpaywall" % self.id, params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "tracks/%s/playbackinfopostpaywall" % self.id, params
+            )
+        except ObjectNotFound:
             raise StreamNotAvailable("Stream not available for this track")
+        except TooManyRequests:
+            raise TooManyRequests("Stream unavailable")
         else:
             json_obj = request.json()
             stream = self.requests.map_json(json_obj, parse=Stream().parse)
@@ -785,9 +799,12 @@ class Video(Media):
         :return: A :class:`Video` object containing all the information about the video.
         """
 
-        request = self.requests.request("GET", "videos/%s" % self.id)
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request("GET", "videos/%s" % self.id)
+        except ObjectNotFound:
             raise ObjectNotFound("Video not found or unavailable")
+        except TooManyRequests:
+            raise TooManyRequests("Video unavailable")
         else:
             json_obj = request.json()
             video = self.requests.map_json(json_obj, parse=self.parse_video)
@@ -806,11 +823,14 @@ class Video(Media):
             "assetpresentation": "FULL",
         }
 
-        request = self.requests.request(
-            "GET", "videos/%s/urlpostpaywall" % self.id, params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "videos/%s/urlpostpaywall" % self.id, params
+            )
+        except ObjectNotFound:
             raise URLNotAvailable("URL not available for this video")
+        except TooManyRequests:
+            raise TooManyRequests("URL unavailable)")
         else:
             json_obj = request.json()
             return cast(str, json_obj["urls"][0])

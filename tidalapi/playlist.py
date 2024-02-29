@@ -24,7 +24,7 @@ import copy
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Sequence, Union, cast
 
-from tidalapi.exceptions import ObjectNotFound
+from tidalapi.exceptions import ObjectNotFound, TooManyRequests
 from tidalapi.types import JsonObj
 from tidalapi.user import LoggedInUser
 
@@ -66,9 +66,12 @@ class Playlist:
         self.request = session.request
         self._base_url = "playlists/%s"
         if playlist_id:
-            request = self.request.request("GET", self._base_url % self.id)
-            if request.status_code and request.status_code == 404:
+            try:
+                request = self.request.request("GET", self._base_url % self.id)
+            except ObjectNotFound:
                 raise ObjectNotFound("Playlist not found")
+            except TooManyRequests:
+                raise TooManyRequests("Playlist unavailable")
             else:
                 self._etag = request.headers["etag"]
                 self.parse(request.json())

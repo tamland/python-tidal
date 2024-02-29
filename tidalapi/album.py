@@ -23,8 +23,7 @@ from typing import TYPE_CHECKING, List, Optional, Union, cast
 
 import dateutil.parser
 
-from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
-from tidalapi.media import AudioMode, MediaMetadataTags, Quality
+from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound, TooManyRequests
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -83,9 +82,12 @@ class Album:
         self.id = album_id
 
         if self.id:
-            request = self.request.request("GET", "albums/%s" % self.id)
-            if request.status_code and request.status_code == 404:
+            try:
+                request = self.request.request("GET", "albums/%s" % self.id)
+            except ObjectNotFound:
                 raise ObjectNotFound("Album not found")
+            except TooManyRequests:
+                raise TooManyRequests("Album unavailable")
             else:
                 self.request.map_json(request.json(), parse=self.parse)
 
@@ -258,9 +260,12 @@ class Album:
 
         :return: A :any:`list` of similar albums
         """
-        request = self.request.request("GET", "albums/%s/similar" % self.id)
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.request.request("GET", "albums/%s/similar" % self.id)
+        except ObjectNotFound:
             raise MetadataNotAvailable("No similar albums exist for this album")
+        except TooManyRequests:
+            raise TooManyRequests("Similar artists unavailable")
         else:
             albums = self.request.map_json(
                 request.json(), parse=self.session.parse_album

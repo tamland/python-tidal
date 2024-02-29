@@ -6,6 +6,10 @@ class AssetNotAvailable(Exception):
     pass
 
 
+class TooManyRequests(Exception):
+    pass
+
+
 class URLNotAvailable(Exception):
     pass
 

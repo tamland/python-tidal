@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import dateutil.parser
 
-from tidalapi.exceptions import ObjectNotFound
+from tidalapi.exceptions import ObjectNotFound, TooManyRequests
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -94,9 +94,13 @@ class Mix:
             mix_id = self.id
 
         params = {"mixId": mix_id, "deviceType": "BROWSER"}
-        request = self.request.request("GET", "pages/mix", params=params)
-        if request.status_code and request.status_code == 404:
+
+        try:
+            request = self.request.request("GET", "pages/mix", params=params)
+        except ObjectNotFound:
             raise ObjectNotFound("Mix not found")
+        except TooManyRequests:
+            raise TooManyRequests("Mix unavailable")
         else:
             result = self.session.parse_page(request.json())
             assert not isinstance(result, list)
@@ -202,15 +206,16 @@ class MixV2:
             mix_id = self.id
 
         params = {"mixId": mix_id, "deviceType": "BROWSER"}
-        request = self.request.request("GET", "pages/mix", params=params)
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.request.request("GET", "pages/mix", params=params)
+        except ObjectNotFound:
             raise ObjectNotFound("Mix not found")
+        except TooManyRequests:
+            raise TooManyRequests("Mix unavailable")
         else:
             result = self.session.parse_page(request.json())
             assert not isinstance(result, list)
-            self._retrieved = True
             self.__dict__.update(result.categories[0].__dict__)
-            self._items = result.categories[1].items
             return self
 
     def parse(self, json_obj: JsonObj) -> "MixV2":

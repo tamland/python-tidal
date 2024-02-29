@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, List, Mapping, Optional, Union, cast
 import dateutil.parser
 from typing_extensions import NoReturn
 
-from tidalapi.exceptions import ObjectNotFound
+from tidalapi.exceptions import ObjectNotFound, TooManyRequests
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -56,9 +56,12 @@ class Artist:
         self.id = artist_id
 
         if self.id:
-            request = self.request.request("GET", "artists/%s" % self.id)
-            if request.status_code and request.status_code == 404:
+            try:
+                request = self.request.request("GET", "artists/%s" % self.id)
+            except ObjectNotFound:
                 raise ObjectNotFound("Artist not found")
+            except TooManyRequests:
+                raise TooManyRequests("Artist unavailable")
             else:
                 self.request.map_json(request.json(), parse=self.parse_artist)
 

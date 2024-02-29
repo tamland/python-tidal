@@ -500,8 +500,6 @@ class Session:
         # Parse and set tokens.
         self.process_auth_token(json)
 
-        self.is_pkce = True
-
         # Swap the client_id and secret
         # self.client_enable_hires()
 
@@ -670,6 +668,7 @@ class Session:
         self.session_id = json["sessionId"]
         self.country_code = json["countryCode"]
         self.user = user.User(self, user_id=json["userId"]).factory()
+        self.is_pkce = True
 
     def _wait_for_link_login(self, json: JsonObj) -> Any:
         expiry = float(json["expiresIn"])

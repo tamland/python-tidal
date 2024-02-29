@@ -195,7 +195,7 @@ class MixV2:
         if mix_id is not None:
             self.get(mix_id)
 
-    def get(self, mix_id: Optional[str] = None) -> "Mix":
+    def get(self, mix_id: Optional[str] = None) -> "MixV2":
         """Returns information about a mix, and also replaces the mix object used to
         call this function.
 

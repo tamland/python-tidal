@@ -41,57 +41,58 @@ from isodate import parse_duration
 from mpegdash.parser import MPEGDASHParser
 
 from tidalapi.exceptions import (
-    AssetNotAvailable,
     ManifestDecodeError,
     MetadataNotAvailable,
     MPDNotAvailableError,
     ObjectNotFound,
     StreamNotAvailable,
+    TooManyRequests,
     UnknownManifestFormat,
     URLNotAvailable,
 )
 from tidalapi.types import JsonObj
 
 
-class Quality(Enum):
-    low_96k = "LOW"
-    low_320k = "HIGH"
-    high_lossless = "LOSSLESS"
-    hi_res = "HI_RES"
-    hi_res_lossless = "HI_RES_LOSSLESS"
+class Quality:
+    low_96k: str = "LOW"
+    low_320k: str = "HIGH"
+    high_lossless: str = "LOSSLESS"
+    hi_res: str = "HI_RES"
+    hi_res_lossless: str = "HI_RES_LOSSLESS"
 
 
-class VideoQuality(Enum):
-    high = "HIGH"
-    medium = "MEDIUM"
-    low = "LOW"
+class VideoQuality:
+    high: str = "HIGH"
+    medium: str = "MEDIUM"
+    low: str = "LOW"
+    audio_only: str = "AUDIO_ONLY"
 
 
-class AudioMode(Enum):
-    stereo = "STEREO"
-    sony_360 = "SONY_360RA"
-    dolby_atmos = "DOLBY_ATMOS"
+class AudioMode:
+    stereo: str = "STEREO"
+    sony_360: str = "SONY_360RA"
+    dolby_atmos: str = "DOLBY_ATMOS"
 
 
-# class MediaMetadataTags(Enum):
-#    mqa = 'MQA'
-#    hires_lossless = 'HIRES_LOSSLESS'
-#    lossless = 'LOSSLESS'
-#    sony_360 = 'SONY_360RA'
-#    dolby_atmos = 'DOLBY_ATMOS'
+class MediaMetadataTags:
+    mqa: str = "MQA"
+    hires_lossless: str = "HIRES_LOSSLESS"
+    lossless: str = "LOSSLESS"
+    sony_360: str = "SONY_360RA"
+    dolby_atmos: str = "DOLBY_ATMOS"
 
 
-class AudioExtensions(Enum):
-    FLAC = ".flac"
-    M4A = ".m4a"
-    MP4 = ".mp4"
+class AudioExtensions:
+    FLAC: str = ".flac"
+    M4A: str = ".m4a"
+    MP4: str = ".mp4"
 
 
-class VideoExtensions(Enum):
-    TS = ".ts"
+class VideoExtensions:
+    TS: str = ".ts"
 
 
-class ManifestMimeType(Enum):
+class ManifestMimeType:
     # EMU: str = "application/vnd.tidal.emu"
     # APPL: str = "application/vnd.apple.mpegurl"
     MPD: str = "application/dash+xml"
@@ -253,7 +254,8 @@ class Track(Media):
     replay_gain = None
     peak = None
     isrc = None
-    audio_quality: Optional[Quality] = None
+    audio_quality: Optional[str] = None
+    audio_modes: Optional[List[str]] = None
     version = None
     full_name: Optional[str] = None
     copyright = None
@@ -267,7 +269,8 @@ class Track(Media):
             self.peak = json_obj["peak"]
             self.isrc = json_obj["isrc"]
             self.copyright = json_obj["copyright"]
-        self.audio_quality = Quality(json_obj["audioQuality"])
+        self.audio_quality = json_obj["audioQuality"]
+        self.audio_modes = json_obj["audioModes"]
         self.version = json_obj["version"]
         self.media_metadata_tags = json_obj["mediaMetadata"]["tags"]
 
@@ -286,10 +289,12 @@ class Track(Media):
         :return: A :class:`Track` object containing all the information about the track
         """
 
-        request = self.requests.request("GET", "tracks/%s" % media_id)
-        if request.status_code and request.status_code == 404:
-            # TODO Handle track not found or not available due to permissions
+        try:
+            request = self.requests.request("GET", "tracks/%s" % media_id)
+        except ObjectNotFound:
             raise ObjectNotFound("Track not found or unavailable")
+        except TooManyRequests:
+            raise TooManyRequests("Track unavailable")
         else:
             json_obj = request.json()
             track = self.requests.map_json(json_obj, parse=self.parse_track)
@@ -313,11 +318,14 @@ class Track(Media):
             "audioquality": self.session.config.quality,
             "assetpresentation": "FULL",
         }
-        request = self.requests.request(
-            "GET", "tracks/%s/urlpostpaywall" % self.id, params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "tracks/%s/urlpostpaywall" % self.id, params
+            )
+        except ObjectNotFound:
             raise URLNotAvailable("URL not available for this track")
+        except TooManyRequests:
+            raise TooManyRequests("URL Unavailable")
         else:
             json_obj = request.json()
             return cast(str, json_obj["urls"][0])
@@ -328,9 +336,12 @@ class Track(Media):
         :return: A :class:`Lyrics` object containing the lyrics
         :raises: A :class:`exceptions.MetadataNotAvailable` if there aren't any lyrics
         """
-        request = self.requests.request("GET", "tracks/%s/lyrics" % self.id)
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request("GET", "tracks/%s/lyrics" % self.id)
+        except ObjectNotFound:
             raise MetadataNotAvailable("No lyrics exists for this track")
+        except TooManyRequests:
+            raise TooManyRequests("Lyrics unavailable")
         else:
             json_obj = request.json()
             lyrics = self.requests.map_json(json_obj, parse=Lyrics().parse)
@@ -346,11 +357,14 @@ class Track(Media):
         """
         params = {"limit": limit}
 
-        request = self.requests.request(
-            "GET", "tracks/%s/radio" % self.id, params=params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "tracks/%s/radio" % self.id, params=params
+            )
+        except ObjectNotFound:
             raise MetadataNotAvailable("Track radio not available for this track")
+        except TooManyRequests:
+            raise TooManyRequests("Track radio unavailable)")
         else:
             json_obj = request.json()
             tracks = self.requests.map_json(json_obj, parse=self.session.parse_track)
@@ -370,16 +384,61 @@ class Track(Media):
             "assetpresentation": "FULL",
         }
 
-        request = self.requests.request(
-            "GET", "tracks/%s/playbackinfopostpaywall" % self.id, params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "tracks/%s/playbackinfopostpaywall" % self.id, params
+            )
+        except ObjectNotFound:
             raise StreamNotAvailable("Stream not available for this track")
+        except TooManyRequests:
+            raise TooManyRequests("Stream unavailable")
         else:
             json_obj = request.json()
             stream = self.requests.map_json(json_obj, parse=Stream().parse)
             assert not isinstance(stream, list)
             return cast("Stream", stream)
+
+    @property
+    def is_Mqa(self) -> bool:
+        try:
+            if self.media_metadata_tags:
+                return (
+                    True
+                    if MediaMetadataTags.mqa in self.media_metadata_tags
+                    and not self.is_Sony360RA
+                    and not self.is_DolbyAtmos
+                    else False
+                )
+        except:
+            pass
+        # Fallback to old method
+        return True if self.audio_quality == Quality.hi_res else False
+
+    @property
+    def is_HiRes(self) -> bool:
+        try:
+            if (
+                self.media_metadata_tags
+                and MediaMetadataTags.hires_lossless in self.media_metadata_tags
+            ):
+                return True
+        except:
+            pass
+        return False
+
+    @property
+    def is_DolbyAtmos(self) -> bool:
+        try:
+            return True if AudioMode.dolby_atmos in self.audio_modes else False
+        except:
+            return False
+
+    @property
+    def is_Sony360RA(self) -> bool:
+        try:
+            return True if AudioMode.sony_360 in self.audio_modes else False
+        except:
+            return False
 
 
 class Stream:
@@ -390,8 +449,10 @@ class Stream:
     """
 
     track_id: int = -1
-    audio_mode: str = AudioMode.stereo.value  # STEREO, SONY_360RA, DOLBY_ATMOS
-    audio_quality: str = Quality.low_96k.value  # LOW, HIGH, LOSSLESS, HI_RES
+    audio_mode: str = AudioMode.stereo  # STEREO, SONY_360RA, DOLBY_ATMOS
+    audio_quality: str = (
+        Quality.low_320k
+    )  # LOW, HIGH, LOSSLESS, HI_RES, HI_RES_LOSSLESS
     manifest_mime_type: str = ""
     manifest_hash: str = ""
     manifest: str = ""
@@ -404,26 +465,27 @@ class Stream:
     sample_rate: int = 44100
 
     def parse(self, json_obj: JsonObj) -> "Stream":
-        self.track_id = json_obj["trackId"]
-        self.audio_mode = json_obj["audioMode"]
-        self.audio_quality = json_obj["audioQuality"]
-        self.manifest_mime_type = json_obj["manifestMimeType"]
-        self.manifest_hash = json_obj["manifestHash"]
-        self.manifest = json_obj["manifest"]
-        self.album_replay_gain = json_obj["albumReplayGain"]
-        self.album_peak_amplitude = json_obj["albumPeakAmplitude"]
-        self.track_replay_gain = json_obj["trackReplayGain"]
-        self.track_peak_amplitude = json_obj["trackPeakAmplitude"]
-        if not (
-            self.audio_quality == Quality.low_96k.value
-            or self.audio_quality == Quality.low_320k.value
-            or self.audio_quality == Quality.hi_res.value
-        ):
-            # Bit depth, Sample rate not available for low quality modes. Assuming 16bit/44100Hz
-            self.bit_depth = json_obj["bitDepth"]
-            self.sample_rate = json_obj["sampleRate"]
+        self.track_id = json_obj.get("trackId")
+        self.audio_mode = json_obj.get("audioMode")
+        self.audio_quality = json_obj.get("audioQuality")
+        self.manifest_mime_type = json_obj.get("manifestMimeType")
+        self.manifest_hash = json_obj.get("manifestHash")
+        self.manifest = json_obj.get("manifest")
+
+        # Use default values for gain, amplitude if unavailable
+        self.album_replay_gain = json_obj.get("albumReplayGain", 1.0)
+        self.album_peak_amplitude = json_obj.get("albumPeakAmplitude", 1.0)
+        self.track_replay_gain = json_obj.get("trackReplayGain", 1.0)
+        self.track_peak_amplitude = json_obj.get("trackPeakAmplitude", 1.0)
+
+        # Bit depth, Sample rate not available for low,hi_res quality modes. Assuming 16bit/44100Hz
+        self.bit_depth = json_obj.get("bitDepth", 16)
+        self.sample_rate = json_obj.get("sampleRate", 44100)
 
         return copy.copy(self)
+
+    def get_audio_resolution(self):
+        return self.bit_depth, self.sample_rate
 
     def get_stream_manifest(self) -> "StreamManifest":
         return StreamManifest(self)
@@ -437,11 +499,11 @@ class Stream:
 
     @property
     def is_MPD(self) -> bool:
-        return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.MPD in self.manifest_mime_type else False
 
     @property
     def is_BTS(self) -> bool:
-        return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.BTS in self.manifest_mime_type else False
 
 
 class StreamManifest:
@@ -515,27 +577,27 @@ class StreamManifest:
         if not stream_url:
             return MimeType.audio_m4a
         else:
-            if AudioExtensions.FLAC.value in stream_url:
+            if AudioExtensions.FLAC in stream_url:
                 return MimeType.audio_xflac
-            elif AudioExtensions.MP4.value in stream_url:
+            elif AudioExtensions.MP4 in stream_url:
                 return MimeType.audio_m4a
 
     @staticmethod
     def get_file_extension(stream_url: str, stream_codec: Optional[str] = None) -> str:
-        if AudioExtensions.FLAC.value in stream_url:
-            result: str = AudioExtensions.FLAC.value
-        elif AudioExtensions.MP4.value in stream_url:
+        if AudioExtensions.FLAC in stream_url:
+            result: str = AudioExtensions.FLAC
+        elif AudioExtensions.MP4 in stream_url:
             if "ac4" in stream_codec or "mha1" in stream_codec:
                 result = ".mp4"
             elif "flac" in stream_codec:
                 result = ".flac"
             else:
                 result = ".m4a"
-            result: str = AudioExtensions.MP4.value
-        elif VideoExtensions.TS.value in stream_url:
-            result: str = VideoExtensions.TS.value
+            result: str = AudioExtensions.MP4
+        elif VideoExtensions.TS in stream_url:
+            result: str = VideoExtensions.TS
         else:
-            result: str = AudioExtensions.M4A.value
+            result: str = AudioExtensions.M4A
 
         return result
 
@@ -545,11 +607,11 @@ class StreamManifest:
 
     @property
     def is_MPD(self) -> bool:
-        return True if ManifestMimeType.MPD.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.MPD in self.manifest_mime_type else False
 
     @property
     def is_BTS(self) -> bool:
-        return True if ManifestMimeType.BTS.value in self.manifest_mime_type else False
+        return True if ManifestMimeType.BTS in self.manifest_mime_type else False
 
 
 class DashInfo:
@@ -737,9 +799,12 @@ class Video(Media):
         :return: A :class:`Video` object containing all the information about the video.
         """
 
-        request = self.requests.request("GET", "videos/%s" % self.id)
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request("GET", "videos/%s" % self.id)
+        except ObjectNotFound:
             raise ObjectNotFound("Video not found or unavailable")
+        except TooManyRequests:
+            raise TooManyRequests("Video unavailable")
         else:
             json_obj = request.json()
             video = self.requests.map_json(json_obj, parse=self.parse_video)
@@ -758,11 +823,14 @@ class Video(Media):
             "assetpresentation": "FULL",
         }
 
-        request = self.requests.request(
-            "GET", "videos/%s/urlpostpaywall" % self.id, params
-        )
-        if request.status_code and request.status_code == 404:
+        try:
+            request = self.requests.request(
+                "GET", "videos/%s/urlpostpaywall" % self.id, params
+            )
+        except ObjectNotFound:
             raise URLNotAvailable("URL not available for this video")
+        except TooManyRequests:
+            raise TooManyRequests("URL unavailable)")
         else:
             json_obj = request.json()
             return cast(str, json_obj["urls"][0])

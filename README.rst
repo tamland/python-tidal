@@ -20,23 +20,6 @@ Install from `PyPI <https://pypi.python.org/pypi/tidalapi/>`_ using ``pip``:
 
     $ pip install tidalapi
 
-
-GStreamer
-------------
-
-Playback of certain audio qualities
-Certain streaming qualities require gstreamer bad-plugins, e.g.:
-```
-sudo apt-get install gstreamer1.0-plugins-bad
-```
-This is mandatory to be able to play m4a streams and for playback of mpegdash or hls streams. Otherwise, you will likely get an error:
-```
-WARNING  [MainThread] mopidy.audio.actor Could not find a application/x-hls decoder to handle media.
-WARNING  [MainThread] mopidy.audio.gst GStreamer warning: No decoder available for type 'application/x-hls'.
-ERROR    [MainThread] mopidy.audio.gst GStreamer error: Your GStreamer installation is missing a plug-in.
-```
-
-
 Usage
 -------------
 

@@ -69,8 +69,8 @@ def test_track_url(session):
 def test_lyrics(session):
     track = session.track(56480040)
     lyrics = track.lyrics()
-    assert "Think we're there" in lyrics.text
-    assert "Think we're there" in lyrics.subtitles
+    assert "I think we're there" in lyrics.text
+    assert "I think we're there" in lyrics.subtitles
     assert lyrics.right_to_left is False
 
 
@@ -99,9 +99,9 @@ def test_track_with_album(session):
 def test_track_streaming(session):
     track = session.track(62392768)
     stream = track.get_stream()
-    assert stream.audio_mode == "STEREO"
+    assert stream.audio_mode == tidalapi.media.AudioMode.stereo
     assert (
-        stream.audio_quality == tidalapi.Quality.low_320k.value
+        stream.audio_quality == tidalapi.Quality.low_320k
     )  # i.e. the default quality for the current session
 
 

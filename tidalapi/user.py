@@ -386,9 +386,9 @@ class Favorites:
         )
 
     def mixes(self, limit: Optional[int] = 50, offset: int = 0) -> List["MixV2"]:
-        """Get the users favorite tracks.
+        """Get the users favorite mixes & radio.
 
-        :return: A :class:`list` of :class:`~tidalapi.media.Track` objects containing all of the favorite tracks.
+        :return: A :class:`list` of :class:`~tidalapi.media.Mix` objects containing the user favourite mixes & radio
         """
         params = {"limit": limit, "offset": offset}
         return cast(

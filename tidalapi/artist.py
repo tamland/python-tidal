@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, List, Mapping, Optional, Union, cast
 import dateutil.parser
 from typing_extensions import NoReturn
 
-from tidalapi.exceptions import ObjectNotFound
+from tidalapi.exceptions import ObjectNotFound, TooManyRequests
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -34,6 +34,8 @@ if TYPE_CHECKING:
     from tidalapi.media import Track, Video
     from tidalapi.page import Page
     from tidalapi.session import Session
+
+DEFAULT_ARTIST_IMG = "1e01cdb6-f15d-4d8b-8440-a047976c1cac"
 
 
 class Artist:
@@ -54,9 +56,12 @@ class Artist:
         self.id = artist_id
 
         if self.id:
-            request = self.request.request("GET", "artists/%s" % self.id)
-            if request.status_code and request.status_code == 404:
+            try:
+                request = self.request.request("GET", "artists/%s" % self.id)
+            except ObjectNotFound:
                 raise ObjectNotFound("Artist not found")
+            except TooManyRequests:
+                raise TooManyRequests("Artist unavailable")
             else:
                 self.request.map_json(request.json(), parse=self.parse_artist)
 
@@ -81,7 +86,10 @@ class Artist:
             self.roles = roles
             self.role = roles[0]
 
+        # Get artist picture or use default
         self.picture = json_obj.get("picture")
+        if self.picture is None:
+            self.picture = DEFAULT_ARTIST_IMG
 
         user_date_added = json_obj.get("dateAdded")
         self.user_date_added = (

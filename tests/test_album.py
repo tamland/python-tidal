@@ -101,11 +101,16 @@ def test_no_release_date(session):
     )
 
 
-def test_default_image_used_if_no_cover_art(mocker):
-    # TODO find an example if there still are any.
-    album = Album(mocker.Mock(), None)
-    assert album.cover is None
-    assert album.image(1280) == tidalapi.album.DEFAULT_ALBUM_IMAGE
+def test_default_image_not_used_on_albums_with_cover_art(session):
+    album = session.album(108043414)
+    assert album.cover is not None
+    default_album_url = "https://resources.tidal.com/images/%s/%ix%i.jpg" % (
+        tidalapi.album.DEFAULT_ALBUM_IMG.replace("-", "/"),
+        1280,
+        1280,
+    )
+    # Album should not use default album art
+    assert album.image(1280) != default_album_url
 
 
 def test_similar(session):

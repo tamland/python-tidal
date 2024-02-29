@@ -69,8 +69,8 @@ def test_track_url(session):
 def test_lyrics(session):
     track = session.track(56480040)
     lyrics = track.lyrics()
-    assert "Think we're there" in lyrics.text
-    assert "Think we're there" in lyrics.subtitles
+    assert "I think we're there" in lyrics.text
+    assert "I think we're there" in lyrics.subtitles
     assert lyrics.right_to_left is False
 
 

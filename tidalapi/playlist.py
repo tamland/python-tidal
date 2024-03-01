@@ -177,11 +177,13 @@ class Playlist:
             self.request.map_json(request.json(), parse=self.session.parse_media)
         )
 
-    def image(self, dimensions: int = 480) -> str:
+    def image(self, dimensions: int = 480, wide_fallback: bool = True) -> str:
         """A URL to a playlist picture.
 
         :param dimensions: The width and height that want from the image
         :type dimensions: int
+        :param wide_fallback: Use wide image as fallback if no square cover picture exists
+        :type wide_fallback: bool
         :return: A url to the image
 
         Original sizes: 160x160, 320x320, 480x480, 640x640, 750x750, 1080x1080
@@ -189,13 +191,16 @@ class Playlist:
 
         if dimensions not in [160, 320, 480, 640, 750, 1080]:
             raise ValueError("Invalid resolution {0} x {0}".format(dimensions))
-        if self.square_picture is None:
+        if self.square_picture:
+            return self.session.config.image_url % (
+                self.square_picture.replace("-", "/"),
+                dimensions,
+                dimensions,
+            )
+        elif self.picture and wide_fallback:
+            return self.wide_image()
+        else:
             raise AttributeError("No picture available")
-        return self.session.config.image_url % (
-            self.square_picture.replace("-", "/"),
-            dimensions,
-            dimensions,
-        )
 
     def wide_image(self, width: int = 1080, height: int = 720) -> str:
         """Create a url to a wider playlist image.

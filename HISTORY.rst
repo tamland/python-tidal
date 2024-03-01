@@ -3,6 +3,25 @@
 History
 =======
 
+v0.7.5
+------
+* Fix: Use wide image when no square picture is available. - tehkillerbee_
+* Feat.: Added HiRes page. - tehkillerbee_
+* Feat.: Handle missing Stream fields gracefully. Get stream audio resolution (bit depth, rate) as tuple. - tehkillerbee_
+* Feat.: Added misc helper functions for audio mode, get available audio mode for media. - tehkillerbee_
+* Feat.: Added misc. fields to album. Get audio resolution for album + individual tracks. - tehkillerbee_
+* Feat.: Added MPEG-DASH to HLS stream parsing, Added MPEG-DASH stream example. - tehkillerbee_
+* Set default artist IMG if missing. Use default album IMG URI instead of direct URL. - tehkillerbee_
+* Bugfix: Make sure is_pkce state is set when pkce_login_url() is used directly. - tehkillerbee_
+* Tests: Added misc tests for ObjectNotFound - tehkillerbee_
+* Error handling: Handle TooManyRequests exceptions gracefully. - tehkillerbee_
+* Error handling: Handle ObjectNotFound exceptions gracefully.  - tehkillerbee_
+* Tests: Fix misc tests broken by Tidal. - tehkillerbee_
+* Bugfix: Fix pkce token refresh. - tehkillerbee_
+* Bugfix: Load/store PKCE state from file using wrong client_id. - tehkillerbee_
+* Feat.: Improved error handling (Missing albums, missing lyrics, missing track url etc.). - tehkillerbee_
+* Bugfix: Page Recursion into Categories. - quodrum-glas_
+
 v0.7.4
 ------
 * Load/store OAuth/PKCE session to file - tehkillerbee_
@@ -152,6 +171,7 @@ v0.6.2
 .. _exislow: https://github.com/exislow
 .. _arnesongit: https://github.com/arnesongit
 .. _Jimmyscene: https://github.com/Jimmyscene
+.. _quodrum-glas: https://github.com/quodrum-glas
 
 
 

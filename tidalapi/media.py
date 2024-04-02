@@ -53,54 +53,75 @@ from tidalapi.exceptions import (
 from tidalapi.types import JsonObj
 
 
-class Quality:
+class Quality(str, Enum):
     low_96k: str = "LOW"
     low_320k: str = "HIGH"
     high_lossless: str = "LOSSLESS"
     hi_res: str = "HI_RES"
     hi_res_lossless: str = "HI_RES_LOSSLESS"
 
+    def __str__(self) -> str:
+        return self.value
 
-class VideoQuality:
+
+class VideoQuality(str, Enum):
     high: str = "HIGH"
     medium: str = "MEDIUM"
     low: str = "LOW"
     audio_only: str = "AUDIO_ONLY"
 
+    def __str__(self) -> str:
+        return self.value
 
-class AudioMode:
+
+class AudioMode(str, Enum):
     stereo: str = "STEREO"
     sony_360: str = "SONY_360RA"
     dolby_atmos: str = "DOLBY_ATMOS"
 
+    def __str__(self) -> str:
+        return self.value
 
-class MediaMetadataTags:
+
+class MediaMetadataTags(str, Enum):
     mqa: str = "MQA"
     hires_lossless: str = "HIRES_LOSSLESS"
     lossless: str = "LOSSLESS"
     sony_360: str = "SONY_360RA"
     dolby_atmos: str = "DOLBY_ATMOS"
 
+    def __str__(self) -> str:
+        return self.value
 
-class AudioExtensions:
+
+class AudioExtensions(str, Enum):
     FLAC: str = ".flac"
     M4A: str = ".m4a"
     MP4: str = ".mp4"
 
+    def __str__(self) -> str:
+        return self.value
 
-class VideoExtensions:
+
+class VideoExtensions(str, Enum):
     TS: str = ".ts"
 
+    def __str__(self) -> str:
+        return self.value
 
-class ManifestMimeType:
+
+class ManifestMimeType(str, Enum):
     # EMU: str = "application/vnd.tidal.emu"
     # APPL: str = "application/vnd.apple.mpegurl"
     MPD: str = "application/dash+xml"
     BTS: str = "application/vnd.tidal.bts"
     VIDEO: str = "video/mp2t"
 
+    def __str__(self) -> str:
+        return self.value
 
-class Codec:
+
+class Codec(str, Enum):
     MP3: str = "MP3"
     AAC: str = "AAC"
     M4A: str = "MP4A"
@@ -113,8 +134,11 @@ class Codec:
     PremiumCodecs: [str] = [MQA, Atmos, AC4]
     HQCodecs: [str] = PremiumCodecs + [FLAC]
 
+    def __str__(self) -> str:
+        return self.value
 
-class MimeType:
+
+class MimeType(str, Enum):
     audio_mpeg = "audio/mpeg"
     audio_mp3 = "audio/mp3"
     audio_m4a = "audio/m4a"
@@ -134,6 +158,9 @@ class MimeType:
         Codec.Atmos: audio_eac3,
         Codec.AC4: audio_ac4,
     }
+
+    def __str__(self) -> str:
+        return self.value
 
     @staticmethod
     def from_audio_codec(codec):

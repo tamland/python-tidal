@@ -649,7 +649,9 @@ class Session:
         json = self._wait_for_link_login(json)
         self.process_auth_token(json, is_pkce_token=False)
 
-    def process_auth_token(self, json: dict[str, Union[str, int]], is_pkce_token: bool = True) -> None:
+    def process_auth_token(
+        self, json: dict[str, Union[str, int]], is_pkce_token: bool = True
+    ) -> None:
         """Parses the authorization response and sets the token values to the specific
         variables for further usage.
 

@@ -498,7 +498,7 @@ class Session:
         json: dict[str, Union[str, int]] = self.pkce_get_auth_token(url_redirect)
 
         # Parse and set tokens.
-        self.process_auth_token(json)
+        self.process_auth_token(json, is_pkce_token=True)
 
         # Swap the client_id and secret
         # self.client_enable_hires()
@@ -647,14 +647,18 @@ class Session:
 
     def _process_link_login(self, json: JsonObj) -> None:
         json = self._wait_for_link_login(json)
-        self.process_auth_token(json)
+        self.process_auth_token(json, is_pkce_token=False)
 
-    def process_auth_token(self, json: dict[str, Union[str, int]]) -> None:
+    def process_auth_token(
+        self, json: dict[str, Union[str, int]], is_pkce_token: bool = True
+    ) -> None:
         """Parses the authorization response and sets the token values to the specific
         variables for further usage.
 
         :param json: Parsed JSON response after login / authorization.
         :type json: dict[str, str | int]
+        :param is_pkce_token: Set true if current token is obtained using PKCE
+        :type is_pkce_token: bool
         :return: None
         """
         self.access_token = json["access_token"]
@@ -668,7 +672,7 @@ class Session:
         self.session_id = json["sessionId"]
         self.country_code = json["countryCode"]
         self.user = user.User(self, user_id=json["userId"]).factory()
-        self.is_pkce = True
+        self.is_pkce = is_pkce_token
 
     def _wait_for_link_login(self, json: JsonObj) -> Any:
         expiry = float(json["expiresIn"])

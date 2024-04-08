@@ -22,6 +22,7 @@ import copy
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, List, Mapping, Optional, Union, cast
+from warnings import warn
 
 import dateutil.parser
 from typing_extensions import NoReturn
@@ -126,9 +127,13 @@ class Artist:
         return self._get_albums(params)
 
     def get_albums_ep_singles(
-            self, limit: Optional[int] = None, offset: int = 0
+        self, limit: Optional[int] = None, offset: int = 0
     ) -> List["Album"]:
-        print("This method is deprecated an will be removed in a future release. Use instead `get_ep_singles`")
+        warn(
+            "This method is deprecated an will be removed in a future release. Use instead `get_ep_singles`",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         return self.get_ep_singles(limit=limit, offset=offset)
 
@@ -143,15 +148,17 @@ class Artist:
         return self._get_albums(params)
 
     def get_albums_other(
-            self, limit: Optional[int] = None, offset: int = 0
+        self, limit: Optional[int] = None, offset: int = 0
     ) -> List["Album"]:
-        print("This method is deprecated an will be removed in a future release. Use instead `get_other`")
+        warn(
+            "This method is deprecated an will be removed in a future release. Use instead `get_other`",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         return self.get_other(limit=limit, offset=offset)
 
-    def get_other(
-        self, limit: Optional[int] = None, offset: int = 0
-    ) -> List["Album"]:
+    def get_other(self, limit: Optional[int] = None, offset: int = 0) -> List["Album"]:
         """Queries TIDAL for albums the artist has appeared on as a featured artist.
 
         :return: A list of :class:`Albums <tidalapi.album.Album>`

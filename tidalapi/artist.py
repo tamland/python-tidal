@@ -126,6 +126,13 @@ class Artist:
         return self._get_albums(params)
 
     def get_albums_ep_singles(
+            self, limit: Optional[int] = None, offset: int = 0
+    ) -> List["Album"]:
+        print("This method is deprecated an will be removed in a future release. Use instead `get_ep_singles`")
+
+        return self.get_ep_singles(limit=limit, offset=offset)
+
+    def get_ep_singles(
         self, limit: Optional[int] = None, offset: int = 0
     ) -> List["Album"]:
         """Queries TIDAL for the artists extended plays and singles.
@@ -136,6 +143,13 @@ class Artist:
         return self._get_albums(params)
 
     def get_albums_other(
+            self, limit: Optional[int] = None, offset: int = 0
+    ) -> List["Album"]:
+        print("This method is deprecated an will be removed in a future release. Use instead `get_other`")
+
+        return self.get_other(limit=limit, offset=offset)
+
+    def get_other(
         self, limit: Optional[int] = None, offset: int = 0
     ) -> List["Album"]:
         """Queries TIDAL for albums the artist has appeared on as a featured artist.

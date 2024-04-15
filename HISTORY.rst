@@ -3,6 +3,12 @@
 History
 =======
 
+v0.7.6
+------
+* Fix: Set token type correctly for OAuth/PKCE authentication - tehkillerbee_
+* Revert to using enums with str support for relevant classes - tehkillerbee_, exislow_
+* Removed return types from method names for consistency, added deprecation warnings - exislow_
+
 v0.7.5
 ------
 * Fix: Use wide image when no square picture is available. - tehkillerbee_

@@ -711,12 +711,14 @@ class Session:
         params = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,
-            "client_id": self.config.client_id_pkce
-            if self.is_pkce
-            else self.config.client_id,
-            "client_secret": self.config.client_secret_pkce
-            if self.is_pkce
-            else self.config.client_secret,
+            "client_id": (
+                self.config.client_id_pkce if self.is_pkce else self.config.client_id
+            ),
+            "client_secret": (
+                self.config.client_secret_pkce
+                if self.is_pkce
+                else self.config.client_secret
+            ),
         }
 
         request = self.request_session.post(url, params)

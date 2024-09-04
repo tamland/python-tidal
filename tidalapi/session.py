@@ -857,6 +857,46 @@ class Session:
             log.warning("Track '%s' is unavailable", track_id)
             raise
 
+    def get_tracks_by_isrc(self, isrc: str) -> list[media.Track]:
+        """Function to search all tracks with a specific ISRC code.
+
+        :param isrc: The ISRC of the Track.
+        :return: Returns a list of :class:`.Track` objects that have access to the session instance used.
+        """
+        try:
+            res = self.request.request(
+                "GET",
+                "tracks",
+                params={
+                    "filter[isrc]": isrc,
+                },
+                base_url="https://openapi.tidal.com/v2/").json()
+
+            return [self.track(track['id']) for track in res['data']]
+        except requests.HTTPError:
+            log.warning("Wrong ISRC code '%s'", isrc)
+            raise
+
+    def get_albums_by_barcode(self, barcode: str) -> list[album.Album]:
+        """Function to search all albums with a specific UPC code.
+
+        :param barcode: The UPC of the Album.
+        :return: Returns a list of :class:`.Album` objects that have access to the session instance used.
+        """
+        try:
+            res = self.request.request(
+                "GET",
+                "albums",
+                params={
+                    "filter[barcodeId]": barcode,
+                },
+                base_url="https://openapi.tidal.com/v2/").json()
+
+            return [self.album(album['id']) for album in res['data']]
+        except HTTPError:
+            log.warning("Wrong barcode '%s'", barcode)
+            raise
+
     def video(self, video_id: Optional[str] = None) -> media.Video:
         """Function to create a Video object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Video(session=session, video_id=video_id)

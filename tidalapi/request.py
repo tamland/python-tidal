@@ -67,6 +67,7 @@ class Requests(object):
         params: Optional[Params] = None,
         data: Optional[JsonObj] = None,
         headers: Optional[MutableMapping[str, str]] = None,
+        base_url: Optional[str] = None,
     ) -> requests.Response:
         request_params = {
             "sessionId": self.session.session_id,
@@ -90,7 +91,10 @@ class Requests(object):
             headers["authorization"] = (
                 self.session.token_type + " " + self.session.access_token
             )
-        url = urljoin(self.session.config.api_v1_location, path)
+        if base_url is None:
+            base_url = self.session.config.api_v1_location
+
+        url = urljoin(base_url, path)
         request = self.session.request_session.request(
             method, url, params=request_params, data=data, headers=headers
         )
@@ -123,6 +127,7 @@ class Requests(object):
         params: Optional[Params] = None,
         data: Optional[JsonObj] = None,
         headers: Optional[MutableMapping[str, str]] = None,
+        base_url: Optional[str] = None,
     ) -> requests.Response:
         """Method for tidal requests.
 
@@ -133,10 +138,11 @@ class Requests(object):
         :param params: The parameters you want to supply with the request.
         :param data: The data you want to supply with the request.
         :param headers: The headers you want to include with the request
+        :param base_url: The base url to use for the request
         :return: The json data at specified api endpoint.
         """
 
-        request = self.basic_request(method, path, params, data, headers)
+        request = self.basic_request(method, path, params, data, headers, base_url)
         log.debug("request: %s", request.request.url)
         try:
             request.raise_for_status()

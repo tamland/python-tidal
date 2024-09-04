@@ -2,6 +2,10 @@
 
 History
 =======
+v0.7.7
+------
+* Add support to get tracks by ISRC - M4TH1EU_
+* Add support to get albums by Barcode ID (UPC)  - M4TH1EU_
 
 v0.7.6
 ------
@@ -178,6 +182,7 @@ v0.6.2
 .. _arnesongit: https://github.com/arnesongit
 .. _Jimmyscene: https://github.com/Jimmyscene
 .. _quodrum-glas: https://github.com/quodrum-glas
+.. _M4TH1EU: https://github.com/M4TH1EU
 
 
 

@@ -870,9 +870,10 @@ class Session:
                 params={
                     "filter[isrc]": isrc,
                 },
-                base_url="https://openapi.tidal.com/v2/").json()
+                base_url="https://openapi.tidal.com/v2/",
+            ).json()
 
-            return [self.track(track['id']) for track in res['data']]
+            return [self.track(track["id"]) for track in res["data"]]
         except requests.HTTPError:
             log.warning("Wrong ISRC code '%s'", isrc)
             raise
@@ -890,9 +891,10 @@ class Session:
                 params={
                     "filter[barcodeId]": barcode,
                 },
-                base_url="https://openapi.tidal.com/v2/").json()
+                base_url="https://openapi.tidal.com/v2/",
+            ).json()
 
-            return [self.album(album['id']) for album in res['data']]
+            return [self.album(album["id"]) for album in res["data"]]
         except HTTPError:
             log.warning("Wrong barcode '%s'", barcode)
             raise

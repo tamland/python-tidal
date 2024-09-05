@@ -154,7 +154,7 @@ class Requests(object):
             self.latest_err_response = request
             if request.content:
                 resp = request.json()
-                log.debug("Request response: '%s'", resp['errors'][0]['detail'])
+                log.debug("Request response: '%s'", resp["errors"][0]["detail"])
             if request.status_code and request.status_code == 404:
                 raise ObjectNotFound
             elif request.status_code and request.status_code == 429:
@@ -165,23 +165,21 @@ class Requests(object):
         return request
 
     def get_latest_err_response(self) -> dict:
-        """Get the latest request Response that resulted in an Exception
-        :return: The request Response that resulted in the Exception, returned as a dict
-                 An empty dict will be returned, if no response was returned
-        """
+        """Get the latest request Response that resulted in an Exception :return: The
+        request Response that resulted in the Exception, returned as a dict An empty
+        dict will be returned, if no response was returned."""
         if self.latest_err_response.content:
             return self.latest_err_response.json()
         else:
             return {}
 
     def get_latest_err_response_str(self) -> str:
-        """Get the latest request response message as a string
-        :return: The contents of the (detailed) error response Response, returned as a string
-                 An empty str will be returned, if no response was returned
-        """
+        """Get the latest request response message as a string :return: The contents of
+        the (detailed) error response Response, returned as a string An empty str will
+        be returned, if no response was returned."""
         if self.latest_err_response.content:
             resp = self.latest_err_response.json()
-            return resp['errors'][0]['detail']
+            return resp["errors"][0]["detail"]
         else:
             return ""
 

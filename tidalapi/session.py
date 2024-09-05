@@ -869,12 +869,13 @@ class Session:
                  An empty list will be returned if no tracks matches the ISRC
         """
         try:
+            params = {
+                "filter[isrc]": isrc,
+            }
             res = self.request.request(
                 "GET",
                 "tracks",
-                params={
-                    "filter[isrc]": isrc,
-                },
+                params=params,
                 base_url=self.config.openapi_v2_location,
             ).json()
             if res["data"]:
@@ -899,12 +900,13 @@ class Session:
                  An empty list will be returned if no tracks matches the ISRC
         """
         try:
+            params = {
+                "filter[barcodeId]": barcode,
+            }
             res = self.request.request(
                 "GET",
                 "albums",
-                params={
-                    "filter[barcodeId]": barcode,
-                },
+                params=params,
                 base_url=self.config.openapi_v2_location,
             ).json()
             if res["data"]:

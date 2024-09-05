@@ -24,6 +24,7 @@ import requests
 
 import tidalapi
 from tidalapi import Album, Artist, Playlist, Track, Video
+from tidalapi.exceptions import InvalidISRC, InvalidUPC, ObjectNotFound
 
 
 def test_load_oauth_session(session):
@@ -161,3 +162,27 @@ def test_manually_set_video_quality_is_preserved(session, quality):
     session.video_quality = quality
     assert session.video_quality == quality
     assert session.config.video_quality == quality
+
+
+def test_tracks_by_isrc(session):
+    # Track found using USSM12209515 => track id 251380837
+    tracks = session.get_tracks_by_isrc("USSM12209515")
+    assert tracks[0].id == 251380837
+    # ISRC valid but track not found (ObjectNotFound)
+    with pytest.raises(ObjectNotFound):
+        session.get_tracks_by_isrc("QMEU32403189")
+    # Invalid isrc (InvalidISRC)
+    with pytest.raises(InvalidISRC):
+        session.get_tracks_by_isrc("12209515")
+
+
+def test_albums_by_barcode(session):
+    # Track found using barcode 196589525444 => album id 251380836
+    albums = session.get_albums_by_barcode("196589525444")
+    assert albums[0].id == 251380836
+    # ISRC valid but track not found (ObjectNotFound)
+    with pytest.raises(ObjectNotFound):
+        session.get_albums_by_barcode("112233445566")
+    # Invalid Barcode UPC (InvalidUPC)
+    with pytest.raises(InvalidUPC):
+        session.get_albums_by_barcode("aaaa")

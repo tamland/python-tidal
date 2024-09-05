@@ -53,12 +53,15 @@ class Requests(object):
     """A class for handling api requests to TIDAL."""
 
     user_agent: str
+    # Latest error response that can be returned and parsed after request has been completed
+    latest_err_response: requests.Response
 
     def __init__(self, session: "Session"):
         # More Android User-Agents here: https://user-agents.net/browsers/android
         self.user_agent = "Mozilla/5.0 (Linux; Android 12; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Safari/537.36"
         self.session = session
         self.config = session.config
+        self.latest_err_response = requests.Response()
 
     def basic_request(
         self,
@@ -115,7 +118,7 @@ class Requests(object):
                 if refreshed:
                     request = self.basic_request(method, url, params, data, headers)
             else:
-                log.warning("HTTP error on %d", request.status_code)
+                log.debug("HTTP error on %d", request.status_code)
                 log.debug("Response text\n%s", request.text)
 
         return request
@@ -147,10 +150,11 @@ class Requests(object):
         try:
             request.raise_for_status()
         except Exception as e:
-            log.info("Got exception {}".format(e))
-            log.debug("Response was {}".format(e.response))
+            log.info("Request resulted in exception {}".format(e))
+            self.latest_err_response = request
             if request.content:
-                log.debug("response: %s", json.dumps(request.json(), indent=4))
+                resp = request.json()
+                log.debug("Request response: '%s'", resp['errors'][0]['detail'])
             if request.status_code and request.status_code == 404:
                 raise ObjectNotFound
             elif request.status_code and request.status_code == 429:
@@ -159,6 +163,27 @@ class Requests(object):
                 # raise last error, usually HTTPError
                 raise
         return request
+
+    def get_latest_err_response(self) -> dict:
+        """Get the latest request Response that resulted in an Exception
+        :return: The request Response that resulted in the Exception, returned as a dict
+                 An empty dict will be returned, if no response was returned
+        """
+        if self.latest_err_response.content:
+            return self.latest_err_response.json()
+        else:
+            return {}
+
+    def get_latest_err_response_str(self) -> str:
+        """Get the latest request response message as a string
+        :return: The contents of the (detailed) error response Response, returned as a string
+                 An empty str will be returned, if no response was returned
+        """
+        if self.latest_err_response.content:
+            resp = self.latest_err_response.json()
+            return resp['errors'][0]['detail']
+        else:
+            return ""
 
     def map_request(
         self,

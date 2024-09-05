@@ -882,13 +882,14 @@ class Session:
                 return [self.track(tr["id"]) for tr in res["data"]]
             else:
                 log.warning("No matching tracks found for ISRC '%s'", isrc)
-                return []
+                raise ObjectNotFound
         except HTTPError:
             log.error("Invalid ISRC code '%s'", isrc)
             # Get latest detailed error response and return the response given from the TIDAL api
             resp_str = self.request.get_latest_err_response_str()
             if resp_str:
                 log.error("API Response: '%s'", resp_str)
+            raise InvalidISRC
 
     def get_albums_by_barcode(self, barcode: str) -> list[album.Album]:
         """Function to search all albums with a specific UPC code (eg. "196589525444")
@@ -913,13 +914,14 @@ class Session:
                 return [self.album(alb["id"]) for alb in res["data"]]
             else:
                 log.warning("No matching albums found for UPC barcode '%s'", barcode)
-                return []
+                raise ObjectNotFound
         except HTTPError:
             log.error("Invalid UPC barcode '%s'.", barcode)
             # Get latest detailed error response and return the response given from the TIDAL api
             resp_str = self.request.get_latest_err_response_str()
             if resp_str:
                 log.error("API Response: '%s'", resp_str)
+            raise InvalidUPC
 
     def video(self, video_id: Optional[str] = None) -> media.Video:
         """Function to create a Video object with access to the session instance in a

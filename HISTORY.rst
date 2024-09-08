@@ -4,8 +4,11 @@ History
 =======
 v0.7.7
 ------
-* Add support to get tracks by ISRC - M4TH1EU_
-* Add support to get albums by Barcode ID (UPC)  - M4TH1EU_
+* Add method to get detailed request error response if an error occurred during request. - tehkillerbee_
+* Tests: Add tests tests for ISRC, barcode methods and cleanup exception handling. - tehkillerbee_
+* Feat.: Add support to get tracks by ISRC. - tehkillerbee_, M4TH1EU_
+* Feat.: Add support to get albums by Barcode ID (UPC). - tehkillerbee_, M4TH1EU_
+* Feat.: Add support for a custom base url in `request()` and `basic_request()` to use the new openapi. - M4TH1EU_
 
 v0.7.6
 ------

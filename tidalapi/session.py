@@ -49,6 +49,7 @@ from typing import (
 from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
 
 import requests
+from requests.exceptions import HTTPError
 
 from tidalapi.exceptions import *
 from tidalapi.types import JsonObj
@@ -103,6 +104,7 @@ class Config:
     api_pkce_auth: str = "https://login.tidal.com/authorize"
     api_v1_location: str = "https://api.tidal.com/v1/"
     api_v2_location: str = "https://api.tidal.com/v2/"
+    openapi_v2_location: str = "https://openapi.tidal.com/v2/"
     api_token: str
     client_id: str
     client_secret: str
@@ -856,6 +858,70 @@ class Session:
         except ObjectNotFound:
             log.warning("Track '%s' is unavailable", track_id)
             raise
+
+    def get_tracks_by_isrc(self, isrc: str) -> list[media.Track]:
+        """Function to search all tracks with a specific ISRC code. (eg. "USSM12209515")
+        This method uses the TIDAL openapi (v2). See the apiref below for more details:
+        https://apiref.developer.tidal.com/apiref?spec=catalogue-v2&ref=get-tracks-v2
+
+        :param isrc: The ISRC of the Track.
+        :return: Returns a list of :class:`.Track` objects that have access to the session instance used.
+                 An empty list will be returned if no tracks matches the ISRC
+        """
+        try:
+            params = {
+                "filter[isrc]": isrc,
+            }
+            res = self.request.request(
+                "GET",
+                "tracks",
+                params=params,
+                base_url=self.config.openapi_v2_location,
+            ).json()
+            if res["data"]:
+                return [self.track(tr["id"]) for tr in res["data"]]
+            else:
+                log.warning("No matching tracks found for ISRC '%s'", isrc)
+                raise ObjectNotFound
+        except HTTPError:
+            log.error("Invalid ISRC code '%s'", isrc)
+            # Get latest detailed error response and return the response given from the TIDAL api
+            resp_str = self.request.get_latest_err_response_str()
+            if resp_str:
+                log.error("API Response: '%s'", resp_str)
+            raise InvalidISRC
+
+    def get_albums_by_barcode(self, barcode: str) -> list[album.Album]:
+        """Function to search all albums with a specific UPC code (eg. "196589525444")
+        This method uses the TIDAL openapi (v2). See the apiref below for more details:
+        https://apiref.developer.tidal.com/apiref?spec=catalogue-v2&ref=get-albums-v2
+
+        :param barcode: The UPC of the Album. Eg.
+        :return: Returns a list of :class:`.Album` objects that have access to the session instance used.
+                 An empty list will be returned if no tracks matches the ISRC
+        """
+        try:
+            params = {
+                "filter[barcodeId]": barcode,
+            }
+            res = self.request.request(
+                "GET",
+                "albums",
+                params=params,
+                base_url=self.config.openapi_v2_location,
+            ).json()
+            if res["data"]:
+                return [self.album(alb["id"]) for alb in res["data"]]
+            else:
+                log.warning("No matching albums found for UPC barcode '%s'", barcode)
+                raise ObjectNotFound
+        except HTTPError:
+            log.error("Invalid UPC barcode '%s'.", barcode)
+            # Get latest detailed error response and return the response given from the TIDAL api
+            resp_str = self.request.get_latest_err_response_str()
+            if resp_str:
+                log.error("API Response: '%s'", resp_str)
+            raise InvalidUPC
 
     def video(self, video_id: Optional[str] = None) -> media.Video:
         """Function to create a Video object with access to the session instance in a

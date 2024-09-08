@@ -36,3 +36,11 @@ class ManifestDecodeError(Exception):
 
 class MPDNotAvailableError(Exception):
     pass
+
+
+class InvalidISRC(Exception):
+    pass
+
+
+class InvalidUPC(Exception):
+    pass

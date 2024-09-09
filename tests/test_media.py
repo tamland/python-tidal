@@ -24,7 +24,8 @@ import requests
 from dateutil import tz
 
 import tidalapi
-from tidalapi.exceptions import MetadataNotAvailable
+from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
+from tidalapi.media import AudioExtensions, AudioMode, ManifestMimeType, MimeType
 
 from .cover import verify_image_resolution, verify_video_resolution
 
@@ -99,7 +100,7 @@ def test_track_with_album(session):
 def test_track_streaming(session):
     track = session.track(62392768)
     stream = track.get_stream()
-    assert stream.audio_mode == tidalapi.media.AudioMode.stereo
+    assert stream.audio_mode == AudioMode.stereo
     assert (
         stream.audio_quality == tidalapi.Quality.low_320k
     )  # i.e. the default quality for the current session
@@ -233,3 +234,100 @@ def test_get_track_radio_limit_100(session):
     track = session.track(182912246)
     similar_tracks = track.get_track_radio(limit=100)
     assert len(similar_tracks) == 100
+
+
+def test_get_stream_bts(session):
+    track = session.track(77646170)  # Beck: Sea Change, Track: The Golden Age
+    # Set session as BTS type (i.e. HIGH Quality)
+    session.audio_quality = "HIGH"
+    # Attempt to get stream and validate
+    stream = track.get_stream()
+    validate_stream(stream, False)
+    # Get parsed stream manifest, audio resolutions
+    manifest = stream.get_stream_manifest()
+    validate_stream_manifest(manifest, False)
+    audio_resolution = stream.get_audio_resolution()
+    assert audio_resolution[0] == 16
+    assert audio_resolution[1] == 44100
+
+
+def test_get_stream_mpd(session):
+    track = session.track(77646170)
+    # Set session as MPD/DASH type (i.e. HI_RES_LOSSLESS Quality).
+    session.audio_quality = "HI_RES_LOSSLESS"
+    # Attempt to get stream and validate
+    stream = track.get_stream()
+    validate_stream(stream, True)
+    # Get parsed stream manifest
+    manifest = stream.get_stream_manifest()
+    validate_stream_manifest(manifest, True)
+
+
+def test_manifest_element_count(session):
+    # Certain tracks has only one element in their SegmentTimeline
+    #   and must be handled slightly differently when parsing the stream manifest DashInfo
+    track = session.track(281047832)
+    # Set session as MPD/DASH type (i.e. HI_RES_LOSSLESS Quality).
+    session.audio_quality = "HI_RES_LOSSLESS"
+    # Attempt to get stream
+    stream = track.get_stream()
+    # Get parsed stream manifest
+    stream.get_stream_manifest()
+
+
+def validate_stream(stream, is_hi_res_lossless: bool = False):
+    assert stream.album_peak_amplitude == 1.0
+    assert stream.album_replay_gain == -11.8
+    assert stream.asset_presentation == "FULL"
+    assert stream.audio_mode == "STEREO"
+    if not is_hi_res_lossless:
+        assert stream.audio_quality == "HIGH"
+        assert stream.is_BTS == True
+        assert stream.is_MPD == False
+        assert stream.bit_depth == 16
+        assert stream.sample_rate == 44100
+        assert stream.manifest_mime_type == ManifestMimeType.BTS
+        audio_resolution = stream.get_audio_resolution()
+        assert audio_resolution[0] == 16
+        assert audio_resolution[1] == 44100
+    else:
+        assert stream.audio_quality == "HI_RES_LOSSLESS"
+        assert stream.is_BTS == False
+        assert stream.is_MPD == True
+        assert stream.bit_depth == 24
+        assert stream.sample_rate == 192000  # HI_RES_LOSSLESS: 24bit/192kHz
+        assert stream.manifest_mime_type == ManifestMimeType.MPD
+        audio_resolution = stream.get_audio_resolution()
+        assert audio_resolution[0] == 24
+        assert audio_resolution[1] == 192000
+    assert stream.track_id == 77646170
+    assert stream.track_peak_amplitude == 1.0
+    assert stream.track_replay_gain == -9.62
+
+
+def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
+    if not is_hi_res_lossless:
+        assert manifest.is_BTS == True
+        assert manifest.is_MPD == False
+        assert manifest.codecs == "MP4A"
+        assert manifest.dash_info is None
+        assert manifest.encryption_key is None
+        assert manifest.encryption_type == "NONE"
+        assert manifest.file_extension == AudioExtensions.MP4
+        assert manifest.is_encrypted == False
+        assert manifest.manifest_mime_type == ManifestMimeType.BTS
+        assert manifest.mime_type == MimeType.audio_mp4
+        assert manifest.sample_rate == 44100
+    else:
+        assert manifest.is_BTS == False
+        assert manifest.is_MPD == True
+        assert manifest.codecs == "flac"
+        assert manifest.dash_info is not None
+        assert manifest.encryption_key is None
+        assert manifest.encryption_type == "NONE"
+        assert manifest.file_extension == AudioExtensions.MP4
+        assert manifest.is_encrypted == False
+        assert manifest.manifest_mime_type == ManifestMimeType.MPD
+        assert manifest.mime_type == MimeType.audio_mp4
+        assert manifest.sample_rate == 192000
+    # TODO Validate stream URL contents

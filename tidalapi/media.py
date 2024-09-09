@@ -141,6 +141,7 @@ class Codec(str, Enum):
 class MimeType(str, Enum):
     audio_mpeg = "audio/mpeg"
     audio_mp3 = "audio/mp3"
+    audio_mp4 = "audio/mp4"
     audio_m4a = "audio/m4a"
     audio_flac = "audio/flac"
     audio_xflac = "audio/x-flac"

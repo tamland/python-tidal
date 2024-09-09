@@ -721,7 +721,7 @@ class DashInfo:
             .representations[0]
             .segment_templates[0]
             .segment_timelines[0]
-            .Ss[1]
+            .Ss[-1]  # Always use last element in segment timeline.
             .d
         )
 

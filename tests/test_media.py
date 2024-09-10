@@ -20,11 +20,10 @@
 from datetime import datetime
 
 import pytest
-import requests
 from dateutil import tz
 
 import tidalapi
-from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
+from tidalapi.exceptions import MetadataNotAvailable
 from tidalapi.media import AudioExtensions, AudioMode, ManifestMimeType, MimeType
 
 from .cover import verify_image_resolution, verify_video_resolution
@@ -53,8 +52,13 @@ def test_track(session):
     )
     assert track.isrc == "NOG841907010"
     assert track.explicit is False
-    assert track.audio_quality == tidalapi.Quality.hi_res
+    assert track.audio_quality == tidalapi.Quality.high_lossless
     assert track.album.name == "Alone, Pt. II"
+    assert track.album.id == 125169472
+    assert (
+        track.listen_url == "https://listen.tidal.com/album/125169472/track/125169484"
+    )
+    assert track.share_url == "https://tidal.com/browse/track/125169484"
 
     assert track.artist.name == "Alan Walker"
     artist_names = [artist.name for artist in track.artists]
@@ -123,8 +127,12 @@ def test_video(session):
     assert video.album is None
 
     assert video.artist.name == "Alan Walker"
+    assert video.artist.id == 6159368
     artist_names = [artist.name for artist in video.artists]
     assert [artist in artist_names for artist in ["Alan Walker", "Ava Max"]]
+
+    assert video.listen_url == "https://listen.tidal.com/artist/6159368/video/125506698"
+    assert video.share_url == "https://tidal.com/browse/video/125506698"
 
 
 def test_video_no_release_date(session):

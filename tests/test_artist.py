@@ -30,6 +30,8 @@ def test_artist(session):
     artist = session.artist(16147)
     assert artist.id == 16147
     assert artist.name == "Lasgo"
+    assert artist.listen_url == "https://listen.tidal.com/artist/16147"
+    assert artist.share_url == "https://tidal.com/browse/artist/16147"
     assert all(
         role in artist.roles
         for role in [tidalapi.Role.artist, tidalapi.Role.contributor]

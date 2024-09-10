@@ -49,6 +49,8 @@ def test_album(session):
     assert 0 < album.popularity < 100
     assert album.artist.name == "Lasgo"
     assert album.artists[0].name == "Lasgo"
+    assert album.listen_url == "https://listen.tidal.com/album/17927863"
+    assert album.share_url == "https://tidal.com/browse/album/17927863"
 
     with pytest.raises(AttributeError):
         session.album(17927863).video(1280)

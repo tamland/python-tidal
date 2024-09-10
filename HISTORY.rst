@@ -4,6 +4,10 @@ History
 =======
 v0.7.7
 ------
+* Feat.: Provide "Share Link", "Listen link" as an attribute to album/artist/media. Add relevant tests (Fixes #266) - tehkillerbee_
+* Allow switching authentication method oauth/pkce for tests. Default: oauth - tehkillerbee_
+* Tests: Added track stream tests (BTS, MPD) - tehkillerbee_
+* Bugfix: Always use last element in segment timeline. (Fixes #273) - tehkillerbee_
 * Add method to get detailed request error response if an error occurred during request. - tehkillerbee_
 * Tests: Add tests tests for ISRC, barcode methods and cleanup exception handling. - tehkillerbee_
 * Feat.: Add support to get tracks by ISRC. - tehkillerbee_, M4TH1EU_

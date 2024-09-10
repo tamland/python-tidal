@@ -101,38 +101,51 @@ class CachedCredentials(Credentials):
 KEY = "python-tidal"
 
 
-def get_credential_store() -> tuple[List[Credentials], Optional[dict]]:
+def get_credential_store(
+    datastore_key: str = KEY,
+) -> tuple[List[Credentials], Optional[dict]]:
     stores = []
     for store in (EnvCredentials, CachedCredentials, KeyringCredentials):
         with suppress(Exception):
             stores.append(store())
     for store in stores:
-        data = store.load(KEY)
+        data = store.load(datastore_key)
         if data:
             return [store], data
     stores = [s for s in stores if not isinstance(s, EnvCredentials)]
     return stores, None
 
 
-def login(request):
-    stores, credentials = get_credential_store()
+def login(request, use_pkce_auth: bool = False):
+    # Select datastore depending on the required authentication method
+    if use_pkce_auth:
+        datastore_key = f"{KEY}-pkce"
+    else:
+        datastore_key = KEY
+    stores, credentials = get_credential_store(datastore_key)
     config = tidalapi.Config()
 
     tidal_session = tidalapi.Session(config)
     if credentials and tidal_session.load_oauth_session(**credentials):
+        # override pkce state to allow returning non DASH streams
         return tidal_session
     else:
-        credentials = _oauth_login(request, tidal_session)
-
+        # Generate a new login using the required authentication method
+        if use_pkce_auth:
+            _pkce_login(request, tidal_session)
+        else:
+            _oauth_login(request, tidal_session)
     if stores:
+        # Update credentials datastore
         for store in stores:
             with suppress(Exception):
                 store.save(
-                    KEY,
+                    datastore_key,
                     {
                         "token_type": tidal_session.token_type,
                         "access_token": tidal_session.access_token,
                         "refresh_token": tidal_session.refresh_token,
+                        "is_pkce": tidal_session.is_pkce,
                     },
                 )
                 break
@@ -142,6 +155,7 @@ def login(request):
 def _oauth_login(request, tidal_session):
     login, future = tidal_session.login_oauth()
     # https://github.com/pytest-dev/pytest/issues/2704
+    # To be able to print to terminal, global capture must be disabled temporarily:
     capmanager = request.config.pluginmanager.getplugin("capturemanager")
     with capmanager.global_and_fixture_disabled():
         print(
@@ -152,6 +166,14 @@ def _oauth_login(request, tidal_session):
             "seconds",
         )
     future.result()
+
+
+def _pkce_login(request, tidal_session):
+    # To be able to print to terminal; read from stdin, global capture must be disabled temporarily:
+    capmanager = request.config.pluginmanager.getplugin("capturemanager")
+    capmanager.suspend_global_capture(in_=True)
+    tidal_session.login_pkce()
+    capmanager.resume_global_capture()
 
 
 def pytest_collection_modifyitems(config, items):

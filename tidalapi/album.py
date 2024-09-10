@@ -73,6 +73,11 @@ class Album:
     artist: Optional["Artist"] = None
     artists: Optional[List["Artist"]] = None
 
+    # Direct URL to https://listen.tidal.com/album/<album_id>
+    listen_url: str = ""
+    # Direct URL to https://tidal.com/browse/album/<album_id>
+    share_url: str = ""
+
     def __init__(self, session: "Session", album_id: Optional[str]):
         self.session = session
         self.request = session.request
@@ -148,6 +153,8 @@ class Album:
         self.user_date_added = (
             dateutil.parser.isoparse(user_date_added) if user_date_added else None
         )
+        self.listen_url = f"{self.session.config.listen_base_url}/album/{self.id}"
+        self.share_url = f"{self.session.config.share_base_url}/album/{self.id}"
 
         return copy.copy(self)
 

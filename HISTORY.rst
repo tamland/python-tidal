@@ -4,6 +4,7 @@ History
 =======
 v0.7.7
 ------
+* Bugfix: Fix linting for audio_modes. Update tests (Fixes #261) - tehkillerbee_
 * Feat.: Provide "Share Link", "Listen link" as an attribute to album/artist/media. Add relevant tests (Fixes #266) - tehkillerbee_
 * Allow switching authentication method oauth/pkce for tests. Default: oauth - tehkillerbee_
 * Tests: Added track stream tests (BTS, MPD) - tehkillerbee_

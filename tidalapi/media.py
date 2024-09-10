@@ -437,14 +437,14 @@ class Track(Media):
             return cast("Stream", stream)
 
     @property
-    def is_Mqa(self) -> bool:
+    def is_mqa(self) -> bool:
         try:
             if self.media_metadata_tags:
                 return (
                     True
                     if MediaMetadataTags.mqa in self.media_metadata_tags
-                    and not self.is_Sony360RA
-                    and not self.is_DolbyAtmos
+                    and not self.is_sony360
+                    and not self.is_dolby_atmos
                     else False
                 )
         except:
@@ -453,7 +453,11 @@ class Track(Media):
         return True if self.audio_quality == Quality.hi_res else False
 
     @property
-    def is_HiRes(self) -> bool:
+    def is_hi_res_mqa(self) -> bool:
+        return self.is_mqa
+
+    @property
+    def is_hi_res_lossless(self) -> bool:
         try:
             if (
                 self.media_metadata_tags
@@ -465,14 +469,14 @@ class Track(Media):
         return False
 
     @property
-    def is_DolbyAtmos(self) -> bool:
+    def is_dolby_atmos(self) -> bool:
         try:
             return True if AudioMode.dolby_atmos in self.audio_modes else False
         except:
             return False
 
     @property
-    def is_Sony360RA(self) -> bool:
+    def is_sony360(self) -> bool:
         try:
             return True if AudioMode.sony_360 in self.audio_modes else False
         except:
@@ -536,11 +540,11 @@ class Stream:
             raise ManifestDecodeError
 
     @property
-    def is_MPD(self) -> bool:
+    def is_mpd(self) -> bool:
         return True if ManifestMimeType.MPD in self.manifest_mime_type else False
 
     @property
-    def is_BTS(self) -> bool:
+    def is_bts(self) -> bool:
         return True if ManifestMimeType.BTS in self.manifest_mime_type else False
 
 
@@ -562,7 +566,7 @@ class StreamManifest:
     def __init__(self, stream: Stream):
         self.manifest = stream.manifest
         self.manifest_mime_type = stream.manifest_mime_type
-        if stream.is_MPD:
+        if stream.is_mpd:
             # See https://ottverse.com/structure-of-an-mpeg-dash-mpd/ for more details
             self.dash_info = DashInfo.from_mpd(stream.get_manifest_data())
             self.urls = self.dash_info.urls
@@ -572,7 +576,7 @@ class StreamManifest:
             # TODO: Handle encryption key.
             self.encryption_type = "NONE"
             self.encryption_key = None
-        elif stream.is_BTS:
+        elif stream.is_bts:
             # Stream Manifest is base64 encoded.
             self.manifest_parsed = stream.get_manifest_data()
             # JSON string to object.
@@ -591,13 +595,13 @@ class StreamManifest:
         self.file_extension = self.get_file_extension(self.urls[0], self.codecs)
 
     def get_urls(self) -> [str]:
-        if self.is_MPD:
+        if self.is_mpd:
             return self.urls
         else:
             return self.urls[0]
 
     def get_hls(self) -> str:
-        if self.is_MPD:
+        if self.is_mpd:
             return self.dash_info.get_hls()
         else:
             raise MPDNotAvailableError("HLS stream requires MPD MetaData")
@@ -644,11 +648,11 @@ class StreamManifest:
         return True if self.encryption_key else False
 
     @property
-    def is_MPD(self) -> bool:
+    def is_mpd(self) -> bool:
         return True if ManifestMimeType.MPD in self.manifest_mime_type else False
 
     @property
-    def is_BTS(self) -> bool:
+    def is_bts(self) -> bool:
         return True if ManifestMimeType.BTS in self.manifest_mime_type else False
 
 
@@ -670,7 +674,7 @@ class DashInfo:
     @staticmethod
     def from_stream(stream) -> "DashInfo":
         try:
-            if stream.is_MPD and not stream.is_encrypted:
+            if stream.is_mpd and not stream.is_encrypted:
                 return DashInfo(stream.get_manifest_data())
         except:
             raise ManifestDecodeError

@@ -290,8 +290,8 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
     assert stream.audio_mode == "STEREO"
     if not is_hi_res_lossless:
         assert stream.audio_quality == "HIGH"
-        assert stream.is_BTS == True
-        assert stream.is_MPD == False
+        assert stream.is_bts == True
+        assert stream.is_mpd == False
         assert stream.bit_depth == 16
         assert stream.sample_rate == 44100
         assert stream.manifest_mime_type == ManifestMimeType.BTS
@@ -300,8 +300,8 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
         assert audio_resolution[1] == 44100
     else:
         assert stream.audio_quality == "HI_RES_LOSSLESS"
-        assert stream.is_BTS == False
-        assert stream.is_MPD == True
+        assert stream.is_bts == False
+        assert stream.is_mpd == True
         assert stream.bit_depth == 24
         assert stream.sample_rate == 192000  # HI_RES_LOSSLESS: 24bit/192kHz
         assert stream.manifest_mime_type == ManifestMimeType.MPD
@@ -315,8 +315,8 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
 
 def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
     if not is_hi_res_lossless:
-        assert manifest.is_BTS == True
-        assert manifest.is_MPD == False
+        assert manifest.is_bts == True
+        assert manifest.is_mpd == False
         assert manifest.codecs == "MP4A"
         assert manifest.dash_info is None
         assert manifest.encryption_key is None
@@ -327,8 +327,8 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
         assert manifest.mime_type == MimeType.audio_mp4
         assert manifest.sample_rate == 44100
     else:
-        assert manifest.is_BTS == False
-        assert manifest.is_MPD == True
+        assert manifest.is_bts == False
+        assert manifest.is_mpd == True
         assert manifest.codecs == "flac"
         assert manifest.dash_info is not None
         assert manifest.encryption_key is None

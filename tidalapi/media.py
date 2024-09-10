@@ -200,6 +200,10 @@ class Media:
     artists: Optional[List["tidalapi.artist.Artist"]] = None
     album: Optional["tidalapi.album.Album"] = None
     type: Optional[str] = None
+    # Direct URL to media https://listen.tidal.com/track/<id> or https://listen.tidal.com/browse/album/<album_id>/track/<track_id>
+    listen_url: str = ""
+    # Direct URL to media https://tidal.com/browse/track/<id>
+    share_url: str = ""
 
     def __init__(
         self, session: "tidalapi.session.Session", media_id: Optional[str] = None
@@ -306,6 +310,12 @@ class Track(Media):
             self.full_name = f"{json_obj['title']} ({json_obj['version']})"
         else:
             self.full_name = json_obj["title"]
+        # Generate share URLs from track ID and album (if it exists)
+        if self.album:
+            self.listen_url = f"{self.session.config.listen_base_url}/album/{self.album.id}/track/{self.id}"
+        else:
+            self.listen_url = f"{self.session.config.listen_base_url}/track/{self.id}"
+        self.share_url = f"{self.session.config.share_base_url}/track/{self.id}"
 
         return copy.copy(self)
 
@@ -816,6 +826,13 @@ class Video(Media):
         self.cover = json_obj["imageId"]
         # Videos found in the /pages endpoints don't have quality
         self.video_quality = json_obj.get("quality")
+
+        # Generate share URLs from track ID and artist (if it exists)
+        if self.artist:
+            self.listen_url = f"{self.session.config.listen_base_url}/artist/{self.artist.id}/video/{self.id}"
+        else:
+            self.listen_url = f"{self.session.config.listen_base_url}/video/{self.id}"
+        self.share_url = f"{self.session.config.share_base_url}/video/{self.id}"
 
         return copy.copy(self)
 

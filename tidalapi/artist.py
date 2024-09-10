@@ -48,6 +48,11 @@ class Artist:
     user_date_added: Optional[datetime] = None
     bio: Optional[str] = None
 
+    # Direct URL to https://listen.tidal.com/artist/<artist_id>
+    listen_url: str = ""
+    # Direct URL to https://tidal.com/browse/artist/<artist_id>
+    share_url: str = ""
+
     def __init__(self, session: "Session", artist_id: Optional[str]):
         """Initialize the :class:`Artist` object, given a TIDAL artist ID :param
         session: The current TIDAL :class:`Session` :param str artist_id: TIDAL artist
@@ -96,6 +101,9 @@ class Artist:
         self.user_date_added = (
             dateutil.parser.isoparse(user_date_added) if user_date_added else None
         )
+
+        self.listen_url = f"{self.session.config.listen_base_url}/artist/{self.id}"
+        self.share_url = f"{self.session.config.share_base_url}/artist/{self.id}"
 
         return copy.copy(self)
 

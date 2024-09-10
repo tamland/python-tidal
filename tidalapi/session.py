@@ -119,6 +119,9 @@ class Config:
     code_challenge: str
     pkce_uri_redirect: str = "https://tidal.com/android/login/auth"
     client_id_pkce: str
+    # Base URLs for sharing, listen URLs
+    listen_base_url: str = "https://listen.tidal.com"
+    share_base_url: str = "https://tidal.com/browse"
 
     @no_type_check
     def __init__(

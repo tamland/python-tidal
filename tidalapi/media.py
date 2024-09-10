@@ -184,7 +184,7 @@ class Media:
     actual media, use the release date of the album.
     """
 
-    id: Optional[str] = None
+    id: Optional[int] = -1
     name: Optional[str] = None
     duration: Optional[int] = -1
     available: bool = True

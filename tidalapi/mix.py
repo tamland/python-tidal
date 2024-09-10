@@ -178,15 +178,15 @@ class MixV2:
     # tehkillerbee: TODO Doesn't look like this is using the v2 endpoint anyways!?
 
     date_added: Optional[datetime] = None
-    title: str = ""
-    id: str = ""
+    title: Optional[str] = None
+    id: Optional[str] = None
     mix_type: Optional[MixType] = None
     images: Optional[ImageResponse] = None
     detail_images: Optional[ImageResponse] = None
     master = False
     title_text_info: Optional[TextInfo] = None
     sub_title_text_info: Optional[TextInfo] = None
-    sub_title: str = ""
+    sub_title: Optional[str] = None
     updated: Optional[datetime] = None
 
     def __init__(self, session: Session, mix_id: str):

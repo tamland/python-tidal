@@ -43,7 +43,7 @@ class Album:
     name, cover and video cover. TIDAL does this to reduce the network load.
     """
 
-    id: Optional[str] = None
+    id: Optional[int] = -1
     name: Optional[str] = None
     cover = None
     video_cover = None

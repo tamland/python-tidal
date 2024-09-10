@@ -36,15 +36,22 @@ def test_album(session):
     assert album.type == "ALBUM"
     assert album.duration == 6712
     assert album.available
+    assert album.ad_supported_ready
+    assert album.allow_streaming
+    assert album.dj_ready
+    assert album.audio_modes == ["STEREO"]
+    assert album.audio_quality == "LOSSLESS"
     assert album.num_tracks == 22
     assert album.num_videos == 0
     assert album.num_volumes == 2
     assert album.release_date == datetime.datetime(2011, 9, 22)
+    assert album.available_release_date == datetime.datetime(2011, 9, 22)
     assert album.copyright == "Sinuz Recordings (a division of HITT bv)"
     assert album.version == "Deluxe"
     assert album.cover == "30d83a8c-1db6-439d-84b4-dbfb6f03c44c"
     assert album.video_cover is None
     assert album.explicit is False
+    assert album.premium_streaming_only is False
     assert album.universal_product_number == "3610151683488"
     assert 0 < album.popularity < 100
     assert album.artist.name == "Lasgo"

@@ -67,7 +67,7 @@ class Album:
     popularity: Optional[int] = -1
     user_date_added: Optional[datetime] = None
     audio_quality: Optional[str] = ""
-    audio_modes: Optional[str] = ""
+    audio_modes: Optional[List[str]] = [""]
     media_metadata_tags: Optional[List[str]] = [""]
 
     artist: Optional["Artist"] = None

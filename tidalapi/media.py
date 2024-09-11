@@ -871,6 +871,7 @@ class Video(Media):
 
         :param media_id: TIDAL's identifier of the video
         :return: A :class:`Video` object containing all the information about the video.
+        :raises: A :class:`exceptions.ObjectNotFound` if video is not found or unavailable
         """
 
         try:
@@ -886,7 +887,7 @@ class Video(Media):
             return cast("Video", video)
 
     def get_url(self) -> str:
-        """Retrieves the URL for a video.
+        """Retrieves the URL to the m3u8 video playlist.
 
         :return: A `str` object containing the direct video URL
         :raises: A :class:`exceptions.URLNotAvailable` if no URL is available for this video

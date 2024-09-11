@@ -45,3 +45,13 @@ def test_mix_unavailable(session):
 def test_mixv2_unavailable(session):
     with pytest.raises(ObjectNotFound):
         mix = session.mixv2("12345678")
+
+
+@pytest.mark.skip(reason="Cannot test against user specific mixes")
+def test_mix_available(session):
+    mix = session.mix("016edb91bc504e618de6918b11b25b")
+
+
+@pytest.mark.skip(reason="Cannot test against user specific mixes")
+def test_mixv2_available(session):
+    mix = session.mixv2("016edb91bc504e618de6918b11b25b")

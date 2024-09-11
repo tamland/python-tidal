@@ -104,10 +104,14 @@ class Mix:
         else:
             result = self.session.parse_page(request.json())
             assert not isinstance(result, list)
-            self._retrieved = True
-            self.__dict__.update(result.categories[0].__dict__)
-            self._items = result.categories[1].items
-            return self
+            if len(result.categories) <= 1:
+                # An empty page with no mixes was returned. Assume that the selected mix was not available
+                raise ObjectNotFound("Mix not found")
+            else:
+                self._retrieved = True
+                self.__dict__.update(result.categories[0].__dict__)
+                self._items = result.categories[1].items
+                return self
 
     def parse(self, json_obj: JsonObj) -> "Mix":
         """Parse a mix into a :class:`Mix`, replaces the calling object.
@@ -188,6 +192,8 @@ class MixV2:
     sub_title_text_info: Optional[TextInfo] = None
     sub_title: Optional[str] = None
     updated: Optional[datetime] = None
+    _retrieved = False
+    _items: Optional[List[Union["Video", "Track"]]] = None
 
     def __init__(self, session: Session, mix_id: str):
         self.session = session
@@ -215,8 +221,15 @@ class MixV2:
         else:
             result = self.session.parse_page(request.json())
             assert not isinstance(result, list)
-            self.__dict__.update(result.categories[0].__dict__)
-            return self
+
+            if len(result.categories) <= 1:
+                # An empty page with no mixes was returned. Assume that the selected mix was not available
+                raise ObjectNotFound("Mix not found")
+            else:
+                self._retrieved = True
+                self.__dict__.update(result.categories[0].__dict__)
+                self._items = result.categories[1].items
+                return self
 
     def parse(self, json_obj: JsonObj) -> "MixV2":
         """Parse a mix into a :class:`MixV2`, replaces the calling object.

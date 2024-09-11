@@ -59,6 +59,7 @@ class Quality(str, Enum):
     high_lossless: str = "LOSSLESS"
     hi_res: str = "HI_RES"
     hi_res_lossless: str = "HI_RES_LOSSLESS"
+    default: str = low_320k
 
     def __str__(self) -> str:
         return self.value
@@ -69,6 +70,7 @@ class VideoQuality(str, Enum):
     medium: str = "MEDIUM"
     low: str = "LOW"
     audio_only: str = "AUDIO_ONLY"
+    default: str = high
 
     def __str__(self) -> str:
         return self.value

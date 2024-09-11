@@ -24,7 +24,6 @@ import concurrent.futures
 import datetime
 import hashlib
 import json
-import locale
 import logging
 import os
 import random
@@ -46,7 +45,7 @@ from typing import (
     cast,
     no_type_check,
 )
-from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import requests
 from requests.exceptions import HTTPError
@@ -414,32 +413,6 @@ class Session:
         self.country_code = json["countryCode"]
         self.user = user.User(self, user_id=json["userId"]).factory()
 
-        return True
-
-    def login(self, username: str, password: str) -> bool:
-        """Logs in to the TIDAL api.
-
-        :param username: The TIDAL username
-        :param password: The password to your TIDAL account
-        :return: Returns true if we think the login was successful.
-        """
-        url = urljoin(self.config.api_v1_location, "login/username")
-        headers: dict[str, str] = {"X-Tidal-Token": self.config.api_token}
-        payload = {
-            "username": username,
-            "password": password,
-            "clientUniqueKey": format(random.getrandbits(64), "02x"),
-        }
-        request = self.request_session.post(url, data=payload, headers=headers)
-
-        if not request.ok:
-            log.error("Login failed: %s", request.text)
-            request.raise_for_status()
-
-        body = request.json()
-        self.session_id = str(body["sessionId"])
-        self.country_code = str(body["countryCode"])
-        self.user = user.User(self, user_id=body["userId"]).factory()
         return True
 
     def login_session_file(

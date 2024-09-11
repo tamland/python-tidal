@@ -24,8 +24,8 @@ from dateutil import tz
 
 import tidalapi
 from tidalapi.album import Album
-from tidalapi.media import Quality
 from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
+from tidalapi.media import Quality
 
 from .cover import verify_image_cover, verify_video_cover
 

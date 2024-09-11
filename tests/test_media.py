@@ -27,9 +27,9 @@ from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
 from tidalapi.media import (
     AudioExtensions,
     AudioMode,
+    Codec,
     ManifestMimeType,
     MimeType,
-    Codec,
     Quality,
 )
 

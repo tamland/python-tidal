@@ -24,6 +24,7 @@ from dateutil import tz
 
 import tidalapi
 from tidalapi.album import Album
+from tidalapi.media import Quality
 from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
 
 from .cover import verify_image_cover, verify_video_cover
@@ -159,3 +160,32 @@ def test_album_type_single(session):
 def test_album_type_ep(session):
     album = session.album(289261563)
     assert album.type == "EP"
+
+
+def test_album_quality_atmos(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    album = session.album("355472560")  # DOLBY_ATMOS
+    assert album.audio_quality == "LOW"
+    assert album.audio_modes == ["DOLBY_ATMOS"]
+    assert "DOLBY_ATMOS" in album.media_metadata_tags
+
+
+def test_album_quality_max(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    album = session.album("355473696")  # MAX (LOSSLESS, 16bit/48kHz)
+    assert album.audio_quality == "LOSSLESS"
+    assert album.audio_modes == ["STEREO"]
+    assert "LOSSLESS" in album.media_metadata_tags
+
+
+def test_album_quality_max_lossless(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    album = session.album("355473675")  # MAX (HI_RES_LOSSLESS, 24bit/192kHz)
+    assert (
+        album.audio_quality == "LOSSLESS"
+    )  # Expected HI_RES_LOSSLESS here. TIDAL bug perhaps?
+    assert album.audio_modes == ["STEREO"]
+    assert "HIRES_LOSSLESS" in album.media_metadata_tags

@@ -154,7 +154,11 @@ class Requests(object):
             self.latest_err_response = request
             if request.content:
                 resp = request.json()
-                log.debug("Request response: '%s'", resp["errors"][0]["detail"])
+                # Make sure request response contains the detailed error message
+                if "errors" in resp:
+                    log.debug("Request response: '%s'", resp["errors"][0]["detail"])
+                else:
+                    log.debug("Request response: '%s'", resp["userMessage"])
             if request.status_code and request.status_code == 404:
                 raise ObjectNotFound
             elif request.status_code and request.status_code == 429:

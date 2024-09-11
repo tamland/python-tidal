@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+import functools
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Union, cast
 
@@ -180,31 +181,59 @@ class Album:
             return self.tidal_release_date
         return None
 
-    def tracks(self, limit: Optional[int] = None, offset: int = 0) -> List["Track"]:
+    def tracks(
+        self,
+        limit: Optional[int] = None,
+        offset: int = 0,
+        sparse_album: bool = False,
+    ) -> List["Track"]:
         """Returns the tracks in classes album.
 
         :param limit: The amount of items you want returned.
         :param offset: The position of the first item you want to include.
+        :param sparse_album: Provide a sparse track.album, containing only essential attributes from track JSON
+            False: Populate the track.album attributes from the parent Album object (self)
         :return: A list of the :class:`Tracks <.Track>` in the album.
         """
         params = {"limit": limit, "offset": offset}
 
+        if sparse_album:
+            parse_track_callable = self.session.parse_track
+        else:
+            # Parse tracks attributes but provide the Album object directly from self
+            parse_track_callable = functools.partial(
+                self.session.parse_track, album=self
+            )
+
         tracks = self.request.map_request(
-            "albums/%s/tracks" % self.id, params, parse=self.session.parse_track
+            "albums/%s/tracks" % self.id, params, parse=parse_track_callable
         )
         assert isinstance(tracks, list)
         return cast(List["Track"], tracks)
 
-    def items(self, limit: int = 100, offset: int = 0) -> List[Union["Track", "Video"]]:
+    def items(
+        self, limit: int = 100, offset: int = 0, sparse_album: bool = False
+    ) -> List[Union["Track", "Video"]]:
         """Gets the first 'limit' tracks and videos in the album from TIDAL.
 
         :param limit: The number of items you want to retrieve
         :param offset: The index you want to start retrieving items from
+        :param sparse_album: Provide a sparse track.album, containing only essential attributes from track JSON
+            False: Populate the track.album attributes from the parent Album object (self)
         :return: A list of :class:`Tracks<.Track>` and :class:`Videos`<.Video>`
         """
         params = {"offset": offset, "limit": limit}
+
+        if sparse_album:
+            parse_media_callable = self.session.parse_media
+        else:
+            # Parse tracks attributes but provide the Album object directly from self
+            parse_media_callable = functools.partial(
+                self.session.parse_media, album=self
+            )
+
         items = self.request.map_request(
-            "albums/%s/items" % self.id, params=params, parse=self.session.parse_media
+            "albums/%s/items" % self.id, params=params, parse=parse_media_callable
         )
         assert isinstance(items, list)
         return cast(List[Union["Track", "Video"]], items)

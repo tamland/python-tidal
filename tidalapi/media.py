@@ -40,6 +40,7 @@ import json
 from isodate import parse_duration
 from mpegdash.parser import MPEGDASHParser
 
+from tidalapi.album import Album
 from tidalapi.exceptions import (
     ManifestDecodeError,
     MetadataNotAvailable,
@@ -223,9 +224,11 @@ class Media:
             "You are not supposed to use the media class directly."
         )
 
-    def parse(self, json_obj: JsonObj) -> None:
+    def parse(self, json_obj: JsonObj, album: Optional[Album] = None) -> None:
         """Assigns all :param json_obj:
 
+        :param json_obj: The JSON object to parse
+        :param album: The (optional) album to use, instead of parsing the JSON object
         :return:
         """
         artists = self.session.parse_artists(json_obj["artists"])
@@ -236,9 +239,9 @@ class Media:
         else:
             artist = artists[0]
 
-        album = None
-        if json_obj["album"]:
+        if album is None and json_obj["album"]:
             album = self.session.album().parse(json_obj["album"], artist, artists)
+        self.album = album
 
         self.id = json_obj["id"]
         self.name = json_obj["title"]
@@ -265,21 +268,23 @@ class Media:
         self.popularity = json_obj["popularity"]
         self.artist = artist
         self.artists = artists
-        self.album = album
         self.type = json_obj.get("type")
 
         self.artist_roles = json_obj.get("artistRoles")
 
-    def parse_media(self, json_obj: JsonObj) -> Union["Track", "Video"]:
+    def parse_media(
+        self, json_obj: JsonObj, album: Optional[Album] = None
+    ) -> Union["Track", "Video"]:
         """Selects the media type when checking lists that can contain both.
 
         :param json_obj: The json containing the media
+        :param album: The (optional) album to use, instead of parsing the JSON object
         :return: Returns a new Video or Track object.
         """
         if json_obj.get("type") is None or json_obj["type"] == "Track":
-            return Track(self.session).parse_track(json_obj)
-        # There are other types like Event, Live, and Video witch match the video class
-        return Video(self.session).parse_video(json_obj)
+            return Track(self.session).parse_track(json_obj, album)
+        # There are other types like Event, Live, and Video which match the video class
+        return Video(self.session).parse_video(json_obj, album)
 
 
 class Track(Media):
@@ -295,8 +300,8 @@ class Track(Media):
     copyright = None
     media_metadata_tags = None
 
-    def parse_track(self, json_obj: JsonObj) -> Track:
-        Media.parse(self, json_obj)
+    def parse_track(self, json_obj: JsonObj, album: Optional[Album] = None) -> Track:
+        Media.parse(self, json_obj, album)
         self.replay_gain = json_obj["replayGain"]
         # Tracks from the pages endpoints might not actually exist
         if "peak" in json_obj and "isrc" in json_obj:
@@ -846,8 +851,8 @@ class Video(Media):
     video_quality: Optional[str] = None
     cover: Optional[str] = None
 
-    def parse_video(self, json_obj: JsonObj) -> Video:
-        Media.parse(self, json_obj)
+    def parse_video(self, json_obj: JsonObj, album: Optional[Album] = None) -> Video:
+        Media.parse(self, json_obj, album)
         release_date = json_obj.get("releaseDate")
         self.release_date = (
             dateutil.parser.isoparse(release_date) if release_date else None

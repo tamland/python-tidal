@@ -106,13 +106,13 @@ def test_video_playlist(session):
     )
     assert playlist.duration == 1996
     assert playlist.last_updated == datetime.datetime(
-        2020, 3, 25, 8, 5, 33, 115000, tzinfo=tz.tzutc()
+        2024, 8, 14, 16, 26, 58, 898000, tzinfo=tz.tzutc()
     )
     assert playlist.created == datetime.datetime(
         2017, 1, 23, 18, 34, 56, 930000, tzinfo=tz.tzutc()
     )
     assert playlist.type == "EDITORIAL"
-    assert playlist.public is True
+    assert playlist.public is False
     assert playlist.promoted_artists[0].name == "Sundance Film Festival"
 
     creator = playlist.creator

@@ -428,8 +428,8 @@ def test_get_track_radio_limit_100(session):
 
 def test_get_stream_bts(session):
     track = session.track(77646170)  # Beck: Sea Change, Track: The Golden Age
-    # Set session as BTS type (i.e. HIGH Quality)
-    session.audio_quality = "HIGH"
+    # Set session as BTS type (i.e. low_320k/HIGH Quality)
+    session.audio_quality = Quality.low_320k
     # Attempt to get stream and validate
     stream = track.get_stream()
     validate_stream(stream, False)
@@ -444,7 +444,7 @@ def test_get_stream_bts(session):
 def test_get_stream_mpd(session):
     track = session.track(77646170)
     # Set session as MPD/DASH type (i.e. HI_RES_LOSSLESS Quality).
-    session.audio_quality = "HI_RES_LOSSLESS"
+    session.audio_quality = Quality.hi_res_lossless
     # Attempt to get stream and validate
     stream = track.get_stream()
     validate_stream(stream, True)
@@ -458,7 +458,7 @@ def test_manifest_element_count(session):
     #   and must be handled slightly differently when parsing the stream manifest DashInfo
     track = session.track(281047832)
     # Set session as MPD/DASH type (i.e. HI_RES_LOSSLESS Quality).
-    session.audio_quality = "HI_RES_LOSSLESS"
+    session.audio_quality = Quality.hi_res_lossless
     # Attempt to get stream
     stream = track.get_stream()
     # Get parsed stream manifest
@@ -469,9 +469,9 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
     assert stream.album_peak_amplitude == 1.0
     assert stream.album_replay_gain == -11.8
     assert stream.asset_presentation == "FULL"
-    assert stream.audio_mode == "STEREO"
+    assert stream.audio_mode == AudioMode.stereo
     if not is_hi_res_lossless:
-        assert stream.audio_quality == "HIGH"
+        assert stream.audio_quality == Quality.low_320k
         assert stream.is_bts == True
         assert stream.is_mpd == False
         assert stream.bit_depth == 16
@@ -481,7 +481,7 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
         assert audio_resolution[0] == 16
         assert audio_resolution[1] == 44100
     else:
-        assert stream.audio_quality == "HI_RES_LOSSLESS"
+        assert stream.audio_quality == Quality.hi_res_lossless
         assert stream.is_bts == False
         assert stream.is_mpd == True
         assert stream.bit_depth == 24
@@ -499,7 +499,7 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
     if not is_hi_res_lossless:
         assert manifest.is_bts == True
         assert manifest.is_mpd == False
-        assert manifest.codecs == "MP4A"
+        assert manifest.codecs == Codec.MP4A
         assert manifest.dash_info is None
         assert manifest.encryption_key is None
         assert manifest.encryption_type == "NONE"
@@ -511,7 +511,7 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
     else:
         assert manifest.is_bts == False
         assert manifest.is_mpd == True
-        assert manifest.codecs == "flac"
+        assert manifest.codecs == Codec.FLAC
         assert manifest.dash_info is not None
         assert manifest.encryption_key is None
         assert manifest.encryption_type == "NONE"

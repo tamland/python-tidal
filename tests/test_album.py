@@ -25,7 +25,7 @@ from dateutil import tz
 import tidalapi
 from tidalapi.album import Album
 from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
-from tidalapi.media import Quality
+from tidalapi.media import Quality, AudioMode
 
 from .cover import verify_image_cover, verify_video_cover
 
@@ -41,7 +41,7 @@ def test_album(session):
     assert album.allow_streaming
     assert album.dj_ready
     assert album.audio_modes == ["STEREO"]
-    assert album.audio_quality == "LOSSLESS"
+    assert album.audio_quality == Quality.high_lossless
     assert album.num_tracks == 22
     assert album.num_videos == 0
     assert album.num_volumes == 2
@@ -166,17 +166,17 @@ def test_album_quality_atmos(session):
     # Session should allow highest possible quality (but will fallback to highest available album quality)
     session.audio_quality = Quality.hi_res_lossless
     album = session.album("355472560")  # DOLBY_ATMOS
-    assert album.audio_quality == "LOW"
-    assert album.audio_modes == ["DOLBY_ATMOS"]
+    assert album.audio_quality == Quality.low_96k
+    assert album.audio_modes == [AudioMode.dolby_atmos]
     assert "DOLBY_ATMOS" in album.media_metadata_tags
 
 
 def test_album_quality_max(session):
     # Session should allow highest possible quality (but will fallback to highest available album quality)
-    session.audio_quality = Quality.hi_res_lossless
+    session.audio_quality = Quality.high_lossless
     album = session.album("355473696")  # MAX (LOSSLESS, 16bit/48kHz)
-    assert album.audio_quality == "LOSSLESS"
-    assert album.audio_modes == ["STEREO"]
+    assert album.audio_quality == Quality.high_lossless
+    assert album.audio_modes == [AudioMode.stereo]
     assert "LOSSLESS" in album.media_metadata_tags
 
 
@@ -185,7 +185,12 @@ def test_album_quality_max_lossless(session):
     session.audio_quality = Quality.hi_res_lossless
     album = session.album("355473675")  # MAX (HI_RES_LOSSLESS, 24bit/192kHz)
     assert (
-        album.audio_quality == "LOSSLESS"
+        album.audio_quality == Quality.high_lossless
     )  # Expected HI_RES_LOSSLESS here. TIDAL bug perhaps?
-    assert album.audio_modes == ["STEREO"]
+    assert album.audio_modes == [AudioMode.stereo]
     assert "HIRES_LOSSLESS" in album.media_metadata_tags
+
+
+def test_reset_session_quality(session):
+    # HACK: Make sure to reset audio quality to default value for remaining tests
+    session.audio_quality = Quality.default

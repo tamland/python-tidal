@@ -57,6 +57,15 @@ def test_playlist(session):
     assert creator.name == "JAY Z"
     assert isinstance(creator, tidalapi.Artist)
 
+    assert (
+        playlist.listen_url
+        == "https://listen.tidal.com/playlist/7eafb342-141a-4092-91eb-da0012da3a19"
+    )
+    assert (
+        playlist.share_url
+        == "https://tidal.com/browse/playlist/7eafb342-141a-4092-91eb-da0012da3a19"
+    )
+
 
 def test_updated_playlist(session):
     playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")

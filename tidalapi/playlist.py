@@ -60,6 +60,11 @@ class Playlist:
     user_date_added: Optional[datetime] = None
     _etag: Optional[str] = None
 
+    # Direct URL to https://listen.tidal.com/playlist/<playlist_id>
+    listen_url: str = ""
+    # Direct URL to https://tidal.com/browse/playlist/<playlist_id>
+    share_url: str = ""
+
     def __init__(self, session: "Session", playlist_id: Optional[str]):
         self.id = playlist_id
         self.session = session
@@ -125,6 +130,9 @@ class Playlist:
             self.creator = self.session.parse_artist(creator)
         else:
             self.creator = self.session.parse_user(creator) if creator else None
+
+        self.listen_url = f"{self.session.config.listen_base_url}/playlist/{self.id}"
+        self.share_url = f"{self.session.config.share_base_url}/playlist/{self.id}"
 
         return copy.copy(self)
 

@@ -521,3 +521,8 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
         assert manifest.mime_type == MimeType.audio_mp4
         assert manifest.sample_rate == 192000
     # TODO Validate stream URL contents
+
+
+def test_reset_session_quality(session):
+    # HACK: Make sure to reset audio quality to default value for remaining tests
+    session.audio_quality = Quality.default

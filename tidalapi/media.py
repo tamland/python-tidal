@@ -124,13 +124,13 @@ class ManifestMimeType(str, Enum):
 class Codec(str, Enum):
     MP3: str = "MP3"
     AAC: str = "AAC"
-    M4A: str = "MP4A"
+    MP4A: str = "MP4A"
     FLAC: str = "FLAC"
     MQA: str = "MQA"
     Atmos: str = "EAC3"
     AC4: str = "AC4"
     SONY360RA: str = "MHA1"
-    LowResCodecs: [str] = [MP3, AAC, M4A]
+    LowResCodecs: [str] = [MP3, AAC, MP4A]
     PremiumCodecs: [str] = [MQA, Atmos, AC4]
     HQCodecs: [str] = PremiumCodecs + [FLAC]
 
@@ -153,7 +153,7 @@ class MimeType(str, Enum):
     audio_map = {
         Codec.MP3: audio_mp3,
         Codec.AAC: audio_m4a,
-        Codec.M4A: audio_m4a,
+        Codec.MP4A: audio_m4a,
         Codec.FLAC: audio_xflac,
         Codec.MQA: audio_xflac,
         Codec.Atmos: audio_eac3,
@@ -469,6 +469,18 @@ class Track(Media):
         return False
 
     @property
+    def is_lossless(self) -> bool:
+        try:
+            if (
+                self.media_metadata_tags
+                and MediaMetadataTags.lossless in self.media_metadata_tags
+            ):
+                return True
+        except:
+            pass
+        return False
+
+    @property
     def is_dolby_atmos(self) -> bool:
         try:
             return True if AudioMode.dolby_atmos in self.audio_modes else False
@@ -570,7 +582,17 @@ class StreamManifest:
             # See https://ottverse.com/structure-of-an-mpeg-dash-mpd/ for more details
             self.dash_info = DashInfo.from_mpd(stream.get_manifest_data())
             self.urls = self.dash_info.urls
-            self.codecs = self.dash_info.codecs
+            # MPD reports mp4a codecs slightly differently when compared to BTS. Both will be interpreted as MP4A
+            if "flac" in self.dash_info.codecs:
+                self.codecs = Codec.FLAC
+            elif "mp4a.40.5" in self.dash_info.codecs:
+                # LOW 96K: "mp4a.40.5"
+                self.codecs = Codec.MP4A
+            elif "mp4a.40.2" in self.dash_info.codecs:
+                # LOW 320k "mp4a.40.2"
+                self.codecs = Codec.MP4A
+            else:
+                self.codecs = self.dash_info.codecs
             self.mime_type = self.dash_info.mime_type
             self.sample_rate = self.dash_info.audio_sampling_rate
             # TODO: Handle encryption key.
@@ -583,6 +605,7 @@ class StreamManifest:
             stream_manifest = json.loads(self.manifest_parsed)
             # TODO: Handle more than one download URL
             self.urls = stream_manifest["urls"]
+            # Codecs can be interpreted directly when using BTS
             self.codecs = stream_manifest["codecs"].upper().split(".")[0]
             self.mime_type = stream_manifest["mimeType"]
             self.encryption_type = stream_manifest["encryptionType"]

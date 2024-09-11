@@ -4,6 +4,10 @@ History
 =======
 v0.7.7
 ------
+* Bugfix: Ensure manifest.codecs always uses a Codec type for both MPD and BTS. - tehkillerbee_
+* Added additional tests to verify stream formats (Relates to #252) - tehkillerbee_
+* BREAKING: Fix naming of getters to align with python naming convention and avoid confusion (Fixes #255) - tehkillerbee_
+* Bugfix: Use correct internal type int for relevant IDs (Fixes #260) - tehkillerbee_
 * Bugfix: Fix linting for audio_modes. Update tests (Fixes #261) - tehkillerbee_
 * Feat.: Provide "Share Link", "Listen link" as an attribute to album/artist/media. Add relevant tests (Fixes #266) - tehkillerbee_
 * Allow switching authentication method oauth/pkce for tests. Default: oauth - tehkillerbee_

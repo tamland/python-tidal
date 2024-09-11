@@ -57,6 +57,15 @@ def test_playlist(session):
     assert creator.name == "JAY Z"
     assert isinstance(creator, tidalapi.Artist)
 
+    assert (
+        playlist.listen_url
+        == "https://listen.tidal.com/playlist/7eafb342-141a-4092-91eb-da0012da3a19"
+    )
+    assert (
+        playlist.share_url
+        == "https://tidal.com/browse/playlist/7eafb342-141a-4092-91eb-da0012da3a19"
+    )
+
 
 def test_updated_playlist(session):
     playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
@@ -97,13 +106,13 @@ def test_video_playlist(session):
     )
     assert playlist.duration == 1996
     assert playlist.last_updated == datetime.datetime(
-        2020, 3, 25, 8, 5, 33, 115000, tzinfo=tz.tzutc()
+        2024, 8, 14, 16, 26, 58, 898000, tzinfo=tz.tzutc()
     )
     assert playlist.created == datetime.datetime(
         2017, 1, 23, 18, 34, 56, 930000, tzinfo=tz.tzutc()
     )
     assert playlist.type == "EDITORIAL"
-    assert playlist.public is True
+    assert playlist.public is False
     assert playlist.promoted_artists[0].name == "Sundance Film Festival"
 
     creator = playlist.creator

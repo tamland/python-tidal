@@ -56,7 +56,6 @@ def test_get_albums(session):
         session.album(17927863),
         session.album(36292296),
         session.album(17925106),
-        session.album(17782044),
         session.album(17926279),
     ]
 
@@ -93,7 +92,6 @@ def test_get_top_tracks(session):
         session.track(17927865),
         session.track(17927867),
         session.track(17926280),
-        session.track(17782052),
         session.track(17927869),
     ]
 

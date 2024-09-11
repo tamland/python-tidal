@@ -23,8 +23,15 @@ import pytest
 from dateutil import tz
 
 import tidalapi
-from tidalapi.exceptions import MetadataNotAvailable
-from tidalapi.media import AudioExtensions, AudioMode, ManifestMimeType, MimeType
+from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
+from tidalapi.media import (
+    AudioExtensions,
+    AudioMode,
+    Codec,
+    ManifestMimeType,
+    MimeType,
+    Quality,
+)
 
 from .cover import verify_image_resolution, verify_video_resolution
 
@@ -108,6 +115,181 @@ def test_track_streaming(session):
     assert (
         stream.audio_quality == tidalapi.Quality.low_320k
     )  # i.e. the default quality for the current session
+
+
+@pytest.mark.skip(reason="SONY360 support has been removed")
+def test_track_quality_sony360(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    # Alice In Chains / We Die Young (Max quality: HI_RES MHA1 SONY360; Album has now been removed)
+    with pytest.raises(ObjectNotFound):
+        session.album("249593867")
+
+
+@pytest.mark.skip(reason="Atmos appears to fallback to HI_RES_LOSSLESS")
+def test_track_quality_atmos(session):
+    # Session should allow highest possible quality (but should fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    album = session.album("355472560")  # DOLBY_ATMOS, will fallback to HI_RES_LOSSLESS
+    track = album.tracks()[0]
+    assert track.audio_quality == "LOW"
+    assert track.audio_modes == ["DOLBY_ATMOS"]
+    assert track.is_dolby_atmos
+    stream = track.get_stream()
+    assert stream.is_mpd and not stream.is_bts
+    assert stream.audio_quality == "HIGH"  # Expected this to be LOW?
+    assert stream.audio_mode == "STEREO"  # Expected this to be DOLBY_ATMOS?
+    assert stream.bit_depth == 24  # Correct bit depth for atmos??
+    assert stream.sample_rate == 192000  # Correct sample rate for atmos??
+    manifest = stream.get_stream_manifest()
+    assert manifest.codecs == Codec.Atmos
+    assert manifest.mime_type == MimeType.audio_eac3
+
+
+@pytest.mark.skip(reason="MQA albums appears to fallback to LOSSLESS")
+def test_track_quality_mqa(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    # U2 / Achtung Baby (Max quality: HI_RES MQA, 16bit/44100Hz)
+    album = session.album("77640617")
+    track = album.tracks()[0]
+    assert track.audio_quality == "LOSSLESS"
+    assert track.audio_modes == ["STEREO"]
+    # assert track.is_mqa # for an MQA album, this value is expected to be true
+    stream = track.get_stream()
+    assert stream.is_mpd and not stream.is_bts
+    assert stream.audio_quality == "LOSSLESS"
+    assert stream.audio_mode == "STEREO"
+    assert stream.bit_depth == 16
+    assert stream.sample_rate == 44100
+    manifest = stream.get_stream_manifest()
+    assert manifest.codecs == Codec.FLAC
+    assert manifest.mime_type == MimeType.audio_mp4
+
+
+def test_track_quality_low96k(session):
+    # Album is available in LOSSLESS, but we will explicitly request low 320k quality instead
+    session.audio_quality = Quality.low_96k
+    # D-A-D / A Prayer for the Loud   (Max quality: LOSSLESS FLAC, 16bit/44.1kHz)
+    album = session.album("172358622")
+    track = album.tracks()[0]
+    assert track.audio_quality == "LOSSLESS"  # Available in LOSSLESS (or below)
+    assert track.audio_modes == ["STEREO"]
+    # Only LOSSLESS (or below) is available for this album
+    assert not track.is_hi_res_lossless
+    assert track.is_lossless
+    stream = track.get_stream()
+    assert (
+        not stream.is_mpd and stream.is_bts
+    )  # LOW/HIGH/LOSSLESS streams will use BTS, if OAuth authentication is used.
+    assert stream.audio_quality == "LOW"
+    assert stream.audio_mode == "STEREO"
+    assert stream.bit_depth == 16
+    assert stream.sample_rate == 44100
+    manifest = stream.get_stream_manifest()
+    assert manifest.codecs == Codec.MP4A
+    assert (
+        manifest.mime_type == MimeType.audio_mp4
+    )  # All MPEG-DASH based streams use an 'audio_mp4' container
+
+
+def test_track_quality_low320k(session):
+    # Album is available in LOSSLESS, but we will explicitly request low 320k quality instead
+    session.audio_quality = Quality.low_320k
+    # D-A-D / A Prayer for the Loud   (Max quality: LOSSLESS FLAC, 16bit/44.1kHz)
+    album = session.album("172358622")
+    track = album.tracks()[0]
+    assert track.audio_quality == "LOSSLESS"  # Available in LOSSLESS (or below)
+    assert track.audio_modes == ["STEREO"]
+    # Only LOSSLESS (or below) is available for this album
+    assert not track.is_hi_res_lossless
+    assert track.is_lossless
+    stream = track.get_stream()
+    assert not stream.is_mpd and stream.is_bts
+    assert stream.audio_quality == "HIGH"
+    assert stream.audio_mode == "STEREO"
+    assert stream.bit_depth == 16
+    assert stream.sample_rate == 44100
+    manifest = stream.get_stream_manifest()
+    assert manifest.codecs == Codec.MP4A
+    assert (
+        manifest.mime_type == MimeType.audio_mp4
+    )  # All BTS (LOW/HIGH) based streams use an 'audio_mp4' container
+
+
+def test_track_quality_lossless(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    # D-A-D / A Prayer for the Loud   (Max quality: LOSSLESS FLAC, 16bit/44.1kHz)
+    album = session.album("172358622")
+    track = album.tracks()[0]
+    assert track.audio_quality == "LOSSLESS"
+    assert track.audio_modes == ["STEREO"]
+    # Only LOSSLESS is available for this album
+    assert not track.is_hi_res_lossless
+    assert track.is_lossless
+    stream = track.get_stream()
+    assert (
+        not stream.is_mpd and stream.is_bts
+    )  # LOW/HIGH/LOSSLESS streams will use BTS, if OAuth authentication is used.
+    assert stream.audio_quality == "LOSSLESS"
+    assert stream.audio_mode == "STEREO"
+    assert stream.bit_depth == 16
+    assert stream.sample_rate == 44100
+    manifest = stream.get_stream_manifest()
+    assert manifest.codecs == Codec.FLAC
+    assert (
+        manifest.mime_type == MimeType.audio_flac
+    )  # All BTS (LOSSLESS) based streams use an 'audio_mp4' container
+
+
+def test_track_quality_max(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    # Mark Knopfler, One Deep River: Reported as MAX (HI_RES_LOSSLESS, 16bit/48kHz)
+    album = session.album("355473696")
+    track = album.tracks()[0]
+    assert track.audio_quality == "LOSSLESS"
+    assert track.audio_modes == ["STEREO"]
+    # Both HI_RES_LOSSLESS and LOSSLESS is available for this album
+    assert track.is_hi_res_lossless
+    assert track.is_lossless
+    stream = track.get_stream()
+    assert (
+        stream.is_mpd and not stream.is_bts
+    )  # HI_RES_LOSSLESS streams will use MPD, if OAuth authentication is used.
+    assert stream.audio_quality == "HI_RES_LOSSLESS"
+    assert stream.audio_mode == "STEREO"
+    assert stream.bit_depth == 16
+    assert stream.sample_rate == 48000
+    manifest = stream.get_stream_manifest()
+    assert manifest.codecs == Codec.FLAC
+    assert (
+        manifest.mime_type == MimeType.audio_mp4
+    )  # All MPEG-DASH based streams use an 'audio_mp4' container
+
+
+def test_track_quality_max_lossless(session):
+    # Session should allow highest possible quality (but will fallback to highest available album quality)
+    session.audio_quality = Quality.hi_res_lossless
+    album = session.album("355473675")  # MAX (HI_RES_LOSSLESS, 24bit/192kHz)
+    track = album.tracks()[0]
+    # Both HI_RES_LOSSLESS and LOSSLESS is available for this album
+    assert track.is_hi_res_lossless
+    assert track.is_lossless
+    stream = track.get_stream()
+    assert (
+        stream.is_mpd and not stream.is_bts
+    )  # HI_RES_LOSSLESS streams will use MPD, if OAuth authentication is used.
+    assert stream.audio_quality == "HI_RES_LOSSLESS"
+    assert stream.audio_mode == "STEREO"
+    assert stream.bit_depth == 24
+    assert stream.sample_rate == 192000
+    manifest = stream.get_stream_manifest()
+    assert manifest.codecs == Codec.FLAC
+    assert (
+        manifest.mime_type == MimeType.audio_mp4
+    )  # All MPEG-DASH based streams use an 'audio_mp4' container
 
 
 def test_video(session):
@@ -223,7 +405,7 @@ def test_full_name_track_3(session):
 def test_track_media_metadata_tags(session):
     track = session.track(182912246)
     assert track.name == "All You Ever Wanted"
-    assert track.media_metadata_tags == ["LOSSLESS", "HIRES_LOSSLESS", "MQA"]
+    assert track.media_metadata_tags == ["LOSSLESS", "HIRES_LOSSLESS"]
 
 
 def test_get_track_radio_limit_default(session):
@@ -246,8 +428,8 @@ def test_get_track_radio_limit_100(session):
 
 def test_get_stream_bts(session):
     track = session.track(77646170)  # Beck: Sea Change, Track: The Golden Age
-    # Set session as BTS type (i.e. HIGH Quality)
-    session.audio_quality = "HIGH"
+    # Set session as BTS type (i.e. low_320k/HIGH Quality)
+    session.audio_quality = Quality.low_320k
     # Attempt to get stream and validate
     stream = track.get_stream()
     validate_stream(stream, False)
@@ -262,7 +444,7 @@ def test_get_stream_bts(session):
 def test_get_stream_mpd(session):
     track = session.track(77646170)
     # Set session as MPD/DASH type (i.e. HI_RES_LOSSLESS Quality).
-    session.audio_quality = "HI_RES_LOSSLESS"
+    session.audio_quality = Quality.hi_res_lossless
     # Attempt to get stream and validate
     stream = track.get_stream()
     validate_stream(stream, True)
@@ -276,7 +458,7 @@ def test_manifest_element_count(session):
     #   and must be handled slightly differently when parsing the stream manifest DashInfo
     track = session.track(281047832)
     # Set session as MPD/DASH type (i.e. HI_RES_LOSSLESS Quality).
-    session.audio_quality = "HI_RES_LOSSLESS"
+    session.audio_quality = Quality.hi_res_lossless
     # Attempt to get stream
     stream = track.get_stream()
     # Get parsed stream manifest
@@ -287,11 +469,11 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
     assert stream.album_peak_amplitude == 1.0
     assert stream.album_replay_gain == -11.8
     assert stream.asset_presentation == "FULL"
-    assert stream.audio_mode == "STEREO"
+    assert stream.audio_mode == AudioMode.stereo
     if not is_hi_res_lossless:
-        assert stream.audio_quality == "HIGH"
-        assert stream.is_BTS == True
-        assert stream.is_MPD == False
+        assert stream.audio_quality == Quality.low_320k
+        assert stream.is_bts == True
+        assert stream.is_mpd == False
         assert stream.bit_depth == 16
         assert stream.sample_rate == 44100
         assert stream.manifest_mime_type == ManifestMimeType.BTS
@@ -299,9 +481,9 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
         assert audio_resolution[0] == 16
         assert audio_resolution[1] == 44100
     else:
-        assert stream.audio_quality == "HI_RES_LOSSLESS"
-        assert stream.is_BTS == False
-        assert stream.is_MPD == True
+        assert stream.audio_quality == Quality.hi_res_lossless
+        assert stream.is_bts == False
+        assert stream.is_mpd == True
         assert stream.bit_depth == 24
         assert stream.sample_rate == 192000  # HI_RES_LOSSLESS: 24bit/192kHz
         assert stream.manifest_mime_type == ManifestMimeType.MPD
@@ -315,9 +497,9 @@ def validate_stream(stream, is_hi_res_lossless: bool = False):
 
 def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
     if not is_hi_res_lossless:
-        assert manifest.is_BTS == True
-        assert manifest.is_MPD == False
-        assert manifest.codecs == "MP4A"
+        assert manifest.is_bts == True
+        assert manifest.is_mpd == False
+        assert manifest.codecs == Codec.MP4A
         assert manifest.dash_info is None
         assert manifest.encryption_key is None
         assert manifest.encryption_type == "NONE"
@@ -327,9 +509,9 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
         assert manifest.mime_type == MimeType.audio_mp4
         assert manifest.sample_rate == 44100
     else:
-        assert manifest.is_BTS == False
-        assert manifest.is_MPD == True
-        assert manifest.codecs == "flac"
+        assert manifest.is_bts == False
+        assert manifest.is_mpd == True
+        assert manifest.codecs == Codec.FLAC
         assert manifest.dash_info is not None
         assert manifest.encryption_key is None
         assert manifest.encryption_type == "NONE"
@@ -339,3 +521,8 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
         assert manifest.mime_type == MimeType.audio_mp4
         assert manifest.sample_rate == 192000
     # TODO Validate stream URL contents
+
+
+def test_reset_session_quality(session):
+    # HACK: Make sure to reset audio quality to default value for remaining tests
+    session.audio_quality = Quality.default

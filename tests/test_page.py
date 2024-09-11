@@ -32,20 +32,38 @@ def test_explore(session):
 
 def test_get_explore_items(session):
     explore = session.explore()
-    iterator = iter(explore)
-    playlist = next(iterator).get()
-    assert playlist.name
+    assert explore.title == "Explore"
+    # First page usually contains Genres
+    assert explore.categories[0].title == "Genres"
+    assert explore.categories[1].title == "Moods, Activities & Events"
+    assert explore.categories[2].title == ""  # Usually empty
+
+    # Genre_decades items
+    genre_decades = explore.categories[0].items[0]
+    genre_decades_page_items = iter(genre_decades.get())
+    first_item = next(genre_decades_page_items).get()
+    assert isinstance(first_item, tidalapi.Page)
+    assert first_item.title == "1950s"
+    assert first_item.categories[0].title == "Playlists"
+    assert first_item.categories[1].title == "Milestone Year Albums"
+    assert first_item.categories[2].title == "Albums Of The Decade"
+    playlist = first_item.categories[0].items[0]
+    assert playlist.name  # == 'Remember...the 1950s'
     assert playlist.num_tracks > 1
+    assert playlist.num_videos == 0
 
-    genre = explore.categories[1].items[0]
-    genre_page_items = iter(genre.get())
-    assert isinstance(next(genre_page_items).get(), tidalapi.Playlist)
+    genre_genres = explore.categories[0].items[1]
+    genre_genres_page_items = iter(genre_genres.get())
+    playlist = next(genre_genres_page_items)  # Usually a playlist
+    assert playlist.name  # == 'Remember...the 1950s'
+    assert playlist.num_tracks > 1
+    assert playlist.num_videos == 0
 
-    genres = explore.categories[1].show_more()
-    iterator = iter(genres)
+    genres_more = explore.categories[0].show_more()
+    iterator = iter(genres_more)
     next(iterator)
-    assert next(iterator).title == "Blues"
     assert next(iterator).title == "Classical"
+    assert next(iterator).title == "Country"
 
 
 def test_for_you(session):
@@ -56,11 +74,11 @@ def test_for_you(session):
 def test_show_more(session):
     videos = session.videos()
     originals = next(
-        iter(filter(lambda x: x.title == "TIDAL Originals", videos.categories))
+        iter(filter(lambda x: x.title == "Custom mixes", videos.categories))
     )
     more = originals.show_more()
     assert len(more.categories[0].items) > 0
-    assert isinstance(next(iter(more)), tidalapi.Artist)
+    assert isinstance(next(iter(more)), tidalapi.Mix)
 
 
 def test_page_iterator(session):
@@ -73,8 +91,8 @@ def test_page_iterator(session):
         elif isinstance(item, tidalapi.Video):
             videos += 1
 
-    assert playlists > 20
-    assert videos > 20
+    assert playlists == 20
+    assert videos == 30
 
 
 def test_get_video_items(session):
@@ -88,7 +106,7 @@ def test_get_video_items(session):
 
 def test_page_links(session):
     explore = session.explore()
-    for item in explore.categories[3].items:
+    for item in explore.categories[2].items:
         page = item.get()
         if item.title == "TIDAL Rising":
             assert isinstance(page.categories[1].text, str)

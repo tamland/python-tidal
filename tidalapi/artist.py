@@ -40,7 +40,7 @@ DEFAULT_ARTIST_IMG = "1e01cdb6-f15d-4d8b-8440-a047976c1cac"
 
 
 class Artist:
-    id: Optional[str] = None
+    id: Optional[int] = -1
     name: Optional[str] = None
     roles: Optional[List["Role"]] = None
     role: Optional["Role"] = None

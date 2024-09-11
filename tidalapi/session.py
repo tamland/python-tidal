@@ -126,8 +126,8 @@ class Config:
     @no_type_check
     def __init__(
         self,
-        quality: str = media.Quality.low_320k,
-        video_quality: str = media.VideoQuality.high,
+        quality: str = media.Quality.default,
+        video_quality: str = media.VideoQuality.default,
         item_limit: int = 1000,
         alac: bool = True,
     ):

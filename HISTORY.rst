@@ -4,7 +4,15 @@ History
 =======
 v0.7.7
 ------
-* Feat.: Provide "Share Link", "Listen link" as an attribute to album/artist/media. Add relevant tests (Fixes #266) - tehkillerbee_
+* Tests: Fix all tests that previously failed. - tehkillerbee_
+* Use enum to specify default audio / video quality - tehkillerbee_
+* Bugfix: Recent TIDAL changes resulted in missing Mix not causing a ObjectNotFound exception. - tehkillerbee_
+* Bugfix: Ensure manifest.codecs always uses a Codec type for both MPD and BTS. - tehkillerbee_
+* Added additional tests to verify stream formats (Relates to #252) - tehkillerbee_
+* BREAKING: Fix naming of getters to align with python naming convention and avoid confusion (Fixes #255) - tehkillerbee_
+* Bugfix: Use correct internal type int for relevant IDs (Fixes #260) - tehkillerbee_
+* Bugfix: Fix linting for audio_modes. Update tests (Fixes #261) - tehkillerbee_
+* Feat.: Provide "Share Link", "Listen link" as an attribute to album/artist/media/playlist/. Update relevant tests (Fixes #266) - tehkillerbee_
 * Allow switching authentication method oauth/pkce for tests. Default: oauth - tehkillerbee_
 * Tests: Added track stream tests (BTS, MPD) - tehkillerbee_
 * Bugfix: Always use last element in segment timeline. (Fixes #273) - tehkillerbee_

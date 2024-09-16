@@ -446,12 +446,15 @@ class Session:
         self,
         session_file: Path,
         do_pkce: Optional[bool] = False,
+        fn_print: Callable[[str], None] = print
     ) -> bool:
         """Logs in to the TIDAL api using an existing OAuth/PKCE session file. If no
         session json file exists, a new one will be created after successful login.
 
         :param session_file: The session json file
         :param do_pkce: Perform PKCE login. Default: Use OAuth logon
+        :param fn_print: A function which will be called to print the the challenge text,
+            defaults to `print()`.
         :return: Returns true if we think the login was successful.
         """
         self.load_session_from_file(session_file)
@@ -460,10 +463,10 @@ class Session:
         if not self.check_login():
             if do_pkce:
                 log.info("Creating new session (PKCE)...")
-                self.login_pkce()
+                self.login_pkce(fn_print=fn_print)
             else:
                 log.info("Creating new session (OAuth)...")
-                self.login_oauth_simple()
+                self.login_oauth_simple(function=fn_print)
 
         if self.check_login():
             log.info("TIDAL Login OK")

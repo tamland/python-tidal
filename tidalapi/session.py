@@ -453,7 +453,7 @@ class Session:
 
         :param session_file: The session json file
         :param do_pkce: Perform PKCE login. Default: Use OAuth logon
-        :param fn_print: A function which will be called to print the the challenge text,
+        :param fn_print: A function which will be called to print the challenge text,
             defaults to `print()`.
         :return: Returns true if we think the login was successful.
         """

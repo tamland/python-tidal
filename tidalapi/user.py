@@ -25,7 +25,7 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, List, Optional, Union, cast
 from urllib.parse import urljoin
 
 from tidalapi.types import JsonObj
@@ -140,6 +140,28 @@ class LoggedInUser(FetchedUser):
             self.request.map_request(
                 "users/%s/playlists" % self.id, parse=self.playlist.parse_factory
             ),
+        )
+
+    def get_public_playlists(self, offset=0) -> List[Union["Playlist", "UserPlaylist"]]:
+        """
+        Get the (public) playlists created by the user
+        :return: List of public playlists
+        """
+        params = {"limit": 50, "offset": offset}
+        endpoint = "user-playlists/%s/public" % self.id
+        json_obj = self.request.request(
+            "GET", endpoint, base_url=self.session.config.api_v2_location, params=params
+        ).json()
+
+        # The response contains both playlists and user details (followInfo, profile) but we will discard the latter.
+        playlists = {"items": []}
+        for index, item in enumerate(json_obj["items"]):
+            if item["playlist"]:
+                playlists["items"].append(item["playlist"])
+
+        return cast(
+            List[Union["Playlist", "UserPlaylist"]],
+            self.request.map_json(playlists, parse=self.playlist.parse_factory),
         )
 
     def playlist_and_favorite_playlists(

@@ -446,7 +446,7 @@ class Session:
         self,
         session_file: Path,
         do_pkce: Optional[bool] = False,
-        fn_print: Callable[[str], None] = print
+        fn_print: Callable[[str], None] = print,
     ) -> bool:
         """Logs in to the TIDAL api using an existing OAuth/PKCE session file. If no
         session json file exists, a new one will be created after successful login.

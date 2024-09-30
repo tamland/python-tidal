@@ -46,7 +46,7 @@ This will print the link, and then wait for the login future to complete, but it
 .. testcode::
 
     # The function is print by default, but you can use anything, here we do it to avoid the print being swallowed
-    session.login_oauth_simple(function=printer)
+    session.login_oauth_simple(fn_print=printer)
     print(session.check_login())
 
 .. testoutput::

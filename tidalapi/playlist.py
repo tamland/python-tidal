@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import copy
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional, Sequence, Union, cast
+from typing import TYPE_CHECKING, List, Optional, Sequence, Union
 
 from tidalapi.exceptions import ObjectNotFound, TooManyRequests
 from tidalapi.types import JsonObj
@@ -233,6 +233,7 @@ class Playlist:
 
 class UserPlaylist(Playlist):
     def _reparse(self) -> None:
+        # Re-Read Playlist to get ETag
         request = self.request.request("GET", self._base_url % self.id)
         self._etag = request.headers["etag"]
         self.request.map_json(request.json(), parse=self.parse)
@@ -240,6 +241,11 @@ class UserPlaylist(Playlist):
     def edit(
         self, title: Optional[str] = None, description: Optional[str] = None
     ) -> None:
+        """
+        Edit UserPlaylist title & description
+        :param title: Playlist title
+        :param description: Playlist title
+        """
         if not title:
             title = self.name
         if not description:
@@ -248,10 +254,21 @@ class UserPlaylist(Playlist):
         data = {"title": title, "description": description}
         self.request.request("POST", self._base_url % self.id, data=data)
 
-    def delete(self) -> None:
-        self.request.request("DELETE", self._base_url % self.id)
+    def delete(self, media_ids: List[str]) -> None:
+        """
+        Delete one or more items from the UserPlaylist
+        :param media_ids: Lists of Media IDs to remove
+        """
+        # Generate list of track indices of tracks found in the list of media_ids.
+        track_ids = [str(track.id) for track in self.tracks()]
+        matching_indices = [i for i, item in enumerate(track_ids) if item in media_ids]
+        self.remove_by_indices(matching_indices)
 
     def add(self, media_ids: List[str]) -> None:
+        """
+        Add one or more items to the UserPlaylist
+        :param media_ids: List of Media IDs to add
+        """
         data = {
             "onArtifactNotFound": "SKIP",
             "onDupes": "SKIP",
@@ -268,34 +285,80 @@ class UserPlaylist(Playlist):
         )
         self._reparse()
 
+    def remove_by_id(self, media_id: str) -> None:
+        """
+        Remove a single item from the playlist, using the media ID
+        :param media_id: Media ID to remove
+        """
+        track_ids = [str(track.id) for track in self.tracks()]
+        try:
+            index = track_ids.index(media_id)
+            if index is not None and index < self.num_tracks:
+                self.remove_by_index(index)
+        except ValueError:
+            pass
+
     def remove_by_index(self, index: int) -> None:
+        """
+        Remove a single item from the UserPlaylist, using item index.
+        :param index: Media index to remove
+        """
         headers = {"If-None-Match": self._etag} if self._etag else None
         self.request.request(
             "DELETE", (self._base_url + "/items/%i") % (self.id, index), headers=headers
         )
 
     def remove_by_indices(self, indices: Sequence[int]) -> None:
+        """
+        Remove one or more items from the UserPlaylist, using list of indices
+        :param indices: List containing indices to remove
+        """
         headers = {"If-None-Match": self._etag} if self._etag else None
         track_index_string = ",".join([str(x) for x in indices])
         self.request.request(
             "DELETE",
-            (self._base_url + "/tracks/%s") % (self.id, track_index_string),
+            (self._base_url + "/items/%s") % (self.id, track_index_string),
             headers=headers,
         )
+        self._reparse()
 
-    def _calculate_id(self, media_id: str) -> Optional[int]:
-        i = 0
-        while i < self.num_tracks:
-            items = self.items(100, i)
-            for index, item in enumerate(items):
-                if item.id == media_id:
-                    # Return the amount of items we have gone through plus the index in the last list.
-                    return index + i
+    def clear(self, chunk_size: int = 50):
+        """
+        Clear UserPlaylist
+        :param chunk_size: Number of items to remove per request
+        :return:
+        """
+        while self.num_tracks:
+            indices = range(min(self.num_tracks, chunk_size))
+            self.remove_by_indices(indices)
 
-            i += len(items)
-        return None
+    def set_playlist_public(self):
+        """
+        Set UserPlaylist as Public
+        """
+        self.request.request(
+            "PUT",
+            base_url=self.session.config.api_v2_location,
+            path=(self._base_url + "/set-public") % self.id,
+        )
+        self.public = True
+        self._reparse()
 
-    def remove_by_id(self, media_id: str) -> None:
-        index = self._calculate_id(media_id)
-        if index is not None:
-            self.remove_by_index(index)
+    def set_playlist_private(self):
+        """
+        Set UserPlaylist as Private
+        """
+        self.request.request(
+            "PUT",
+            base_url=self.session.config.api_v2_location,
+            path=(self._base_url + "/set-private") % self.id,
+        )
+        self.public = False
+        self._reparse()
+
+    def delete_playlist(self):
+        """
+        Delete UserPlaylist
+        :return: True, if successful
+        """
+        return self.request.request("DELETE", path="playlists/%s" % self.id).ok

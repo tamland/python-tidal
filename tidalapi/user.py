@@ -143,9 +143,9 @@ class LoggedInUser(FetchedUser):
         )
 
     def get_public_playlists(self, offset=0) -> List[Union["Playlist", "UserPlaylist"]]:
-        """
-        Get the (public) playlists created by the user
-        :return: List of public playlists
+        """Get the (public) playlists created by the user.
+
+        :return: List of public playlists.
         """
         params = {"limit": 50, "offset": offset}
         endpoint = "user-playlists/%s/public" % self.id

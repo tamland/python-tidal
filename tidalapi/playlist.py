@@ -233,7 +233,7 @@ class Playlist:
 
 class UserPlaylist(Playlist):
     def _reparse(self) -> None:
-        # Re-Read Playlist to get ETag
+        """Re-Read Playlist to get ETag."""
         request = self.request.request("GET", self._base_url % self.id)
         self._etag = request.headers["etag"]
         self.request.map_json(request.json(), parse=self.parse)
@@ -241,10 +241,10 @@ class UserPlaylist(Playlist):
     def edit(
         self, title: Optional[str] = None, description: Optional[str] = None
     ) -> None:
-        """
-        Edit UserPlaylist title & description
+        """Edit UserPlaylist title & description.
+
         :param title: Playlist title
-        :param description: Playlist title
+        :param description: Playlist title.
         """
         if not title:
             title = self.name
@@ -255,9 +255,9 @@ class UserPlaylist(Playlist):
         self.request.request("POST", self._base_url % self.id, data=data)
 
     def delete(self, media_ids: List[str]) -> None:
-        """
-        Delete one or more items from the UserPlaylist
-        :param media_ids: Lists of Media IDs to remove
+        """Delete one or more items from the UserPlaylist.
+
+        :param media_ids: Lists of Media IDs to remove.
         """
         # Generate list of track indices of tracks found in the list of media_ids.
         track_ids = [str(track.id) for track in self.tracks()]
@@ -265,9 +265,9 @@ class UserPlaylist(Playlist):
         self.remove_by_indices(matching_indices)
 
     def add(self, media_ids: List[str]) -> None:
-        """
-        Add one or more items to the UserPlaylist
-        :param media_ids: List of Media IDs to add
+        """Add one or more items to the UserPlaylist.
+
+        :param media_ids: List of Media IDs to add.
         """
         data = {
             "onArtifactNotFound": "SKIP",
@@ -286,9 +286,9 @@ class UserPlaylist(Playlist):
         self._reparse()
 
     def remove_by_id(self, media_id: str) -> None:
-        """
-        Remove a single item from the playlist, using the media ID
-        :param media_id: Media ID to remove
+        """Remove a single item from the playlist, using the media ID :param media_id:
+
+        Media ID to remove.
         """
         track_ids = [str(track.id) for track in self.tracks()]
         try:
@@ -299,8 +299,8 @@ class UserPlaylist(Playlist):
             pass
 
     def remove_by_index(self, index: int) -> None:
-        """
-        Remove a single item from the UserPlaylist, using item index.
+        """Remove a single item from the UserPlaylist, using item index.
+
         :param index: Media index to remove
         """
         headers = {"If-None-Match": self._etag} if self._etag else None
@@ -309,9 +309,9 @@ class UserPlaylist(Playlist):
         )
 
     def remove_by_indices(self, indices: Sequence[int]) -> None:
-        """
-        Remove one or more items from the UserPlaylist, using list of indices
-        :param indices: List containing indices to remove
+        """Remove one or more items from the UserPlaylist, using list of indices.
+
+        :param indices: List containing indices to remove.
         """
         headers = {"If-None-Match": self._etag} if self._etag else None
         track_index_string = ",".join([str(x) for x in indices])
@@ -323,8 +323,8 @@ class UserPlaylist(Playlist):
         self._reparse()
 
     def clear(self, chunk_size: int = 50):
-        """
-        Clear UserPlaylist
+        """Clear UserPlaylist.
+
         :param chunk_size: Number of items to remove per request
         :return:
         """
@@ -333,9 +333,7 @@ class UserPlaylist(Playlist):
             self.remove_by_indices(indices)
 
     def set_playlist_public(self):
-        """
-        Set UserPlaylist as Public
-        """
+        """Set UserPlaylist as Public."""
         self.request.request(
             "PUT",
             base_url=self.session.config.api_v2_location,
@@ -345,9 +343,7 @@ class UserPlaylist(Playlist):
         self._reparse()
 
     def set_playlist_private(self):
-        """
-        Set UserPlaylist as Private
-        """
+        """Set UserPlaylist as Private."""
         self.request.request(
             "PUT",
             base_url=self.session.config.api_v2_location,
@@ -357,8 +353,8 @@ class UserPlaylist(Playlist):
         self._reparse()
 
     def delete_playlist(self):
-        """
-        Delete UserPlaylist
-        :return: True, if successful
+        """Delete UserPlaylist.
+
+        :return: True, if successful.
         """
         return self.request.request("DELETE", path="playlists/%s" % self.id).ok

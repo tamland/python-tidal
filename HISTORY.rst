@@ -4,6 +4,11 @@ History
 =======
 v0.7.7
 ------
+* Feature: Set UserPlaylist public/private. Add method for getting public user playlists. - tehkillerbee_
+* Feature: Remove multiple items from UserPlaylist. (Fixes #259) - tehkillerbee_
+* Remove deprecated username/pass login method (Fixes #279) - tehkillerbee_
+* Populate the track/items.album attributes from the parent Album object. Updated tests (Fixes #281) - tehkillerbee_
+* Added clarifications to video_url method. Check video URLs for all available video qualities (Fixes #257) - tehkillerbee_
 * Tests: Fix all tests that previously failed. - tehkillerbee_
 * Use enum to specify default audio / video quality - tehkillerbee_
 * Bugfix: Recent TIDAL changes resulted in missing Mix not causing a ObjectNotFound exception. - tehkillerbee_

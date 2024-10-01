@@ -240,11 +240,12 @@ class UserPlaylist(Playlist):
 
     def edit(
         self, title: Optional[str] = None, description: Optional[str] = None
-    ) -> None:
+    ) -> bool:
         """Edit UserPlaylist title & description.
 
         :param title: Playlist title
         :param description: Playlist title.
+        :return: True, if successful.
         """
         if not title:
             title = self.name
@@ -252,29 +253,31 @@ class UserPlaylist(Playlist):
             description = self.description
 
         data = {"title": title, "description": description}
-        self.request.request("POST", self._base_url % self.id, data=data)
+        return self.request.request("POST", self._base_url % self.id, data=data).ok
 
-    def delete(self, media_ids: List[str]) -> None:
+    def delete(self, media_ids: List[str]) -> bool:
         """Delete one or more items from the UserPlaylist.
 
         :param media_ids: Lists of Media IDs to remove.
+        :return: True, if successful.
         """
         # Generate list of track indices of tracks found in the list of media_ids.
         track_ids = [str(track.id) for track in self.tracks()]
         matching_indices = [i for i, item in enumerate(track_ids) if item in media_ids]
-        self.remove_by_indices(matching_indices)
+        return self.remove_by_indices(matching_indices)
 
     def add(
         self,
         media_ids: List[str],
         allow_duplicates: bool = False,
         position: int = -1,
-    ) -> None:
+    ) -> bool:
         """Add one or more items to the UserPlaylist.
 
         :param media_ids: List of Media IDs to add.
         :param allow_duplicates: Allow adding duplicate items
         :param position: Insert items at a specific position. Default: insert at the end of the playlist
+        :return: True, if successful.
         """
         # Insert items at a specific index
         if position < 0 or position > self.num_tracks:
@@ -288,7 +291,7 @@ class UserPlaylist(Playlist):
             data["onDupes"] = "SKIP"
         params = {"limit": 100}
         headers = {"If-None-Match": self._etag} if self._etag else None
-        self.request.request(
+        res = self.request.request(
             "POST",
             self._base_url % self.id + "/items",
             params=params,
@@ -296,13 +299,15 @@ class UserPlaylist(Playlist):
             headers=headers,
         )
         self._reparse()
+        return res.ok
+
     def move_by_id(self, media_id: str, position: int) -> bool:
         """
         Move an item to a new position, by media ID
 
         :param media_id: The index of the item to be moved
         :param position: The new position of the item
-        :return: True, if success
+        :return: True, if successful.
         """
         track_ids = [str(track.id) for track in self.tracks()]
         try:
@@ -318,7 +323,7 @@ class UserPlaylist(Playlist):
 
         :param index: The index of the item to be moved
         :param position: The new position/offset of the item
-        :return: True, if success
+        :return: True, if successful.
         """
         return self.move_by_indices([index], position)
 
@@ -328,7 +333,7 @@ class UserPlaylist(Playlist):
 
         :param indices: List containing indices to move.
         :param position: The new position/offset of the item(s)
-        :return: True, if success
+        :return: True, if successful.
         """
         # Move item to a new position
         if position < 0 or position >= self.num_tracks:
@@ -347,76 +352,89 @@ class UserPlaylist(Playlist):
         self._reparse()
         return res.ok
 
-    def remove_by_id(self, media_id: str) -> None:
-        """Remove a single item from the playlist, using the media ID :param media_id:
+    def remove_by_id(self, media_id: str) -> bool:
+        """Remove a single item from the playlist, using the media ID
 
-        Media ID to remove.
+        :param media_id: Media ID to remove.
+        :return: True, if successful.
         """
         track_ids = [str(track.id) for track in self.tracks()]
         try:
             index = track_ids.index(media_id)
             if index is not None and index < self.num_tracks:
-                self.remove_by_index(index)
+                return self.remove_by_index(index)
         except ValueError:
-            pass
+            return False
 
-    def remove_by_index(self, index: int) -> None:
+    def remove_by_index(self, index: int) -> bool:
         """Remove a single item from the UserPlaylist, using item index.
 
         :param index: Media index to remove
+        :return: True, if successful.
         """
-        headers = {"If-None-Match": self._etag} if self._etag else None
-        self.request.request(
-            "DELETE", (self._base_url + "/items/%i") % (self.id, index), headers=headers
-        )
+        return self.remove_by_indices([index])
 
-    def remove_by_indices(self, indices: Sequence[int]) -> None:
+    def remove_by_indices(self, indices: Sequence[int]) -> bool:
         """Remove one or more items from the UserPlaylist, using list of indices.
 
         :param indices: List containing indices to remove.
+        :return: True, if successful.
         """
         headers = {"If-None-Match": self._etag} if self._etag else None
         track_index_string = ",".join([str(x) for x in indices])
-        self.request.request(
+        res = self.request.request(
             "DELETE",
             (self._base_url + "/items/%s") % (self.id, track_index_string),
             headers=headers,
         )
         self._reparse()
+        return res.ok
 
-    def clear(self, chunk_size: int = 50):
+    def clear(self, chunk_size: int = 50) -> bool:
         """Clear UserPlaylist.
 
         :param chunk_size: Number of items to remove per request
-        :return:
+        :return: True, if successful.
         """
         while self.num_tracks:
             indices = range(min(self.num_tracks, chunk_size))
-            self.remove_by_indices(indices)
+            if not self.remove_by_indices(indices):
+                return False
+        return True
 
     def set_playlist_public(self):
-        """Set UserPlaylist as Public."""
-        self.request.request(
+        """
+        Set UserPlaylist as Public.
+
+        :return: True, if successful..
+        """
+        res = self.request.request(
             "PUT",
             base_url=self.session.config.api_v2_location,
             path=(self._base_url + "/set-public") % self.id,
         )
         self.public = True
         self._reparse()
+        return res.ok
 
     def set_playlist_private(self):
-        """Set UserPlaylist as Private."""
-        self.request.request(
+        """
+        Set UserPlaylist as Private.
+
+        :return: True, if successful..
+        """
+        res = self.request.request(
             "PUT",
             base_url=self.session.config.api_v2_location,
             path=(self._base_url + "/set-private") % self.id,
         )
         self.public = False
         self._reparse()
+        return res.ok
 
-    def delete_playlist(self):
+    def delete_playlist(self) -> bool:
         """Delete UserPlaylist.
 
-        :return: True, if successful.
+        :return: True, if successful..
         """
         return self.request.request("DELETE", path="playlists/%s" % self.id).ok

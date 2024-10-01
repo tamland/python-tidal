@@ -28,6 +28,7 @@ from copy import copy
 from typing import TYPE_CHECKING, List, Optional, Union, cast
 from urllib.parse import urljoin
 
+from tidalapi.exceptions import ObjectNotFound
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -262,6 +263,25 @@ class Favorites:
         return self.requests.request(
             "POST", f"{self.base_url}/tracks", data={"trackId": track_id}
         ).ok
+
+    def add_track_by_isrc(self, isrc: str) -> bool:
+        """Adds a track to the users favorites, using isrc.
+
+        :param isrc: The ISRC of the track to be added
+        :return: True, if successful.
+        """
+        try:
+            track = self.session.get_tracks_by_isrc(isrc)
+            if track:
+                # Add the first track in the list
+                track_id = str(track[0].id)
+                return self.requests.request(
+                    "POST", f"{self.base_url}/tracks", data={"trackId": track_id}
+                ).ok
+            else:
+                return False
+        except ObjectNotFound:
+            return False
 
     def add_video(self, video_id: str) -> bool:
         """Adds a video to the users favorites.

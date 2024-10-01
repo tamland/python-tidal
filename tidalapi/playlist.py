@@ -276,8 +276,8 @@ class UserPlaylist(Playlist):
 
         :param media_ids: List of Media IDs to add.
         :param allow_duplicates: Allow adding duplicate items
-        :param position: Insert items at a specific position. Default: insert at the end
-            of the playlist
+        :param position: Insert items at a specific position.
+            Default: insert at the end of the playlist
         :return: True, if successful.
         """
         # Insert items at a specific index
@@ -301,6 +301,35 @@ class UserPlaylist(Playlist):
         )
         self._reparse()
         return res.ok
+
+    def add_by_isrc(
+        self,
+        isrc: str,
+        allow_duplicates: bool = False,
+        position: int = -1,
+    ) -> bool:
+        """Add an item to a playlist, using the track ISRC.
+
+        :param isrc: The ISRC of the track to be added
+        :param allow_duplicates: Allow adding duplicate items
+        :param position: Insert items at a specific position.
+            Default: insert at the end of the playlist
+        :return: True, if successful.
+        """
+        try:
+            track = self.session.get_tracks_by_isrc(isrc)
+            if track:
+                # Add the first track in the list
+                track_id = str(track[0].id)
+                return self.add(
+                    [track_id],
+                    allow_duplicates=allow_duplicates,
+                    position=position,
+                )
+            else:
+                return False
+        except ObjectNotFound:
+            return False
 
     def move_by_id(self, media_id: str, position: int) -> bool:
         """Move an item to a new position, by media ID.

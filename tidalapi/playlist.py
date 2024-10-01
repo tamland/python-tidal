@@ -264,16 +264,28 @@ class UserPlaylist(Playlist):
         matching_indices = [i for i, item in enumerate(track_ids) if item in media_ids]
         self.remove_by_indices(matching_indices)
 
-    def add(self, media_ids: List[str]) -> None:
+    def add(
+        self,
+        media_ids: List[str],
+        allow_duplicates: bool = False,
+        position: int = -1,
+    ) -> None:
         """Add one or more items to the UserPlaylist.
 
         :param media_ids: List of Media IDs to add.
+        :param allow_duplicates: Allow adding duplicate items
+        :param position: Insert items at a specific position. Default: insert at the end of the playlist
         """
+        # Insert items at a specific index
+        if position < 0 or position > self.num_tracks:
+            position = self.num_tracks
         data = {
             "onArtifactNotFound": "SKIP",
-            "onDupes": "SKIP",
             "trackIds": ",".join(map(str, media_ids)),
+            "toIndex": position,
         }
+        if not allow_duplicates:
+            data["onDupes"] = "SKIP"
         params = {"limit": 100}
         headers = {"If-None-Match": self._etag} if self._etag else None
         self.request.request(

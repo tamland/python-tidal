@@ -296,6 +296,56 @@ class UserPlaylist(Playlist):
             headers=headers,
         )
         self._reparse()
+    def move_by_id(self, media_id: str, position: int) -> bool:
+        """
+        Move an item to a new position, by media ID
+
+        :param media_id: The index of the item to be moved
+        :param position: The new position of the item
+        :return: True, if success
+        """
+        track_ids = [str(track.id) for track in self.tracks()]
+        try:
+            index = track_ids.index(media_id)
+            if index is not None and index < self.num_tracks:
+                return self.move_by_indices([index], position)
+        except ValueError:
+            return False
+
+    def move_by_index(self, index: int, position: int) -> bool:
+        """
+        Move a single item to a new position
+
+        :param index: The index of the item to be moved
+        :param position: The new position/offset of the item
+        :return: True, if success
+        """
+        return self.move_by_indices([index], position)
+
+    def move_by_indices(self, indices: Sequence[int], position: int) -> bool:
+        """
+        Move one or more items to a new position
+
+        :param indices: List containing indices to move.
+        :param position: The new position/offset of the item(s)
+        :return: True, if success
+        """
+        # Move item to a new position
+        if position < 0 or position >= self.num_tracks:
+            position = self.num_tracks
+        data = {
+            "toIndex": position,
+        }
+        headers = {"If-None-Match": self._etag} if self._etag else None
+        track_index_string = ",".join([str(x) for x in indices])
+        res = self.request.request(
+            "POST",
+            (self._base_url + "/items/%s") % (self.id, track_index_string),
+            data=data,
+            headers=headers,
+        )
+        self._reparse()
+        return res.ok
 
     def remove_by_id(self, media_id: str) -> None:
         """Remove a single item from the playlist, using the media ID :param media_id:

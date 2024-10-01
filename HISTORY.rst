@@ -4,6 +4,9 @@ History
 =======
 v0.7.7
 ------
+* Feature: Add support for moving playlist items (#116) - tehkillerbee_
+* Feature: Allow adding items multiple times to the same playlist - tehkillerbee_
+* Feature: Add support for adding items to a playlists at a specific position (#116) - tehkillerbee_
 * Feature: Set UserPlaylist public/private. Add method for getting public user playlists. - tehkillerbee_
 * Feature: Remove multiple items from UserPlaylist. (Fixes #259) - tehkillerbee_
 * Remove deprecated username/pass login method (Fixes #279) - tehkillerbee_

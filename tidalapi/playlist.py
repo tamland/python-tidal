@@ -276,7 +276,8 @@ class UserPlaylist(Playlist):
 
         :param media_ids: List of Media IDs to add.
         :param allow_duplicates: Allow adding duplicate items
-        :param position: Insert items at a specific position. Default: insert at the end of the playlist
+        :param position: Insert items at a specific position. Default: insert at the end
+            of the playlist
         :return: True, if successful.
         """
         # Insert items at a specific index
@@ -302,8 +303,7 @@ class UserPlaylist(Playlist):
         return res.ok
 
     def move_by_id(self, media_id: str, position: int) -> bool:
-        """
-        Move an item to a new position, by media ID
+        """Move an item to a new position, by media ID.
 
         :param media_id: The index of the item to be moved
         :param position: The new position of the item
@@ -318,8 +318,7 @@ class UserPlaylist(Playlist):
             return False
 
     def move_by_index(self, index: int, position: int) -> bool:
-        """
-        Move a single item to a new position
+        """Move a single item to a new position.
 
         :param index: The index of the item to be moved
         :param position: The new position/offset of the item
@@ -328,8 +327,7 @@ class UserPlaylist(Playlist):
         return self.move_by_indices([index], position)
 
     def move_by_indices(self, indices: Sequence[int], position: int) -> bool:
-        """
-        Move one or more items to a new position
+        """Move one or more items to a new position.
 
         :param indices: List containing indices to move.
         :param position: The new position/offset of the item(s)
@@ -353,7 +351,7 @@ class UserPlaylist(Playlist):
         return res.ok
 
     def remove_by_id(self, media_id: str) -> bool:
-        """Remove a single item from the playlist, using the media ID
+        """Remove a single item from the playlist, using the media ID.
 
         :param media_id: Media ID to remove.
         :return: True, if successful.
@@ -403,10 +401,9 @@ class UserPlaylist(Playlist):
         return True
 
     def set_playlist_public(self):
-        """
-        Set UserPlaylist as Public.
+        """Set UserPlaylist as Public.
 
-        :return: True, if successful..
+        :return: True, if successful.
         """
         res = self.request.request(
             "PUT",
@@ -418,10 +415,9 @@ class UserPlaylist(Playlist):
         return res.ok
 
     def set_playlist_private(self):
-        """
-        Set UserPlaylist as Private.
+        """Set UserPlaylist as Private.
 
-        :return: True, if successful..
+        :return: True, if successful.
         """
         res = self.request.request(
             "PUT",
@@ -435,6 +431,6 @@ class UserPlaylist(Playlist):
     def delete_playlist(self) -> bool:
         """Delete UserPlaylist.
 
-        :return: True, if successful..
+        :return: True, if successful.
         """
         return self.request.request("DELETE", path="playlists/%s" % self.id).ok

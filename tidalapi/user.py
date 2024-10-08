@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from tidalapi.artist import Artist
     from tidalapi.media import Track, Video
     from tidalapi.mix import MixV2
-    from tidalapi.playlist import Playlist, UserPlaylist
+    from tidalapi.playlist import Playlist, UserPlaylist, Folder
     from tidalapi.session import Session
 
 
@@ -58,6 +58,7 @@ class User:
         self.session = session
         self.request = session.request
         self.playlist = session.playlist()
+        self.folder = session.folder()
 
     def factory(self) -> Union["LoggedInUser", "FetchedUser", "PlaylistCreator"]:
         return cast(
@@ -143,12 +144,41 @@ class LoggedInUser(FetchedUser):
             ),
         )
 
-    def get_public_playlists(self, offset=0) -> List[Union["Playlist", "UserPlaylist"]]:
+    def playlist_folders(
+        self, offset: int = 0, limit: int = 50, parent_folder_id: str = "root"
+    ) -> List["Folder"]:
+        """Get the playlists created by the user.
+
+        :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
+        """
+        params = {
+            "folderId": parent_folder_id,
+            "offset": offset,
+            "limit": limit,
+            "order": "NAME",
+            "includeOnly": "FOLDER",
+        }
+        endpoint = "my-collection/playlists/folders"
+        return cast(
+            List["Folder"],
+            self.session.request.map_request(
+                url=urljoin(
+                    self.session.config.api_v2_location,
+                    endpoint,
+                ),
+                params=params,
+                parse=self.session.parse_folder,
+            ),
+        )
+
+    def public_playlists(
+        self, offset: int = 0, limit: int = 50
+    ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the (public) playlists created by the user.
 
         :return: List of public playlists.
         """
-        params = {"limit": 50, "offset": offset}
+        params = {"limit": limit, "offset": offset}
         endpoint = "user-playlists/%s/public" % self.id
         json_obj = self.request.request(
             "GET", endpoint, base_url=self.session.config.api_v2_location, params=params
@@ -194,6 +224,21 @@ class LoggedInUser(FetchedUser):
         ).json()
         playlist = self.session.playlist().parse(json)
         return playlist.factory()
+
+    def create_folder(self, title: str, parent_id: str = "root") -> "Folder":
+        params = {"name": title, "folderId": parent_id}
+        endpoint = "my-collection/playlists/folders/create-folder"
+
+        json_obj = self.request.request(
+            method="PUT",
+            path=endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).json()
+        if json_obj and json_obj.get("data"):
+            return self.request.map_json(json_obj, parse=self.folder.parse)
+        else:
+            raise ObjectNotFound("Folder not found after creation")
 
 
 class PlaylistCreator(User):
@@ -340,6 +385,42 @@ class Favorites:
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request("DELETE", f"{self.base_url}/videos/{video_id}").ok
+
+    def remove_folders_playlists(self, trns: [str], type: str = "folder") -> bool:
+        """Removes one or more folders or playlists from the users favourites, using the v2 endpoint
+
+        :param trns: List of folder (or playlist) trns to be deleted
+        :param type: Type of trn: as string, either `folder` or `playlist`. Default `folder`
+        :return: A boolean indicating whether theś request was successful or not.
+        """
+        if type not in ("playlist", "folder"):
+            raise ValueError("Invalid trn value used for playlist/folder endpoint")
+        if len(trns) == 0:
+            raise ValueError("An empty list of trns were provided. Cannot continue.")
+        # Make sure all trns has the correct type prepended to it
+        trns_full = []
+        for trn in trns:
+            if "trn:" in trn:
+                trns_full.append(trn)
+            else:
+                trns_full.append(f"trn:{type}:{trn}")
+        params = {"trns": ",".join(trns_full)}
+        endpoint = "my-collection/playlists/folders/remove"
+        return self.requests.request(
+            method="PUT",
+            path=endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).ok
+
+    def remove_folder_playlist(self, trn: str, type: str = "folder") -> bool:
+        """Removes a folder (or playlist) from the users favourites, using the v2 endpoint
+
+        :param trn: Folder or playlist id (trn) of the item to be deleted
+        :param type: Type of trn: as string, either `folder` or `playlist`
+        :return: A boolean indicating whether the request was successful or not.
+        """
+        return self.remove_folders_playlists([trn], type)
 
     def artists(self, limit: Optional[int] = None, offset: int = 0) -> List["Artist"]:
         """Get the users favorite artists.

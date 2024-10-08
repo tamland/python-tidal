@@ -231,6 +231,222 @@ class Playlist:
         )
 
 
+class Folder:
+    """An object containing various data about a folder and methods to work with
+    them."""
+
+    trn: Optional[str] = None
+    id: Optional[str] = None
+    parent_folder_id: Optional[str] = None
+    name: Optional[str] = None
+    parent: Optional[str] = None  # TODO Determine the correct type of the parent
+    added: Optional[datetime] = None
+    created: Optional[datetime] = None
+    last_modified: Optional[datetime] = None
+    total_number_of_items: int = 0
+
+    # Direct URL to https://listen.tidal.com/folder/<folder_id>
+    listen_url: str = ""
+
+    def __init__(
+        self,
+        session: "Session",
+        folder_id: Optional[str],
+        parent_folder_id: str = "root",
+    ):
+        self.id = folder_id
+        self.parent_folder_id = parent_folder_id
+        self.session = session
+        self.request = session.request
+        self.playlist = session.playlist()
+        self._endpoint = "my-collection/playlists/folders"
+        if folder_id:
+            # Go through all available folders and see if the requested folder exists
+            try:
+                params = {
+                    "folderId": parent_folder_id,
+                    "offset": 0,
+                    "limit": 50,
+                    "order": "NAME",
+                    "includeOnly": "FOLDER",
+                }
+                request = self.request.request(
+                    "GET",
+                    self._endpoint,
+                    base_url=self.session.config.api_v2_location,
+                    params=params,
+                )
+                for item in request.json().get("items"):
+                    if item["data"].get("id") == folder_id:
+                        self.parse(item)
+                        return
+                raise ObjectNotFound
+            except ObjectNotFound:
+                raise ObjectNotFound(f"Folder not found")
+            except TooManyRequests:
+                raise TooManyRequests("Folder unavailable")
+
+    def _reparse(self) -> None:
+        params = {
+            "folderId": self.parent_folder_id,
+            "offset": 0,
+            "limit": 50,
+            "order": "NAME",
+            "includeOnly": "FOLDER",
+        }
+        request = self.request.request(
+            "GET",
+            self._endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        )
+        for item in request.json().get("items"):
+            if item["data"].get("id") == self.id:
+                self.parse(item)
+                return
+
+    def parse(self, json_obj: JsonObj) -> "Folder":
+        """Parses a folder from tidal, replaces the current folder object.
+
+        :param json_obj: Json data returned from api.tidal.com containing a folder
+        :return: Returns a copy of the original :class:`Folder` object
+        """
+        self.trn = json_obj.get("trn")
+        self.id = json_obj["data"].get("id")
+        self.name = json_obj.get("name")
+        self.parent = json_obj.get("parent")
+        added = json_obj.get("addedAt")
+        created = json_obj["data"].get("createdAt")
+        last_modified = json_obj["data"].get("lastModifiedAt")
+        self.added = dateutil.parser.isoparse(added) if added else None
+        self.created = dateutil.parser.isoparse(created) if added else None
+        self.last_modified = dateutil.parser.isoparse(last_modified) if added else None
+        self.total_number_of_items = json_obj["data"].get("totalNumberOfItems")
+
+        self.listen_url = f"{self.session.config.listen_base_url}/folder/{self.id}"
+
+        return copy.copy(self)
+
+    def rename(self, name: str) -> bool:
+        """
+        Rename the selected folder
+
+        :param name: The name to be used for the folder
+        :return: True, if operation was successful.
+        """
+        params = {"trn": self.trn, "name": name}
+        endpoint = "my-collection/playlists/folders/rename"
+        res = self.request.request(
+            "PUT",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        )
+        self._reparse()
+        return res.ok
+
+    def remove(self) -> bool:
+        """
+        Remove the selected folder
+
+        :return: True, if operation was successful.
+        """
+        params = {"trns": self.trn}
+        endpoint = "my-collection/playlists/folders/remove"
+        return self.request.request(
+            "PUT",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).ok
+
+    def items(
+        self, offset: int = 0, limit: int = 50
+    ) -> List[Union["Playlist", "UserPlaylist"]]:
+        """
+        Return the items in the folder
+
+        :param offset: Optional; The index of the first item to be returned. Default: 0
+        :param limit: Optional; The amount of items you want returned. Default: 50
+        :return: Returns a list of :class:`Playlist` or :class:`UserPlaylist` objects
+        """
+        params = {
+            "folderId": self.id,
+            "offset": offset,
+            "limit": limit,
+            "order": "NAME",
+            "includeOnly": "PLAYLIST",
+        }
+        endpoint = "my-collection/playlists/folders"
+        json_obj = self.request.request(
+            "GET",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).json()
+        # Generate a dict of Playlist items from the response data
+        if json_obj.get("items"):
+            playlists = {"items": [item["data"] for item in json_obj.get("items")]}
+            return cast(
+                List[Union["Playlist", "UserPlaylist"]],
+                self.request.map_json(playlists, parse=self.playlist.parse_factory),
+            )
+        else:
+            return []
+
+    def add_items(self, trns: [str]):
+        """
+        Convenience method to add items to the current folder
+
+        :param trns: List of playlist trns to be added to the current folder
+        :return: True, if operation was successful.
+        """
+        self.move_items_to_folder(trns, self.id)
+
+    def move_items_to_root(self, trns: [str]):
+        """
+        Convenience method to move items from the current folder to the root folder
+
+        :param trns: List of playlist trns to be moved from the current folder
+        :return: True, if operation was successful.
+        """
+        self.move_items_to_folder(trns, folder="root")
+
+    def move_items_to_folder(self, trns: [str], folder: str = None):
+        """
+        Move item(s) in one folder to another folder.
+
+        :param trns: List of playlist trns to be moved.
+        :param folder: Destination folder. Default: Use the current folder
+        :return: True, if operation was successful.
+        """
+        if len(trns) == 0:
+            raise ValueError("An empty list of trns were provided. Cannot continue.")
+        if not isinstance(trns, List):
+            raise ValueError(
+                "A single item was provided but a list was expected. Cannot continue."
+            )
+        # Make sure all trns has the correct type prepended to it
+        trns_full = []
+        for trn in trns:
+            if "trn:" in trn:
+                trns_full.append(trn)
+            else:
+                trns_full.append(f"trn:playlist:{trn}")
+        if not folder:
+            folder = self.id
+        params = {"folderId": folder, "trns": ",".join(trns_full)}
+        endpoint = "my-collection/playlists/folders/move"
+        res = self.request.request(
+            "PUT",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        )
+        self._reparse()
+        return res.ok
+
+
 class UserPlaylist(Playlist):
     def _reparse(self) -> None:
         """Re-Read Playlist to get ETag."""

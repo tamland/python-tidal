@@ -325,6 +325,11 @@ class Session:
         """Parse a mix from the given response."""
         return self.mix().parse(obj)
 
+
+    def parse_folder(self, obj: JsonObj) -> playlist.Folder:
+        """Parse an album from the given response."""
+        return self.folder().parse(obj)
+
     def convert_type(
         self,
         search: Any,
@@ -814,6 +819,21 @@ class Session:
             return playlist.Playlist(session=self, playlist_id=playlist_id).factory()
         except ObjectNotFound:
             log.warning("Playlist '%s' is unavailable", playlist_id)
+            raise
+
+    def folder(self, folder_id: Optional[str] = None) -> playlist.Folder:
+        """
+        Function to create a Folder object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.Folder(session=session, folder_id=track_id)
+        <.Folder>` internally.
+
+        :param folder_id:
+        :return: Returns a :class:`.Folder` object that has access to the session instance used.
+        """
+        try:
+            return playlist.Folder(session=self, folder_id=folder_id)
+        except ObjectNotFound:
+            log.warning("Folder '%s' is unavailable", folder_id)
             raise
 
     def track(

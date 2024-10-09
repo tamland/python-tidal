@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import copy
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, List, Optional, Sequence, Union, cast
 
 from tidalapi.exceptions import ObjectNotFound, TooManyRequests
 from tidalapi.types import JsonObj
@@ -136,7 +136,7 @@ class Playlist:
 
         return copy.copy(self)
 
-    def factory(self) -> "Playlist":
+    def factory(self) -> Union["Playlist", "UserPlaylist"]:
         if (
             self.id
             and self.creator
@@ -471,7 +471,7 @@ class UserPlaylist(Playlist):
         data = {"title": title, "description": description}
         return self.request.request("POST", self._base_url % self.id, data=data).ok
 
-    def delete(self, media_ids: List[str]) -> bool:
+    def delete_by_id(self, media_ids: List[str]) -> bool:
         """Delete one or more items from the UserPlaylist.
 
         :param media_ids: Lists of Media IDs to remove.
@@ -673,7 +673,7 @@ class UserPlaylist(Playlist):
         self._reparse()
         return res.ok
 
-    def delete_playlist(self) -> bool:
+    def delete(self) -> bool:
         """Delete UserPlaylist.
 
         :return: True, if successful.

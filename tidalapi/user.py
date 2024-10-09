@@ -133,7 +133,7 @@ class LoggedInUser(FetchedUser):
         return copy(self)
 
     def playlists(self) -> List[Union["Playlist", "UserPlaylist"]]:
-        """Get the playlists created by the user.
+        """Get the (personal) playlists created by the user.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
         """
@@ -196,14 +196,14 @@ class LoggedInUser(FetchedUser):
         )
 
     def playlist_and_favorite_playlists(
-        self, offset: int = 0
+        self, offset: int = 0, limit: int = 50
     ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the playlists created by the user, and the playlists favorited by the
         user. This function is limited to 50 by TIDAL, requiring pagination.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
         """
-        params = {"limit": 50, "offset": offset}
+        params = {"limit": limit, "offset": offset}
         endpoint = "users/%s/playlistsAndFavoritePlaylists" % self.id
         json_obj = self.request.request("GET", endpoint, params=params).json()
 
@@ -217,13 +217,24 @@ class LoggedInUser(FetchedUser):
             self.request.map_json(json_obj, parse=self.playlist.parse_factory),
         )
 
-    def create_playlist(self, title: str, description: str) -> "Playlist":
-        data = {"title": title, "description": description}
-        json = self.request.request(
-            "POST", "users/%s/playlists" % self.id, data=data
+    def create_playlist(
+        self, title: str, description: str, parent_id: str = "root"
+    ) -> "UserPlaylist":
+        params = {"name": title, "description": description, "folderId": parent_id}
+        endpoint = "my-collection/playlists/folders/create-playlist"
+
+        json_obj = self.request.request(
+            method="PUT",
+            path=endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
         ).json()
-        playlist = self.session.playlist().parse(json)
-        return playlist.factory()
+        json = json_obj.get("data")
+        if json and json.get("uuid"):
+            playlist = self.session.playlist().parse(json)
+            return playlist.factory()
+        else:
+            raise ObjectNotFound("Playlist not found after creation")
 
     def create_folder(self, title: str, parent_id: str = "root") -> "Folder":
         params = {"name": title, "folderId": parent_id}

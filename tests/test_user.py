@@ -23,6 +23,7 @@ import dateutil.tz
 import pytest
 
 import tidalapi
+from tidalapi.exceptions import ObjectNotFound
 
 
 def test_user(session):
@@ -77,13 +78,13 @@ def test_get_editorial_playlist_creator(session):
 
 def test_create_playlist(session):
     playlist = session.user.create_playlist("Testing", "Testing1234")
-    playlist.add([125169484])
+    playlist.add(["125169484"])
     assert playlist.tracks()[0].name == "Alone, Pt. II"
     assert playlist.description == "Testing1234"
     assert playlist.name == "Testing"
-    playlist.remove_by_id(125169484)
+    playlist.remove_by_id("125169484")
     assert len(playlist.tracks()) == 0
-    playlist.add([64728757, 125169484])
+    playlist.add(["64728757", "125169484"])
     for index, item in enumerate(playlist.tracks()):
         if item.name == "Alone, Pt. II":
             playlist.remove_by_index(index)
@@ -114,12 +115,13 @@ def test_create_playlist(session):
     long_playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     playlist_tracks = long_playlist.tracks(limit=250)
 
-    playlist.add(playlist.id for playlist in playlist_tracks)
+    playlist.add(track.id for track in playlist_tracks)
     playlist._reparse()
-    playlist.remove_by_id(199477058)
+    playlist.remove_by_id("199477058")
     playlist._reparse()
 
-    assert all(playlist.id != 199477058 for playlist in playlist.tracks(limit=250))
+    track_ids = [track.id for track in playlist.tracks(limit=250)]
+    assert 199477058 not in track_ids
 
     playlist.delete()
 

@@ -52,7 +52,6 @@ from requests.exceptions import HTTPError
 
 from tidalapi.exceptions import *
 from tidalapi.types import JsonObj
-
 from . import album, artist, genre, media, mix, page, playlist, request, user
 
 if TYPE_CHECKING:

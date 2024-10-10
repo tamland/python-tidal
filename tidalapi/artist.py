@@ -212,7 +212,6 @@ class Artist:
         :return: A string containing the bio, as well as identifiers to other TIDAL
             objects inside the bio.
         """
-        # morguldir: TODO: Add parsing of wimplinks?
         return cast(
             str, self.request.request("GET", f"artists/{self.id}/bio").json()["text"]
         )

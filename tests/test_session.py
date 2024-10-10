@@ -37,13 +37,6 @@ def test_load_oauth_session(session):
     assert isinstance(session.user, tidalapi.LoggedInUser)
 
 
-def test_failed_login():
-    session = tidalapi.Session()
-    with pytest.raises(requests.HTTPError):
-        session.login("", "")
-    assert session.check_login() is False
-
-
 @pytest.mark.interactive
 def test_oauth_login(capsys):
     config = tidalapi.Config(item_limit=20000)

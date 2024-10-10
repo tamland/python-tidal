@@ -24,7 +24,6 @@ import concurrent.futures
 import datetime
 import hashlib
 import json
-import locale
 import logging
 import os
 import random
@@ -46,7 +45,7 @@ from typing import (
     cast,
     no_type_check,
 )
-from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import requests
 from requests.exceptions import HTTPError
@@ -274,14 +273,14 @@ class Session:
         self.request = request.Requests(session=self)
         self.genre = genre.Genre(session=self)
 
-        self.parse_artists = self.artist().parse_artists
-        self.parse_playlist = self.playlist().parse
+        # self.parse_artists = self.artist().parse_artists
+        # self.parse_playlist = self.playlist().parse
 
-        self.parse_track = self.track().parse_track
-        self.parse_video = self.video().parse_video
-        self.parse_media = self.track().parse_media
-        self.parse_mix = self.mix().parse
-        self.parse_v2_mix = self.mixv2().parse
+        # self.parse_track = self.track().parse_track
+        # self.parse_video = self.video().parse_video
+        # self.parse_media = self.track().parse_media
+        # self.parse_mix = self.mix().parse
+        # self.parse_v2_mix = self.mixv2().parse
 
         self.parse_user = user.User(self, None).parse
         self.page = page.Page(self, "")
@@ -318,13 +317,45 @@ class Session:
         """Parse an album from the given response."""
         return self.album().parse(obj)
 
+    def parse_track(
+        self, obj: JsonObj, album: Optional[album.Album] = None
+    ) -> media.Track:
+        """Parse an album from the given response."""
+        return self.track().parse_track(obj, album)
+
+    def parse_video(self, obj: JsonObj) -> media.Video:
+        """Parse an album from the given response."""
+        return self.video().parse_video(obj)
+
+    def parse_media(
+        self, obj: JsonObj, album: Optional[album.Album] = None
+    ) -> Union[media.Track, media.Video]:
+        """Parse a media type (track, video) from the given response."""
+        return self.track().parse_media(obj, album)
+
     def parse_artist(self, obj: JsonObj) -> artist.Artist:
         """Parse an artist from the given response."""
         return self.artist().parse_artist(obj)
 
+    def parse_artists(self, obj: List[JsonObj]) -> List[artist.Artist]:
+        """Parse an artist from the given response."""
+        return self.artist().parse_artists(obj)
+
     def parse_mix(self, obj: JsonObj) -> mix.Mix:
         """Parse a mix from the given response."""
         return self.mix().parse(obj)
+
+    def parse_v2_mix(self, obj: JsonObj) -> mix.Mix:
+        """Parse a mixV2 from the given response."""
+        return self.mixv2().parse(obj)
+
+    def parse_playlist(self, obj: JsonObj) -> playlist.Playlist:
+        """Parse a playlist from the given response."""
+        return self.playlist().parse(obj)
+
+    def parse_folder(self, obj: JsonObj) -> playlist.Folder:
+        """Parse an album from the given response."""
+        return self.folder().parse(obj)
 
     def convert_type(
         self,
@@ -414,32 +445,6 @@ class Session:
         self.country_code = json["countryCode"]
         self.user = user.User(self, user_id=json["userId"]).factory()
 
-        return True
-
-    def login(self, username: str, password: str) -> bool:
-        """Logs in to the TIDAL api.
-
-        :param username: The TIDAL username
-        :param password: The password to your TIDAL account
-        :return: Returns true if we think the login was successful.
-        """
-        url = urljoin(self.config.api_v1_location, "login/username")
-        headers: dict[str, str] = {"X-Tidal-Token": self.config.api_token}
-        payload = {
-            "username": username,
-            "password": password,
-            "clientUniqueKey": format(random.getrandbits(64), "02x"),
-        }
-        request = self.request_session.post(url, data=payload, headers=headers)
-
-        if not request.ok:
-            log.error("Login failed: %s", request.text)
-            request.raise_for_status()
-
-        body = request.json()
-        self.session_id = str(body["sessionId"])
-        self.country_code = str(body["countryCode"])
-        self.user = user.User(self, user_id=body["userId"]).factory()
         return True
 
     def login_session_file(
@@ -841,6 +846,20 @@ class Session:
             return playlist.Playlist(session=self, playlist_id=playlist_id).factory()
         except ObjectNotFound:
             log.warning("Playlist '%s' is unavailable", playlist_id)
+            raise
+
+    def folder(self, folder_id: Optional[str] = None) -> playlist.Folder:
+        """Function to create a Folder object with access to the session instance in a
+        smoother way. Calls :class:`tidalapi.Folder(session=session, folder_id=track_id)
+        <.Folder>` internally.
+
+        :param folder_id:
+        :return: Returns a :class:`.Folder` object that has access to the session instance used.
+        """
+        try:
+            return playlist.Folder(session=self, folder_id=folder_id)
+        except ObjectNotFound:
+            log.warning("Folder '%s' is unavailable", folder_id)
             raise
 
     def track(

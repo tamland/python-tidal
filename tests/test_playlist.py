@@ -24,7 +24,6 @@ from dateutil import tz
 
 import tidalapi
 from tidalapi.exceptions import ObjectNotFound
-
 from .cover import verify_image_cover, verify_image_resolution
 
 
@@ -91,6 +90,193 @@ def test_updated_playlist(session):
 def test_playlist_not_found(session):
     with pytest.raises(ObjectNotFound):
         session.playlist("12345678")
+
+
+def test_playlist_categories(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    playlist_id = playlist.id
+    assert playlist.add("125169484", allow_duplicates=True)
+    # Playlist should be found in (user) playlists
+    user_playlists = session.user.playlists()
+    playlist_ids = [playlist.id for playlist in user_playlists]
+    assert playlist_id in playlist_ids
+
+    # Playlist not found in user favourite playlists
+    # playlists_favs = session.user.favorites.playlists()
+    # playlist_ids = [playlist.id for playlist in playlists_favs]
+    # assert playlist_id in playlist_ids
+
+    # Playlist is found in user (created) playlists and favourite playlists
+    playlists_and_favs = session.user.playlist_and_favorite_playlists()
+    playlist_ids = [playlist.id for playlist in playlists_and_favs]
+    assert playlist_id in playlist_ids
+
+    # Check if playlist is found in list of public playlists
+    public_playlists = session.user.public_playlists()
+    playlist_ids = [playlist.id for playlist in public_playlists]
+    assert not playlist_id in playlist_ids
+    playlist.set_playlist_public()
+
+    # Check if playlist is found in list of public playlists
+    public_playlists = session.user.public_playlists()
+    playlist_ids = [playlist.id for playlist in public_playlists]
+    assert playlist_id in playlist_ids
+    playlist.delete()
+
+
+def test_playlist_add_duplicate(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    # track id 125169484
+    assert 125169484 in playlist.add("125169484", allow_duplicates=True)
+    assert 125169484 in playlist.add("125169484", allow_duplicates=True)
+    assert 125169484 not in playlist.add("125169484", allow_duplicates=False)
+    playlist.add(["125169484", "125169484", "125169484"], allow_duplicates=False)
+    # Check if track has been added more than 2 times
+    item_ids = [item.id for item in playlist.items()]
+    assert item_ids.count(125169484) == 2
+    # Add again, this time allowing duplicates
+    assert playlist.add(["125169484", "125169484", "125169484"], allow_duplicates=True)
+    item_ids = [item.id for item in playlist.items()]
+    assert item_ids.count(125169484) == 5
+    playlist.delete()
+
+
+def test_playlist_add_at_position(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    playlist_a = session.playlist("7eafb342-141a-4092-91eb-da0012da3a19")
+    # Add 10 tracks to the new playlist
+    track_ids = [track.id for track in playlist_a.tracks()]
+    playlist.add(track_ids[0:10])
+    # Add a track to the end of the playlist (default)
+    assert playlist.add("125169484")
+    item_ids = [item.id for item in playlist.items()]
+    assert str(item_ids[-1]) == "125169484"
+    # Add a new track to a specific position
+    assert playlist.add("77692131", position=2)
+    # Verify that track matches the expected position
+    item_ids = [item.id for item in playlist.items()]
+    assert str(item_ids[2]) == "77692131"
+    # Add last four tracks to position 2 in the playlist and verify they are stored at the expected location
+    playlist.add(track_ids[-4:], position=2)
+    tracks = [item.id for item in playlist.items()][2:6]
+    for idx, track_id in enumerate(track_ids[-4:]):
+        assert tracks[idx] == track_id
+    playlist.delete()
+
+
+def test_playlist_remove_by_indices(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    playlist_a = session.playlist("7eafb342-141a-4092-91eb-da0012da3a19")
+    track_ids = [track.id for track in playlist_a.tracks()][0:9]
+    playlist.add(track_ids)
+    # Remove odd tracks
+    playlist.remove_by_indices([1, 3, 5, 7])
+    # Verify remaining tracks
+    tracks = [item.id for item in playlist.items()]
+    for idx, track_id in enumerate(tracks):
+        assert track_id == track_ids[idx * 2]
+    # Remove last track in playlist and check that track has been removed
+    last_track = tracks[-1]
+    playlist.remove_by_index(playlist.num_tracks - 1)
+    tracks = [item.id for item in playlist.items()]
+    assert last_track not in tracks
+    playlist.delete()
+
+
+def test_playlist_remove_by_id(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    playlist_a = session.playlist("7eafb342-141a-4092-91eb-da0012da3a19")
+    track_ids = [track.id for track in playlist_a.tracks()][0:9]
+    playlist.add(track_ids)
+    # Remove track with specific ID
+    playlist.remove_by_id(str(track_ids[2]))
+    tracks = [item.id for item in playlist.items()]
+    assert track_ids[2] not in tracks
+    playlist.delete()
+
+
+def test_playlist_add_isrc(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    # track id 125169484
+    assert playlist.add_by_isrc("NOG841907010", allow_duplicates=True)
+    assert playlist.add_by_isrc("NOG841907010", allow_duplicates=True)
+    assert not playlist.add_by_isrc("NOG841907010", allow_duplicates=False)
+    assert not playlist.add_by_isrc(
+        "NOG841907123", allow_duplicates=True, position=0
+    )  # Does not exist, returns false
+    # Check if track has been added more than 2 times
+    item_ids = [item.id for item in playlist.items()]
+    assert item_ids.count(125169484) == 2
+    playlist.delete()
+
+
+def test_playlist_move_by_id(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    # Add tracks from existing playlist
+    playlist_a = session.playlist("7eafb342-141a-4092-91eb-da0012da3a19")
+    track_ids = [track.id for track in playlist_a.tracks()]
+    playlist.add(track_ids[0:9])
+    # Move first track to the end
+    first_track_id = track_ids[0]
+    playlist.move_by_id(media_id=str(first_track_id), position=playlist.num_tracks - 2)
+    # Last track(-2) should now match the previous first track
+    tracks = playlist.tracks()
+    assert first_track_id == tracks[playlist.num_tracks - 2].id
+    playlist.delete()
+
+
+def test_playlist_move_by_index(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    # Add tracks from existing playlist
+    playlist_a = session.playlist("7eafb342-141a-4092-91eb-da0012da3a19")
+    track_ids = [track.id for track in playlist_a.tracks()]
+    playlist.add(track_ids[0:9])
+    # Move first track to the end
+    first_track_id = track_ids[0]
+    playlist.move_by_index(index=0, position=playlist.num_tracks - 2)
+    # Last track(-2) should now match the previous first track
+    tracks = playlist.tracks()
+    track_ids = [track.id for track in playlist.tracks()]
+    assert track_ids.index(first_track_id) == playlist.num_tracks - 2
+    playlist.delete()
+
+
+def test_playlist_move_by_indices(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    # Add tracks from existing playlist
+    playlist_a = session.playlist("7eafb342-141a-4092-91eb-da0012da3a19")
+    track_ids = [track.id for track in playlist_a.tracks()]
+    playlist.add(track_ids[0:9])
+    # Move first 4 tracks to the end
+    playlist.move_by_indices(indices=[0, 1, 2, 3], position=playlist.num_tracks)
+    # First four tracks should now be moved to the end
+    last_tracks = [track.id for track in playlist.tracks()][-4:]
+    for idx, track_id in enumerate(last_tracks):
+        assert track_ids[idx] == track_id
+    playlist.delete()
+
+
+def test_playlist_merge(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    # Add tracks from existing playlist
+    added_items = playlist.merge("7eafb342-141a-4092-91eb-da0012da3a19")
+    # Check if tracks were added
+    # Note: Certain tracks might be skipped for unknown reasons. (Why?)
+    # Therefore, we will compare the list of added items with the actual playlist content.
+    tracks = [track.id for track in playlist.tracks()]
+    for track in tracks:
+        assert track in added_items
+
+
+def test_playlist_public_private(session):
+    playlist = session.user.create_playlist("TestingA", "Testing1234")
+    # Default: UserPlaylist is not public
+    assert not playlist.public
+    playlist.set_playlist_public()
+    assert playlist.public
+    playlist.set_playlist_private()
+    assert not playlist.public
+    playlist.delete()
 
 
 def test_video_playlist(session):

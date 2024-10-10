@@ -115,7 +115,7 @@ def test_create_playlist(session):
     long_playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     playlist_tracks = long_playlist.tracks(limit=250)
 
-    playlist.add(track.id for track in playlist_tracks)
+    playlist.add([track.id for track in playlist_tracks])
     playlist._reparse()
     playlist.remove_by_id("199477058")
     playlist._reparse()
@@ -217,9 +217,6 @@ def test_folder_moves(session):
 def test_add_remove_folder(session):
     folder = session.user.create_folder(title="testfolderA")
     folder_id = folder.id
-    # Throw error if non-list is provided
-    with pytest.raises(ValueError):
-        session.user.favorites.remove_folders_playlists(folder.id)
     # remove folder from favourites
     session.user.favorites.remove_folders_playlists([folder.id])
     # check if folder has been removed

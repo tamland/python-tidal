@@ -50,6 +50,7 @@ class Playlist:
     them."""
 
     id: Optional[str] = None
+    trn: Optional[str] = None
     name: Optional[str] = None
     num_tracks: int = -1
     num_videos: int = -1
@@ -96,6 +97,7 @@ class Playlist:
         :return: Returns a copy of the original :exc: 'Playlist': object
         """
         self.id = json_obj["uuid"]
+        self.trn = f"trn:playlist:{self.id}"
         self.name = json_obj["title"]
         self.num_tracks = int(json_obj["numberOfTracks"])
         self.num_videos = int(json_obj["numberOfVideos"])

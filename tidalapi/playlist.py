@@ -37,6 +37,14 @@ if TYPE_CHECKING:
 import dateutil.parser
 
 
+def list_validate(lst):
+    if isinstance(lst, str):
+        lst = [lst]
+    if len(lst) == 0:
+        raise ValueError("An empty list was provided.")
+    return lst
+
+
 class Playlist:
     """An object containing various data about a playlist and methods to work with
     them."""
@@ -420,12 +428,7 @@ class Folder:
         :param folder: Destination folder. Default: Use the current folder
         :return: True, if operation was successful.
         """
-        if len(trns) == 0:
-            raise ValueError("An empty list of trns were provided. Cannot continue.")
-        if not isinstance(trns, List):
-            raise ValueError(
-                "A single item was provided but a list was expected. Cannot continue."
-            )
+        trns = list_validate(trns)
         # Make sure all trns has the correct type prepended to it
         trns_full = []
         for trn in trns:
@@ -477,6 +480,7 @@ class UserPlaylist(Playlist):
         :param media_ids: Lists of Media IDs to remove.
         :return: True, if successful.
         """
+        media_ids = list_validate(media_ids)
         # Generate list of track indices of tracks found in the list of media_ids.
         track_ids = [str(track.id) for track in self.tracks()]
         matching_indices = [i for i, item in enumerate(track_ids) if item in media_ids]
@@ -496,6 +500,7 @@ class UserPlaylist(Playlist):
             Default: insert at the end of the playlist
         :return: True, if successful.
         """
+        media_ids = list_validate(media_ids)
         # Insert items at a specific index
         if position < 0 or position > self.num_tracks:
             position = self.num_tracks
@@ -532,6 +537,8 @@ class UserPlaylist(Playlist):
             Default: insert at the end of the playlist
         :return: True, if successful.
         """
+        if not isinstance(isrc, str):
+            isrc = str(isrc)
         try:
             track = self.session.get_tracks_by_isrc(isrc)
             if track:
@@ -554,6 +561,8 @@ class UserPlaylist(Playlist):
         :param position: The new position of the item
         :return: True, if successful.
         """
+        if not isinstance(media_id, str):
+            media_id = str(media_id)
         track_ids = [str(track.id) for track in self.tracks()]
         try:
             index = track_ids.index(media_id)
@@ -569,6 +578,8 @@ class UserPlaylist(Playlist):
         :param position: The new position/offset of the item
         :return: True, if successful.
         """
+        if not isinstance(index, int):
+            raise ValueError
         return self.move_by_indices([index], position)
 
     def move_by_indices(self, indices: Sequence[int], position: int) -> bool:
@@ -601,6 +612,8 @@ class UserPlaylist(Playlist):
         :param media_id: Media ID to remove.
         :return: True, if successful.
         """
+        if not isinstance(media_id, str):
+            media_id = str(media_id)
         track_ids = [str(track.id) for track in self.tracks()]
         try:
             index = track_ids.index(media_id)

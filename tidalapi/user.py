@@ -40,6 +40,14 @@ if TYPE_CHECKING:
     from tidalapi.session import Session
 
 
+def list_validate(lst):
+    if isinstance(lst, str):
+        lst = [lst]
+    if len(lst) == 0:
+        raise ValueError("An empty list was provided.")
+    return lst
+
+
 class User:
     """A class containing various information about a TIDAL user.
 
@@ -406,8 +414,7 @@ class Favorites:
         """
         if type not in ("playlist", "folder"):
             raise ValueError("Invalid trn value used for playlist/folder endpoint")
-        if len(trns) == 0:
-            raise ValueError("An empty list of trns were provided. Cannot continue.")
+        trns = list_validate(trns)
         # Make sure all trns has the correct type prepended to it
         trns_full = []
         for trn in trns:

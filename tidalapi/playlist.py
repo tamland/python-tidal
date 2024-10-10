@@ -493,13 +493,15 @@ class UserPlaylist(Playlist):
         media_ids: List[str],
         allow_duplicates: bool = False,
         position: int = -1,
-    ) -> bool:
+        limit: int = 100,
+    ) -> List[int]:
         """Add one or more items to the UserPlaylist.
 
         :param media_ids: List of Media IDs to add.
         :param allow_duplicates: Allow adding duplicate items
         :param position: Insert items at a specific position.
             Default: insert at the end of the playlist
+        :param position: Maximum number of items to add
         :return: True, if successful.
         """
         media_ids = list_validate(media_ids)
@@ -510,10 +512,9 @@ class UserPlaylist(Playlist):
             "onArtifactNotFound": "SKIP",
             "trackIds": ",".join(map(str, media_ids)),
             "toIndex": position,
+            "onDupes": "ADD" if allow_duplicates else "SKIP",
         }
-        if not allow_duplicates:
-            data["onDupes"] = "SKIP"
-        params = {"limit": 100}
+        params = {"limit": limit}
         headers = {"If-None-Match": self._etag} if self._etag else None
         res = self.request.request(
             "POST",
@@ -523,7 +524,43 @@ class UserPlaylist(Playlist):
             headers=headers,
         )
         self._reparse()
-        return res.ok
+        # Respond with the added item IDs:
+        added_items = res.json().get("addedItemIds")
+        if added_items:
+            return added_items
+        else:
+            return []
+
+    def merge(
+        self, playlist: str, allow_duplicates: bool = False, allow_missing: bool = True
+    ) -> List[int]:
+        """
+        Add (merge) items from a playlist with the current playlist
+
+        :param playlist: Playlist UUID to be merged in the current playlist
+        :param allow_duplicates: If true, duplicate tracks are allowed. Otherwise, tracks will be skipped.
+        :param allow_missing: If true, missing tracks are allowed. Otherwise, exception will be thrown
+        :return:
+        """
+        data = {
+            "fromPlaylistUuid": str(playlist),
+            "onArtifactNotFound": "SKIP" if allow_missing else "FAIL",
+            "onDupes": "ADD" if allow_duplicates else "SKIP",
+        }
+        headers = {"If-None-Match": self._etag} if self._etag else None
+        res = self.request.request(
+            "POST",
+            self._base_url % self.id + "/items",
+            data=data,
+            headers=headers,
+        )
+        self._reparse()
+        # Respond with the added item IDs:
+        added_items = res.json().get("addedItemIds")
+        if added_items:
+            return added_items
+        else:
+            return []
 
     def add_by_isrc(
         self,
@@ -545,12 +582,16 @@ class UserPlaylist(Playlist):
             track = self.session.get_tracks_by_isrc(isrc)
             if track:
                 # Add the first track in the list
-                track_id = str(track[0].id)
-                return self.add(
-                    [track_id],
+                track_id = track[0].id
+                added = self.add(
+                    [str(track_id)],
                     allow_duplicates=allow_duplicates,
                     position=position,
                 )
+                if track_id in added:
+                    return True
+                else:
+                    return False
             else:
                 return False
         except ObjectNotFound:

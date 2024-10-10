@@ -318,7 +318,6 @@ class Album:
         :return: A :class:`str` containing the album review, with wimp links
         :raises: :class:`requests.HTTPError` if there isn't a review yet
         """
-        # morguldir: TODO: Add parsing of wimplinks?
         review = self.request.request("GET", "albums/%s/review" % self.id).json()[
             "text"
         ]

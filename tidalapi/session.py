@@ -272,14 +272,14 @@ class Session:
         self.request = request.Requests(session=self)
         self.genre = genre.Genre(session=self)
 
-        self.parse_artists = self.artist().parse_artists
-        self.parse_playlist = self.playlist().parse
+        # self.parse_artists = self.artist().parse_artists
+        # self.parse_playlist = self.playlist().parse
 
-        self.parse_track = self.track().parse_track
-        self.parse_video = self.video().parse_video
-        self.parse_media = self.track().parse_media
-        self.parse_mix = self.mix().parse
-        self.parse_v2_mix = self.mixv2().parse
+        # self.parse_track = self.track().parse_track
+        # self.parse_video = self.video().parse_video
+        # self.parse_media = self.track().parse_media
+        # self.parse_mix = self.mix().parse
+        # self.parse_v2_mix = self.mixv2().parse
 
         self.parse_user = user.User(self, None).parse
         self.page = page.Page(self, "")
@@ -316,14 +316,41 @@ class Session:
         """Parse an album from the given response."""
         return self.album().parse(obj)
 
+    def parse_track(
+        self, obj: JsonObj, album: Optional[album.Album] = None
+    ) -> media.Track:
+        """Parse an album from the given response."""
+        return self.track().parse_track(obj, album)
+
+    def parse_video(self, obj: JsonObj) -> media.Video:
+        """Parse an album from the given response."""
+        return self.video().parse_video(obj)
+
+    def parse_media(
+        self, obj: JsonObj, album: Optional[album.Album] = None
+    ) -> Union[media.Track, media.Video]:
+        """Parse a media type (track, video) from the given response."""
+        return self.track().parse_media(obj, album)
+
     def parse_artist(self, obj: JsonObj) -> artist.Artist:
         """Parse an artist from the given response."""
         return self.artist().parse_artist(obj)
+
+    def parse_artists(self, obj: List[JsonObj]) -> List[artist.Artist]:
+        """Parse an artist from the given response."""
+        return self.artist().parse_artists(obj)
 
     def parse_mix(self, obj: JsonObj) -> mix.Mix:
         """Parse a mix from the given response."""
         return self.mix().parse(obj)
 
+    def parse_v2_mix(self, obj: JsonObj) -> mix.Mix:
+        """Parse a mixV2 from the given response."""
+        return self.mixv2().parse(obj)
+
+    def parse_playlist(self, obj: JsonObj) -> playlist.Playlist:
+        """Parse a playlist from the given response."""
+        return self.playlist().parse(obj)
 
     def parse_folder(self, obj: JsonObj) -> playlist.Folder:
         """Parse an album from the given response."""

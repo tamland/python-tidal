@@ -338,8 +338,7 @@ class Folder:
         return copy.copy(self)
 
     def rename(self, name: str) -> bool:
-        """
-        Rename the selected folder
+        """Rename the selected folder.
 
         :param name: The name to be used for the folder
         :return: True, if operation was successful.
@@ -356,8 +355,7 @@ class Folder:
         return res.ok
 
     def remove(self) -> bool:
-        """
-        Remove the selected folder
+        """Remove the selected folder.
 
         :return: True, if operation was successful.
         """
@@ -373,8 +371,7 @@ class Folder:
     def items(
         self, offset: int = 0, limit: int = 50
     ) -> List[Union["Playlist", "UserPlaylist"]]:
-        """
-        Return the items in the folder
+        """Return the items in the folder.
 
         :param offset: Optional; The index of the first item to be returned. Default: 0
         :param limit: Optional; The amount of items you want returned. Default: 50
@@ -405,8 +402,7 @@ class Folder:
             return []
 
     def add_items(self, trns: [str]):
-        """
-        Convenience method to add items to the current folder
+        """Convenience method to add items to the current folder.
 
         :param trns: List of playlist trns to be added to the current folder
         :return: True, if operation was successful.
@@ -414,8 +410,7 @@ class Folder:
         self.move_items_to_folder(trns, self.id)
 
     def move_items_to_root(self, trns: [str]):
-        """
-        Convenience method to move items from the current folder to the root folder
+        """Convenience method to move items from the current folder to the root folder.
 
         :param trns: List of playlist trns to be moved from the current folder
         :return: True, if operation was successful.
@@ -423,8 +418,7 @@ class Folder:
         self.move_items_to_folder(trns, folder="root")
 
     def move_items_to_folder(self, trns: [str], folder: str = None):
-        """
-        Move item(s) in one folder to another folder.
+        """Move item(s) in one folder to another folder.
 
         :param trns: List of playlist trns to be moved.
         :param folder: Destination folder. Default: Use the current folder
@@ -534,12 +528,13 @@ class UserPlaylist(Playlist):
     def merge(
         self, playlist: str, allow_duplicates: bool = False, allow_missing: bool = True
     ) -> List[int]:
-        """
-        Add (merge) items from a playlist with the current playlist
+        """Add (merge) items from a playlist with the current playlist.
 
         :param playlist: Playlist UUID to be merged in the current playlist
-        :param allow_duplicates: If true, duplicate tracks are allowed. Otherwise, tracks will be skipped.
-        :param allow_missing: If true, missing tracks are allowed. Otherwise, exception will be thrown
+        :param allow_duplicates: If true, duplicate tracks are allowed. Otherwise,
+            tracks will be skipped.
+        :param allow_missing: If true, missing tracks are allowed. Otherwise, exception
+            will be thrown
         :return:
         """
         data = {

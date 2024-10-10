@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from tidalapi.artist import Artist
     from tidalapi.media import Track, Video
     from tidalapi.mix import MixV2
-    from tidalapi.playlist import Playlist, UserPlaylist, Folder
+    from tidalapi.playlist import Folder, Playlist, UserPlaylist
     from tidalapi.session import Session
 
 
@@ -406,7 +406,8 @@ class Favorites:
         return self.requests.request("DELETE", f"{self.base_url}/videos/{video_id}").ok
 
     def remove_folders_playlists(self, trns: [str], type: str = "folder") -> bool:
-        """Removes one or more folders or playlists from the users favourites, using the v2 endpoint
+        """Removes one or more folders or playlists from the users favourites, using the
+        v2 endpoint.
 
         :param trns: List of folder (or playlist) trns to be deleted
         :param type: Type of trn: as string, either `folder` or `playlist`. Default `folder`
@@ -430,15 +431,6 @@ class Favorites:
             base_url=self.session.config.api_v2_location,
             params=params,
         ).ok
-
-    def remove_folder_playlist(self, trn: str, type: str = "folder") -> bool:
-        """Removes a folder (or playlist) from the users favourites, using the v2 endpoint
-
-        :param trn: Folder or playlist id (trn) of the item to be deleted
-        :param type: Type of trn: as string, either `folder` or `playlist`
-        :return: A boolean indicating whether the request was successful or not.
-        """
-        return self.remove_folders_playlists([trn], type)
 
     def artists(self, limit: Optional[int] = None, offset: int = 0) -> List["Artist"]:
         """Get the users favorite artists.

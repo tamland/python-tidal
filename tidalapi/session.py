@@ -52,6 +52,7 @@ from requests.exceptions import HTTPError
 
 from tidalapi.exceptions import *
 from tidalapi.types import JsonObj
+
 from . import album, artist, genre, media, mix, page, playlist, request, user
 
 if TYPE_CHECKING:
@@ -848,8 +849,7 @@ class Session:
             raise
 
     def folder(self, folder_id: Optional[str] = None) -> playlist.Folder:
-        """
-        Function to create a Folder object with access to the session instance in a
+        """Function to create a Folder object with access to the session instance in a
         smoother way. Calls :class:`tidalapi.Folder(session=session, folder_id=track_id)
         <.Folder>` internally.
 

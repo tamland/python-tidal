@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import pytest
 
 import tidalapi
 
@@ -48,6 +47,7 @@ def test_get_explore_items(session):
     assert first_item.categories[1].title == "Milestone Year Albums"
     assert first_item.categories[2].title == "Albums Of The Decade"
     playlist = first_item.categories[0].items[0]
+    assert isinstance(playlist, tidalapi.Playlist)
     assert playlist.name  # == 'Remember...the 1950s'
     assert playlist.num_tracks > 1
     assert playlist.num_videos == 0
@@ -55,6 +55,7 @@ def test_get_explore_items(session):
     genre_genres = explore.categories[0].items[1]
     genre_genres_page_items = iter(genre_genres.get())
     playlist = next(genre_genres_page_items)  # Usually a playlist
+    assert isinstance(playlist, tidalapi.Playlist)
     assert playlist.name  # == 'Remember...the 1950s'
     assert playlist.num_tracks > 1
     assert playlist.num_videos == 0
@@ -66,9 +67,25 @@ def test_get_explore_items(session):
     assert next(iterator).title == "Country"
 
 
+def test_hires_page(session):
+    hires = session.hires_page()
+    first = next(iter(hires))
+    assert first.name == "Electronic: Headphone Classics"
+    assert isinstance(first, tidalapi.Playlist)
+
+
 def test_for_you(session):
     for_you = session.for_you()
-    assert for_you
+    first = next(iter(for_you))
+    assert first.title == "My Daily Discovery"
+    assert isinstance(first, tidalapi.Mix)
+
+
+def test_videos(session):
+    videos = session.videos()
+    first = next(iter(videos))
+    assert first.type == "VIDEO"
+    assert isinstance(first.get(), tidalapi.Video)
 
 
 def test_show_more(session):

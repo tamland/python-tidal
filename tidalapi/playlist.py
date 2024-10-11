@@ -495,8 +495,8 @@ class UserPlaylist(Playlist):
         :param allow_duplicates: Allow adding duplicate items
         :param position: Insert items at a specific position.
             Default: insert at the end of the playlist
-        :param position: Maximum number of items to add
-        :return: True, if successful.
+        :param limit: Maximum number of items to add
+        :return: List of media IDs that has been added
         """
         media_ids = list_validate(media_ids)
         # Insert items at a specific index
@@ -535,7 +535,7 @@ class UserPlaylist(Playlist):
             tracks will be skipped.
         :param allow_missing: If true, missing tracks are allowed. Otherwise, exception
             will be thrown
-        :return:
+        :return: List of items that has been added from the playlist
         """
         data = {
             "fromPlaylistUuid": str(playlist),

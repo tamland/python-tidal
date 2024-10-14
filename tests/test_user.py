@@ -60,6 +60,15 @@ def test_get_user_playlists(session):
     assert playlist_ids | favourite_ids == both_ids
 
 
+def test_get_playlist_folders(session):
+    folder = session.user.create_folder(title="testfolder")
+    assert folder
+    folder_ids = [folder.id for folder in session.user.playlist_folders()]
+    assert folder.id in folder_ids
+    folder.remove()
+    assert folder.id not in folder_ids
+
+
 def test_get_user_playlist_creator(session):
     playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     creator = playlist.creator

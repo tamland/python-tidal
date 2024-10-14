@@ -155,9 +155,12 @@ class LoggedInUser(FetchedUser):
     def playlist_folders(
         self, offset: int = 0, limit: int = 50, parent_folder_id: str = "root"
     ) -> List["Folder"]:
-        """Get the playlists created by the user.
+        """Get a list of folders created by the user.
 
-        :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
+        :param offset: The amount of items you want returned.
+        :param limit: The index of the first item you want included.
+        :param parent_folder_id: Parent folder ID. Default: 'root' playlist folder
+        :return: Returns a list of :class:`~tidalapi.playlist.Folder` objects containing the Folders.
         """
         params = {
             "folderId": parent_folder_id,
@@ -184,6 +187,8 @@ class LoggedInUser(FetchedUser):
     ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the (public) playlists created by the user.
 
+        :param offset: The amount of items you want returned.
+        :param limit: The index of the first item you want included.
         :return: List of public playlists.
         """
         params = {"limit": limit, "offset": offset}
@@ -204,7 +209,7 @@ class LoggedInUser(FetchedUser):
         )
 
     def playlist_and_favorite_playlists(
-        self, offset: int = 0, limit: int = 50
+        self, limit: Optional[int] = None, offset: int = 0
     ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the playlists created by the user, and the playlists favorited by the
         user. This function is limited to 50 by TIDAL, requiring pagination.
@@ -228,6 +233,13 @@ class LoggedInUser(FetchedUser):
     def create_playlist(
         self, title: str, description: str, parent_id: str = "root"
     ) -> "UserPlaylist":
+        """Create a playlist in the specified parent folder.
+
+        :param title: Playlist title
+        :param description: Playlist description
+        :param parent_id: Parent folder ID. Default: 'root' playlist folder
+        :return: Returns an object of :class:`~tidalapi.playlist.UserPlaylist` containing the newly created playlist
+        """
         params = {"name": title, "description": description, "folderId": parent_id}
         endpoint = "my-collection/playlists/folders/create-playlist"
 
@@ -245,6 +257,12 @@ class LoggedInUser(FetchedUser):
             raise ObjectNotFound("Playlist not found after creation")
 
     def create_folder(self, title: str, parent_id: str = "root") -> "Folder":
+        """Create folder in the specified parent folder.
+
+        :param title: Folder title
+        :param parent_id: Folder parent ID. Default: 'root' playlist folder
+        :return: Returns an object of :class:`~tidalapi.playlist.Folder` containing the newly created object
+        """
         params = {"name": title, "folderId": parent_id}
         endpoint = "my-collection/playlists/folders/create-folder"
 

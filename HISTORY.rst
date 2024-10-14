@@ -4,6 +4,7 @@ History
 =======
 v0.7.7
 ------
+* BREAKING: MQA, Sony 360 audio no longer supported July 24th 2024; removed references to these formats. - tehkillerbee_
 * Bugfix: Logical loop of is_encrypted / encryption_key - TooYoungTooSimp_
 * Tests: Added additional playlist, folder tests. - tehkillerbee_
 * Feature: Add support for playlist merging. - tehkillerbee_

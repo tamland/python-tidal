@@ -120,6 +120,10 @@ def test_track_streaming(session):
 
 @pytest.mark.skip(reason="SONY360 support has been removed")
 def test_track_quality_sony360(session):
+    # TIDAL: For 360 Reality Audio: If you had a 360 Reality Audio track or album in your Collection –
+    #   including in a playlist or downloaded for offline access –
+    #   the track or album will be grayed out and unavailable for streaming if you try to select it.
+    # Ref: https://support.tidal.com/hc/en-us/articles/25876825185425-Audio-Format-Updates
     # Session should allow highest possible quality (but will fallback to highest available album quality)
     session.audio_quality = Quality.hi_res_lossless
     # Alice In Chains / We Die Young (Max quality: HI_RES MHA1 SONY360; Album has now been removed)
@@ -149,6 +153,10 @@ def test_track_quality_atmos(session):
 
 @pytest.mark.skip(reason="MQA albums appears to fallback to LOSSLESS")
 def test_track_quality_mqa(session):
+    # TIDAL:
+    #   For MQA: If you had an MQA track or album in your Collection – including in playlists –
+    #   the track was automatically replaced by the highest quality FLAC version that has been distributed to TIDAL.
+    # Ref: https://support.tidal.com/hc/en-us/articles/25876825185425-Audio-Format-Updates
     # Session should allow highest possible quality (but will fallback to highest available album quality)
     session.audio_quality = Quality.hi_res_lossless
     # U2 / Achtung Baby (Max quality: HI_RES MQA, 16bit/44100Hz)

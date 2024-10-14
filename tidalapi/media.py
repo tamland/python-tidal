@@ -79,7 +79,6 @@ class VideoQuality(str, Enum):
 
 class AudioMode(str, Enum):
     stereo: str = "STEREO"
-    sony_360: str = "SONY_360RA"
     dolby_atmos: str = "DOLBY_ATMOS"
 
     def __str__(self) -> str:
@@ -87,10 +86,8 @@ class AudioMode(str, Enum):
 
 
 class MediaMetadataTags(str, Enum):
-    mqa: str = "MQA"
     hires_lossless: str = "HIRES_LOSSLESS"
     lossless: str = "LOSSLESS"
-    sony_360: str = "SONY_360RA"
     dolby_atmos: str = "DOLBY_ATMOS"
 
     def __str__(self) -> str:
@@ -129,12 +126,10 @@ class Codec(str, Enum):
     AAC: str = "AAC"
     MP4A: str = "MP4A"
     FLAC: str = "FLAC"
-    MQA: str = "MQA"
     Atmos: str = "EAC3"
     AC4: str = "AC4"
-    SONY360RA: str = "MHA1"
     LowResCodecs: [str] = [MP3, AAC, MP4A]
-    PremiumCodecs: [str] = [MQA, Atmos, AC4]
+    PremiumCodecs: [str] = [Atmos, AC4]
     HQCodecs: [str] = PremiumCodecs + [FLAC]
 
     def __str__(self) -> str:
@@ -158,7 +153,6 @@ class MimeType(str, Enum):
         Codec.AAC: audio_m4a,
         Codec.MP4A: audio_m4a,
         Codec.FLAC: audio_xflac,
-        Codec.MQA: audio_xflac,
         Codec.Atmos: audio_eac3,
         Codec.AC4: audio_ac4,
     }
@@ -171,7 +165,7 @@ class MimeType(str, Enum):
         return MimeType.audio_map.get(codec, MimeType.audio_m4a)
 
     @staticmethod
-    def is_FLAC(mime_type):
+    def is_flac(mime_type):
         return (
             True if mime_type in [MimeType.audio_flac, MimeType.audio_xflac] else False
         )
@@ -444,26 +438,6 @@ class Track(Media):
             return cast("Stream", stream)
 
     @property
-    def is_mqa(self) -> bool:
-        try:
-            if self.media_metadata_tags:
-                return (
-                    True
-                    if MediaMetadataTags.mqa in self.media_metadata_tags
-                    and not self.is_sony360
-                    and not self.is_dolby_atmos
-                    else False
-                )
-        except:
-            pass
-        # Fallback to old method
-        return True if self.audio_quality == Quality.hi_res else False
-
-    @property
-    def is_hi_res_mqa(self) -> bool:
-        return self.is_mqa
-
-    @property
     def is_hi_res_lossless(self) -> bool:
         try:
             if (
@@ -494,13 +468,6 @@ class Track(Media):
         except:
             return False
 
-    @property
-    def is_sony360(self) -> bool:
-        try:
-            return True if AudioMode.sony_360 in self.audio_modes else False
-        except:
-            return False
-
 
 class Stream:
     """An object that stores the audio file properties and parameters needed for
@@ -510,7 +477,7 @@ class Stream:
     """
 
     track_id: int = -1
-    audio_mode: str = AudioMode.stereo  # STEREO, SONY_360RA, DOLBY_ATMOS
+    audio_mode: str = AudioMode.stereo  # STEREO, DOLBY_ATMOS
     audio_quality: str = (
         Quality.low_320k
     )  # LOW, HIGH, LOSSLESS, HI_RES, HI_RES_LOSSLESS
@@ -659,13 +626,15 @@ class StreamManifest:
         if AudioExtensions.FLAC in stream_url:
             result: str = AudioExtensions.FLAC
         elif AudioExtensions.MP4 in stream_url:
-            if "ac4" in stream_codec or "mha1" in stream_codec:
-                result = ".mp4"
-            elif "flac" in stream_codec:
-                result = ".flac"
+            if stream_codec:
+                if Codec.AC4 is stream_codec:
+                    result: str = AudioExtensions.MP4
+                elif Codec.FLAC is stream_codec:
+                    result: str = AudioExtensions.FLAC
+                else:
+                    result: str = AudioExtensions.M4A
             else:
-                result = ".m4a"
-            result: str = AudioExtensions.MP4
+                result: str = AudioExtensions.MP4
         elif VideoExtensions.TS in stream_url:
             result: str = VideoExtensions.TS
         else:

@@ -19,11 +19,11 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "tidalapi"
-copyright = "2014-2022, Thomas Amland, morguldir"
-author = "Thomas Amland, morguldir"
+copyright = "2014-%Y, The tidalapi Developers"
+author = "The tidalapi Developers"
 
 # The full version, including alpha/beta/rc tags
-release = "0.7.0"
+release = "0.7.7"
 
 
 # -- General configuration ---------------------------------------------------

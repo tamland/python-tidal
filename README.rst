@@ -40,3 +40,17 @@ This project uses poetry for dependency management and packaging. To install dep
         $ pip install pipx
         $ pipx install poetry
         $ poetry install --no-root
+
+Contributions
+-----------
+
+Issues, suggestions and PRs are always welcome and are much appreciated.
+
+Maintainer(s)
+-----------
+* Current:
+    * `tehkillerbee <https://github.com/tehkillerbee>`_
+
+* Former:
+    * `tamland <https://github.com/tamland>`_
+    * `morguldir <https://github.com/morguldir>`_

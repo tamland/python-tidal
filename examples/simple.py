@@ -17,9 +17,10 @@
 #
 """simple.py: A simple example script that describes how to get started using tidalapi"""
 
+from pathlib import Path
+
 import tidalapi
 from tidalapi import Quality
-from pathlib import Path
 
 session_file1 = Path("tidal-session-oauth.json")
 
@@ -32,13 +33,12 @@ session.login_session_file(session_file1)
 # Low: Quality.low_96k          (m4a 96k)
 # Normal: Quality.low_320k      (m4a 320k)
 # HiFi: Quality.high_lossless   (FLAC)
-# HiFi+ Quality.hi_res          (FLAC MQA)
 # HiFi+ Quality.hi_res_lossless (FLAC HI_RES)
 session.audio_quality = Quality.hi_res_lossless
 
 # album_id = "77640617"    # U2 / Achtung Baby            (Max quality: HI_RES MQA, 16bit/44100Hz)
 # album_id = "110827651"   # The Black Keys / Let's Rock  (Max quality: LOSSLESS FLAC, 24bit/48000Hz)
-album_id = "77646169"   # Beck / Sea Change            (Max quality: HI_RES_LOSSLESS FLAC, 24bit/192000Hz)
+album_id = "77646169"  # Beck / Sea Change            (Max quality: HI_RES_LOSSLESS FLAC, 24bit/192000Hz)
 album = session.album(album_id)
 tracks = album.tracks()
 # list album tracks

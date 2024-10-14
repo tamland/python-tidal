@@ -25,9 +25,10 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, List, Optional, Union, cast
 from urllib.parse import urljoin
 
+from tidalapi.exceptions import ObjectNotFound
 from tidalapi.types import JsonObj
 
 if TYPE_CHECKING:
@@ -35,8 +36,16 @@ if TYPE_CHECKING:
     from tidalapi.artist import Artist
     from tidalapi.media import Track, Video
     from tidalapi.mix import MixV2
-    from tidalapi.playlist import Playlist, UserPlaylist
+    from tidalapi.playlist import Folder, Playlist, UserPlaylist
     from tidalapi.session import Session
+
+
+def list_validate(lst):
+    if isinstance(lst, str):
+        lst = [lst]
+    if len(lst) == 0:
+        raise ValueError("An empty list was provided.")
+    return lst
 
 
 class User:
@@ -57,6 +66,7 @@ class User:
         self.session = session
         self.request = session.request
         self.playlist = session.playlist()
+        self.folder = session.folder()
 
     def factory(self) -> Union["LoggedInUser", "FetchedUser", "PlaylistCreator"]:
         return cast(
@@ -131,7 +141,7 @@ class LoggedInUser(FetchedUser):
         return copy(self)
 
     def playlists(self) -> List[Union["Playlist", "UserPlaylist"]]:
-        """Get the playlists created by the user.
+        """Get the (personal) playlists created by the user.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
         """
@@ -142,15 +152,71 @@ class LoggedInUser(FetchedUser):
             ),
         )
 
+    def playlist_folders(
+        self, offset: int = 0, limit: int = 50, parent_folder_id: str = "root"
+    ) -> List["Folder"]:
+        """Get a list of folders created by the user.
+
+        :param offset: The amount of items you want returned.
+        :param limit: The index of the first item you want included.
+        :param parent_folder_id: Parent folder ID. Default: 'root' playlist folder
+        :return: Returns a list of :class:`~tidalapi.playlist.Folder` objects containing the Folders.
+        """
+        params = {
+            "folderId": parent_folder_id,
+            "offset": offset,
+            "limit": limit,
+            "order": "NAME",
+            "includeOnly": "FOLDER",
+        }
+        endpoint = "my-collection/playlists/folders"
+        return cast(
+            List["Folder"],
+            self.session.request.map_request(
+                url=urljoin(
+                    self.session.config.api_v2_location,
+                    endpoint,
+                ),
+                params=params,
+                parse=self.session.parse_folder,
+            ),
+        )
+
+    def public_playlists(
+        self, offset: int = 0, limit: int = 50
+    ) -> List[Union["Playlist", "UserPlaylist"]]:
+        """Get the (public) playlists created by the user.
+
+        :param offset: The amount of items you want returned.
+        :param limit: The index of the first item you want included.
+        :return: List of public playlists.
+        """
+        params = {"limit": limit, "offset": offset}
+        endpoint = "user-playlists/%s/public" % self.id
+        json_obj = self.request.request(
+            "GET", endpoint, base_url=self.session.config.api_v2_location, params=params
+        ).json()
+
+        # The response contains both playlists and user details (followInfo, profile) but we will discard the latter.
+        playlists = {"items": []}
+        for index, item in enumerate(json_obj["items"]):
+            if item["playlist"]:
+                playlists["items"].append(item["playlist"])
+
+        return cast(
+            List[Union["Playlist", "UserPlaylist"]],
+            self.request.map_json(playlists, parse=self.playlist.parse_factory),
+        )
+
     def playlist_and_favorite_playlists(
-        self, offset: int = 0
+        self, limit: Optional[int] = None, offset: int = 0
     ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the playlists created by the user, and the playlists favorited by the
         user. This function is limited to 50 by TIDAL, requiring pagination.
 
         :return: Returns a list of :class:`~tidalapi.playlist.Playlist` objects containing the playlists.
         """
-        params = {"limit": 50, "offset": offset}
+        params = {"limit": limit, "offset": offset}
         endpoint = "users/%s/playlistsAndFavoritePlaylists" % self.id
         json_obj = self.request.request("GET", endpoint, params=params).json()
 
@@ -164,13 +230,52 @@ class LoggedInUser(FetchedUser):
             self.request.map_json(json_obj, parse=self.playlist.parse_factory),
         )
 
-    def create_playlist(self, title: str, description: str) -> "Playlist":
-        data = {"title": title, "description": description}
-        json = self.request.request(
-            "POST", "users/%s/playlists" % self.id, data=data
+    def create_playlist(
+        self, title: str, description: str, parent_id: str = "root"
+    ) -> "UserPlaylist":
+        """Create a playlist in the specified parent folder.
+
+        :param title: Playlist title
+        :param description: Playlist description
+        :param parent_id: Parent folder ID. Default: 'root' playlist folder
+        :return: Returns an object of :class:`~tidalapi.playlist.UserPlaylist` containing the newly created playlist
+        """
+        params = {"name": title, "description": description, "folderId": parent_id}
+        endpoint = "my-collection/playlists/folders/create-playlist"
+
+        json_obj = self.request.request(
+            method="PUT",
+            path=endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
         ).json()
-        playlist = self.session.playlist().parse(json)
-        return playlist.factory()
+        json = json_obj.get("data")
+        if json and json.get("uuid"):
+            playlist = self.session.playlist().parse(json)
+            return playlist.factory()
+        else:
+            raise ObjectNotFound("Playlist not found after creation")
+
+    def create_folder(self, title: str, parent_id: str = "root") -> "Folder":
+        """Create folder in the specified parent folder.
+
+        :param title: Folder title
+        :param parent_id: Folder parent ID. Default: 'root' playlist folder
+        :return: Returns an object of :class:`~tidalapi.playlist.Folder` containing the newly created object
+        """
+        params = {"name": title, "folderId": parent_id}
+        endpoint = "my-collection/playlists/folders/create-folder"
+
+        json_obj = self.request.request(
+            method="PUT",
+            path=endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).json()
+        if json_obj and json_obj.get("data"):
+            return self.request.map_json(json_obj, parse=self.folder.parse)
+        else:
+            raise ObjectNotFound("Folder not found after creation")
 
 
 class PlaylistCreator(User):
@@ -241,6 +346,25 @@ class Favorites:
             "POST", f"{self.base_url}/tracks", data={"trackId": track_id}
         ).ok
 
+    def add_track_by_isrc(self, isrc: str) -> bool:
+        """Adds a track to the users favorites, using isrc.
+
+        :param isrc: The ISRC of the track to be added
+        :return: True, if successful.
+        """
+        try:
+            track = self.session.get_tracks_by_isrc(isrc)
+            if track:
+                # Add the first track in the list
+                track_id = str(track[0].id)
+                return self.requests.request(
+                    "POST", f"{self.base_url}/tracks", data={"trackId": track_id}
+                ).ok
+            else:
+                return False
+        except ObjectNotFound:
+            return False
+
     def add_video(self, video_id: str) -> bool:
         """Adds a video to the users favorites.
 
@@ -298,6 +422,33 @@ class Favorites:
         :return: A boolean indicating whether the request was successful or not.
         """
         return self.requests.request("DELETE", f"{self.base_url}/videos/{video_id}").ok
+
+    def remove_folders_playlists(self, trns: [str], type: str = "folder") -> bool:
+        """Removes one or more folders or playlists from the users favourites, using the
+        v2 endpoint.
+
+        :param trns: List of folder (or playlist) trns to be deleted
+        :param type: Type of trn: as string, either `folder` or `playlist`. Default `folder`
+        :return: A boolean indicating whether theś request was successful or not.
+        """
+        if type not in ("playlist", "folder"):
+            raise ValueError("Invalid trn value used for playlist/folder endpoint")
+        trns = list_validate(trns)
+        # Make sure all trns has the correct type prepended to it
+        trns_full = []
+        for trn in trns:
+            if "trn:" in trn:
+                trns_full.append(trn)
+            else:
+                trns_full.append(f"trn:{type}:{trn}")
+        params = {"trns": ",".join(trns_full)}
+        endpoint = "my-collection/playlists/folders/remove"
+        return self.requests.request(
+            method="PUT",
+            path=endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).ok
 
     def artists(self, limit: Optional[int] = None, offset: int = 0) -> List["Artist"]:
         """Get the users favorite artists.

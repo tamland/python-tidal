@@ -23,8 +23,7 @@ import pytest
 from dateutil import tz
 
 import tidalapi
-from tidalapi.album import Album
-from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
+from tidalapi.exceptions import ObjectNotFound
 from tidalapi.media import AudioMode, Quality
 
 from .cover import verify_image_cover, verify_video_cover
@@ -72,11 +71,20 @@ def test_get_tracks(session):
     assert tracks[0].id == 17927864
     assert tracks[0].volume_num == 1
     assert tracks[0].track_num == 1
+    assert tracks[0].album == album
 
     assert tracks[-1].name == "Pray"
     assert tracks[-1].id == 17927885
     assert tracks[-1].volume_num == 2
     assert tracks[-1].track_num == 8
+    assert tracks[-1].album == album
+
+    # Getting album.tracks with sparse_album=True will result in a track.album containing only essential fields
+    tracks_sparse = album.tracks(sparse_album=True)
+    assert tracks_sparse[0].album.audio_quality is None
+    assert tracks_sparse[0].album.id == 17927863
+    assert tracks_sparse[-1].album.audio_quality is None
+    assert tracks_sparse[-1].album.id == 17927863
 
 
 def test_get_items(session):
@@ -87,11 +95,20 @@ def test_get_items(session):
     assert items[0].id == 108043415
     assert items[0].volume_num == 1
     assert items[0].track_num == 1
+    assert items[0].album == album
 
     assert items[-1].name == "Lemonade Film"
     assert items[-1].id == 108043437
     assert items[-1].volume_num == 1
     assert items[-1].track_num == 15
+    assert items[-1].album == album
+
+    # Getting album.items with sparse_album=True will result in a track.album containing only essential fields
+    items_sparse = album.items(sparse_album=True)
+    assert items_sparse[0].album.id == 108043414
+    assert items_sparse[0].album.audio_quality is None
+    assert items_sparse[-1].album.id == 108043414
+    assert items_sparse[-1].album.audio_quality is None
 
 
 def test_image_cover(session):

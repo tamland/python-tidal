@@ -37,11 +37,20 @@ if TYPE_CHECKING:
 import dateutil.parser
 
 
+def list_validate(lst):
+    if isinstance(lst, str):
+        lst = [lst]
+    if len(lst) == 0:
+        raise ValueError("An empty list was provided.")
+    return lst
+
+
 class Playlist:
     """An object containing various data about a playlist and methods to work with
     them."""
 
     id: Optional[str] = None
+    trn: Optional[str] = None
     name: Optional[str] = None
     num_tracks: int = -1
     num_videos: int = -1
@@ -88,6 +97,7 @@ class Playlist:
         :return: Returns a copy of the original :exc: 'Playlist': object
         """
         self.id = json_obj["uuid"]
+        self.trn = f"trn:playlist:{self.id}"
         self.name = json_obj["title"]
         self.num_tracks = int(json_obj["numberOfTracks"])
         self.num_videos = int(json_obj["numberOfVideos"])
@@ -136,7 +146,7 @@ class Playlist:
 
         return copy.copy(self)
 
-    def factory(self) -> "Playlist":
+    def factory(self) -> Union["Playlist", "UserPlaylist"]:
         if (
             self.id
             and self.creator
@@ -231,35 +241,276 @@ class Playlist:
         )
 
 
+class Folder:
+    """An object containing various data about a folder and methods to work with
+    them."""
+
+    trn: Optional[str] = None
+    id: Optional[str] = None
+    parent_folder_id: Optional[str] = None
+    name: Optional[str] = None
+    parent: Optional[str] = None  # TODO Determine the correct type of the parent
+    added: Optional[datetime] = None
+    created: Optional[datetime] = None
+    last_modified: Optional[datetime] = None
+    total_number_of_items: int = 0
+
+    # Direct URL to https://listen.tidal.com/folder/<folder_id>
+    listen_url: str = ""
+
+    def __init__(
+        self,
+        session: "Session",
+        folder_id: Optional[str],
+        parent_folder_id: str = "root",
+    ):
+        self.id = folder_id
+        self.parent_folder_id = parent_folder_id
+        self.session = session
+        self.request = session.request
+        self.playlist = session.playlist()
+        self._endpoint = "my-collection/playlists/folders"
+        if folder_id:
+            # Go through all available folders and see if the requested folder exists
+            try:
+                params = {
+                    "folderId": parent_folder_id,
+                    "offset": 0,
+                    "limit": 50,
+                    "order": "NAME",
+                    "includeOnly": "FOLDER",
+                }
+                request = self.request.request(
+                    "GET",
+                    self._endpoint,
+                    base_url=self.session.config.api_v2_location,
+                    params=params,
+                )
+                for item in request.json().get("items"):
+                    if item["data"].get("id") == folder_id:
+                        self.parse(item)
+                        return
+                raise ObjectNotFound
+            except ObjectNotFound:
+                raise ObjectNotFound(f"Folder not found")
+            except TooManyRequests:
+                raise TooManyRequests("Folder unavailable")
+
+    def _reparse(self) -> None:
+        params = {
+            "folderId": self.parent_folder_id,
+            "offset": 0,
+            "limit": 50,
+            "order": "NAME",
+            "includeOnly": "FOLDER",
+        }
+        request = self.request.request(
+            "GET",
+            self._endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        )
+        for item in request.json().get("items"):
+            if item["data"].get("id") == self.id:
+                self.parse(item)
+                return
+
+    def parse(self, json_obj: JsonObj) -> "Folder":
+        """Parses a folder from tidal, replaces the current folder object.
+
+        :param json_obj: Json data returned from api.tidal.com containing a folder
+        :return: Returns a copy of the original :class:`Folder` object
+        """
+        self.trn = json_obj.get("trn")
+        self.id = json_obj["data"].get("id")
+        self.name = json_obj.get("name")
+        self.parent = json_obj.get("parent")
+        added = json_obj.get("addedAt")
+        created = json_obj["data"].get("createdAt")
+        last_modified = json_obj["data"].get("lastModifiedAt")
+        self.added = dateutil.parser.isoparse(added) if added else None
+        self.created = dateutil.parser.isoparse(created) if added else None
+        self.last_modified = dateutil.parser.isoparse(last_modified) if added else None
+        self.total_number_of_items = json_obj["data"].get("totalNumberOfItems")
+
+        self.listen_url = f"{self.session.config.listen_base_url}/folder/{self.id}"
+
+        return copy.copy(self)
+
+    def rename(self, name: str) -> bool:
+        """Rename the selected folder.
+
+        :param name: The name to be used for the folder
+        :return: True, if operation was successful.
+        """
+        params = {"trn": self.trn, "name": name}
+        endpoint = "my-collection/playlists/folders/rename"
+        res = self.request.request(
+            "PUT",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        )
+        self._reparse()
+        return res.ok
+
+    def remove(self) -> bool:
+        """Remove the selected folder.
+
+        :return: True, if operation was successful.
+        """
+        params = {"trns": self.trn}
+        endpoint = "my-collection/playlists/folders/remove"
+        return self.request.request(
+            "PUT",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).ok
+
+    def items(
+        self, offset: int = 0, limit: int = 50
+    ) -> List[Union["Playlist", "UserPlaylist"]]:
+        """Return the items in the folder.
+
+        :param offset: Optional; The index of the first item to be returned. Default: 0
+        :param limit: Optional; The amount of items you want returned. Default: 50
+        :return: Returns a list of :class:`Playlist` or :class:`UserPlaylist` objects
+        """
+        params = {
+            "folderId": self.id,
+            "offset": offset,
+            "limit": limit,
+            "order": "NAME",
+            "includeOnly": "PLAYLIST",
+        }
+        endpoint = "my-collection/playlists/folders"
+        json_obj = self.request.request(
+            "GET",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        ).json()
+        # Generate a dict of Playlist items from the response data
+        if json_obj.get("items"):
+            playlists = {"items": [item["data"] for item in json_obj.get("items")]}
+            return cast(
+                List[Union["Playlist", "UserPlaylist"]],
+                self.request.map_json(playlists, parse=self.playlist.parse_factory),
+            )
+        else:
+            return []
+
+    def add_items(self, trns: [str]):
+        """Convenience method to add items to the current folder.
+
+        :param trns: List of playlist trns to be added to the current folder
+        :return: True, if operation was successful.
+        """
+        self.move_items_to_folder(trns, self.id)
+
+    def move_items_to_root(self, trns: [str]):
+        """Convenience method to move items from the current folder to the root folder.
+
+        :param trns: List of playlist trns to be moved from the current folder
+        :return: True, if operation was successful.
+        """
+        self.move_items_to_folder(trns, folder="root")
+
+    def move_items_to_folder(self, trns: [str], folder: str = None):
+        """Move item(s) in one folder to another folder.
+
+        :param trns: List of playlist trns to be moved.
+        :param folder: Destination folder. Default: Use the current folder
+        :return: True, if operation was successful.
+        """
+        trns = list_validate(trns)
+        # Make sure all trns has the correct type prepended to it
+        trns_full = []
+        for trn in trns:
+            if "trn:" in trn:
+                trns_full.append(trn)
+            else:
+                trns_full.append(f"trn:playlist:{trn}")
+        if not folder:
+            folder = self.id
+        params = {"folderId": folder, "trns": ",".join(trns_full)}
+        endpoint = "my-collection/playlists/folders/move"
+        res = self.request.request(
+            "PUT",
+            endpoint,
+            base_url=self.session.config.api_v2_location,
+            params=params,
+        )
+        self._reparse()
+        return res.ok
+
+
 class UserPlaylist(Playlist):
     def _reparse(self) -> None:
+        """Re-Read Playlist to get ETag."""
         request = self.request.request("GET", self._base_url % self.id)
         self._etag = request.headers["etag"]
         self.request.map_json(request.json(), parse=self.parse)
 
     def edit(
         self, title: Optional[str] = None, description: Optional[str] = None
-    ) -> None:
+    ) -> bool:
+        """Edit UserPlaylist title & description.
+
+        :param title: Playlist title
+        :param description: Playlist title.
+        :return: True, if successful.
+        """
         if not title:
             title = self.name
         if not description:
             description = self.description
 
         data = {"title": title, "description": description}
-        self.request.request("POST", self._base_url % self.id, data=data)
+        return self.request.request("POST", self._base_url % self.id, data=data).ok
 
-    def delete(self) -> None:
-        self.request.request("DELETE", self._base_url % self.id)
+    def delete_by_id(self, media_ids: List[str]) -> bool:
+        """Delete one or more items from the UserPlaylist.
 
-    def add(self, media_ids: List[str]) -> None:
+        :param media_ids: Lists of Media IDs to remove.
+        :return: True, if successful.
+        """
+        media_ids = list_validate(media_ids)
+        # Generate list of track indices of tracks found in the list of media_ids.
+        track_ids = [str(track.id) for track in self.tracks()]
+        matching_indices = [i for i, item in enumerate(track_ids) if item in media_ids]
+        return self.remove_by_indices(matching_indices)
+
+    def add(
+        self,
+        media_ids: List[str],
+        allow_duplicates: bool = False,
+        position: int = -1,
+        limit: int = 100,
+    ) -> List[int]:
+        """Add one or more items to the UserPlaylist.
+
+        :param media_ids: List of Media IDs to add.
+        :param allow_duplicates: Allow adding duplicate items
+        :param position: Insert items at a specific position.
+            Default: insert at the end of the playlist
+        :param limit: Maximum number of items to add
+        :return: List of media IDs that has been added
+        """
+        media_ids = list_validate(media_ids)
+        # Insert items at a specific index
+        if position < 0 or position > self.num_tracks:
+            position = self.num_tracks
         data = {
             "onArtifactNotFound": "SKIP",
-            "onDupes": "SKIP",
             "trackIds": ",".join(map(str, media_ids)),
+            "toIndex": position,
+            "onDupes": "ADD" if allow_duplicates else "SKIP",
         }
-        params = {"limit": 100}
+        params = {"limit": limit}
         headers = {"If-None-Match": self._etag} if self._etag else None
-        self.request.request(
+        res = self.request.request(
             "POST",
             self._base_url % self.id + "/items",
             params=params,
@@ -267,35 +518,215 @@ class UserPlaylist(Playlist):
             headers=headers,
         )
         self._reparse()
+        # Respond with the added item IDs:
+        added_items = res.json().get("addedItemIds")
+        if added_items:
+            return added_items
+        else:
+            return []
 
-    def remove_by_index(self, index: int) -> None:
-        headers = {"If-None-Match": self._etag} if self._etag else None
-        self.request.request(
-            "DELETE", (self._base_url + "/items/%i") % (self.id, index), headers=headers
-        )
+    def merge(
+        self, playlist: str, allow_duplicates: bool = False, allow_missing: bool = True
+    ) -> List[int]:
+        """Add (merge) items from a playlist with the current playlist.
 
-    def remove_by_indices(self, indices: Sequence[int]) -> None:
+        :param playlist: Playlist UUID to be merged in the current playlist
+        :param allow_duplicates: If true, duplicate tracks are allowed. Otherwise,
+            tracks will be skipped.
+        :param allow_missing: If true, missing tracks are allowed. Otherwise, exception
+            will be thrown
+        :return: List of items that has been added from the playlist
+        """
+        data = {
+            "fromPlaylistUuid": str(playlist),
+            "onArtifactNotFound": "SKIP" if allow_missing else "FAIL",
+            "onDupes": "ADD" if allow_duplicates else "SKIP",
+        }
         headers = {"If-None-Match": self._etag} if self._etag else None
-        track_index_string = ",".join([str(x) for x in indices])
-        self.request.request(
-            "DELETE",
-            (self._base_url + "/tracks/%s") % (self.id, track_index_string),
+        res = self.request.request(
+            "POST",
+            self._base_url % self.id + "/items",
+            data=data,
             headers=headers,
         )
+        self._reparse()
+        # Respond with the added item IDs:
+        added_items = res.json().get("addedItemIds")
+        if added_items:
+            return added_items
+        else:
+            return []
 
-    def _calculate_id(self, media_id: str) -> Optional[int]:
-        i = 0
-        while i < self.num_tracks:
-            items = self.items(100, i)
-            for index, item in enumerate(items):
-                if item.id == media_id:
-                    # Return the amount of items we have gone through plus the index in the last list.
-                    return index + i
+    def add_by_isrc(
+        self,
+        isrc: str,
+        allow_duplicates: bool = False,
+        position: int = -1,
+    ) -> bool:
+        """Add an item to a playlist, using the track ISRC.
 
-            i += len(items)
-        return None
+        :param isrc: The ISRC of the track to be added
+        :param allow_duplicates: Allow adding duplicate items
+        :param position: Insert items at a specific position.
+            Default: insert at the end of the playlist
+        :return: True, if successful.
+        """
+        if not isinstance(isrc, str):
+            isrc = str(isrc)
+        try:
+            track = self.session.get_tracks_by_isrc(isrc)
+            if track:
+                # Add the first track in the list
+                track_id = track[0].id
+                added = self.add(
+                    [str(track_id)],
+                    allow_duplicates=allow_duplicates,
+                    position=position,
+                )
+                if track_id in added:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        except ObjectNotFound:
+            return False
 
-    def remove_by_id(self, media_id: str) -> None:
-        index = self._calculate_id(media_id)
-        if index is not None:
-            self.remove_by_index(index)
+    def move_by_id(self, media_id: str, position: int) -> bool:
+        """Move an item to a new position, by media ID.
+
+        :param media_id: The index of the item to be moved
+        :param position: The new position of the item
+        :return: True, if successful.
+        """
+        if not isinstance(media_id, str):
+            media_id = str(media_id)
+        track_ids = [str(track.id) for track in self.tracks()]
+        try:
+            index = track_ids.index(media_id)
+            if index is not None and index < self.num_tracks:
+                return self.move_by_indices([index], position)
+        except ValueError:
+            return False
+
+    def move_by_index(self, index: int, position: int) -> bool:
+        """Move a single item to a new position.
+
+        :param index: The index of the item to be moved
+        :param position: The new position/offset of the item
+        :return: True, if successful.
+        """
+        if not isinstance(index, int):
+            raise ValueError
+        return self.move_by_indices([index], position)
+
+    def move_by_indices(self, indices: Sequence[int], position: int) -> bool:
+        """Move one or more items to a new position.
+
+        :param indices: List containing indices to move.
+        :param position: The new position/offset of the item(s)
+        :return: True, if successful.
+        """
+        # Move item to a new position
+        if position < 0 or position >= self.num_tracks:
+            position = self.num_tracks
+        data = {
+            "toIndex": position,
+        }
+        headers = {"If-None-Match": self._etag} if self._etag else None
+        track_index_string = ",".join([str(x) for x in indices])
+        res = self.request.request(
+            "POST",
+            (self._base_url + "/items/%s") % (self.id, track_index_string),
+            data=data,
+            headers=headers,
+        )
+        self._reparse()
+        return res.ok
+
+    def remove_by_id(self, media_id: str) -> bool:
+        """Remove a single item from the playlist, using the media ID.
+
+        :param media_id: Media ID to remove.
+        :return: True, if successful.
+        """
+        if not isinstance(media_id, str):
+            media_id = str(media_id)
+        track_ids = [str(track.id) for track in self.tracks()]
+        try:
+            index = track_ids.index(media_id)
+            if index is not None and index < self.num_tracks:
+                return self.remove_by_index(index)
+        except ValueError:
+            return False
+
+    def remove_by_index(self, index: int) -> bool:
+        """Remove a single item from the UserPlaylist, using item index.
+
+        :param index: Media index to remove
+        :return: True, if successful.
+        """
+        return self.remove_by_indices([index])
+
+    def remove_by_indices(self, indices: Sequence[int]) -> bool:
+        """Remove one or more items from the UserPlaylist, using list of indices.
+
+        :param indices: List containing indices to remove.
+        :return: True, if successful.
+        """
+        headers = {"If-None-Match": self._etag} if self._etag else None
+        track_index_string = ",".join([str(x) for x in indices])
+        res = self.request.request(
+            "DELETE",
+            (self._base_url + "/items/%s") % (self.id, track_index_string),
+            headers=headers,
+        )
+        self._reparse()
+        return res.ok
+
+    def clear(self, chunk_size: int = 50) -> bool:
+        """Clear UserPlaylist.
+
+        :param chunk_size: Number of items to remove per request
+        :return: True, if successful.
+        """
+        while self.num_tracks:
+            indices = range(min(self.num_tracks, chunk_size))
+            if not self.remove_by_indices(indices):
+                return False
+        return True
+
+    def set_playlist_public(self):
+        """Set UserPlaylist as Public.
+
+        :return: True, if successful.
+        """
+        res = self.request.request(
+            "PUT",
+            base_url=self.session.config.api_v2_location,
+            path=(self._base_url + "/set-public") % self.id,
+        )
+        self.public = True
+        self._reparse()
+        return res.ok
+
+    def set_playlist_private(self):
+        """Set UserPlaylist as Private.
+
+        :return: True, if successful.
+        """
+        res = self.request.request(
+            "PUT",
+            base_url=self.session.config.api_v2_location,
+            path=(self._base_url + "/set-private") % self.id,
+        )
+        self.public = False
+        self._reparse()
+        return res.ok
+
+    def delete(self) -> bool:
+        """Delete UserPlaylist.
+
+        :return: True, if successful.
+        """
+        return self.request.request("DELETE", path="playlists/%s" % self.id).ok

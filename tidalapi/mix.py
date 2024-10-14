@@ -176,10 +176,7 @@ class TextInfo:
 
 
 class MixV2:
-    """A mix from TIDALs v2 api endpoint, weirdly, it is used in only one place
-    currently."""
-
-    # tehkillerbee: TODO Doesn't look like this is using the v2 endpoint anyways!?
+    """A mix from TIDALs v2 api endpoint."""
 
     date_added: Optional[datetime] = None
     title: Optional[str] = None

@@ -23,6 +23,7 @@ import pytest
 from dateutil import tz
 
 import tidalapi
+from tidalapi import VideoQuality
 from tidalapi.exceptions import MetadataNotAvailable, ObjectNotFound
 from tidalapi.media import (
     AudioExtensions,
@@ -341,8 +342,23 @@ def test_video_no_release_date(session):
     ]
 
 
+def test_video_not_found(session):
+    with pytest.raises(ObjectNotFound):
+        session.video(12345678)
+
+
 def test_video_url(session):
+    # Test video URLs at all available qualities
     video = session.video(125506698)
+    session.video_quality = VideoQuality.low
+    url = video.get_url()
+    assert "m3u8" in url
+    verify_video_resolution(url, 640, 360)
+    session.video_quality = VideoQuality.medium
+    url = video.get_url()
+    assert "m3u8" in url
+    verify_video_resolution(url, 1280, 720)
+    session.video_quality = VideoQuality.high
     url = video.get_url()
     assert "m3u8" in url
     verify_video_resolution(url, 1920, 1080)

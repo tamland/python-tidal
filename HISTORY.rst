@@ -4,6 +4,22 @@ History
 =======
 v0.7.7
 ------
+* Tests: Added additional playlist, folder tests. - tehkillerbee_
+* Feature: Add support for playlist merging. - tehkillerbee_
+* Added trn to playlist object for convenience. - tehkillerbee_
+* Set limits from argument in all relevant methods. - tehkillerbee_
+* Feature: Use v2 endpoint for playlist creation. - tehkillerbee_
+* Feature: Add support for playlist folders (#181) - tehkillerbee_
+* Feature: Add track to user playlist, user tracks from ISRC (#96) - tehkillerbee_
+* Feature: Add optional fn_print to Session::login_session_file - GioF71_
+* Feature: Add support for moving playlist items (#116) - tehkillerbee_
+* Feature: Allow adding items multiple times to the same playlist - tehkillerbee_
+* Feature: Add support for adding items to a playlists at a specific position (#116) - tehkillerbee_
+* Feature: Set UserPlaylist public/private. Add method for getting public user playlists. - tehkillerbee_
+* Feature: Remove multiple items from UserPlaylist. (Fixes #259) - tehkillerbee_
+* Remove deprecated username/pass login method (Fixes #279) - tehkillerbee_
+* Populate the track/items.album attributes from the parent Album object. Updated tests (Fixes #281) - tehkillerbee_
+* Added clarifications to video_url method. Check video URLs for all available video qualities (Fixes #257) - tehkillerbee_
 * Tests: Fix all tests that previously failed. - tehkillerbee_
 * Use enum to specify default audio / video quality - tehkillerbee_
 * Bugfix: Recent TIDAL changes resulted in missing Mix not causing a ObjectNotFound exception. - tehkillerbee_
@@ -198,6 +214,7 @@ v0.6.2
 .. _Jimmyscene: https://github.com/Jimmyscene
 .. _quodrum-glas: https://github.com/quodrum-glas
 .. _M4TH1EU: https://github.com/M4TH1EU
+.. _GioF71: https://github.com/GioF71
 
 
 

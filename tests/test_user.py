@@ -23,6 +23,7 @@ import dateutil.tz
 import pytest
 
 import tidalapi
+from tidalapi.exceptions import ObjectNotFound
 
 
 def test_user(session):
@@ -59,6 +60,15 @@ def test_get_user_playlists(session):
     assert playlist_ids | favourite_ids == both_ids
 
 
+def test_get_playlist_folders(session):
+    folder = session.user.create_folder(title="testfolder")
+    assert folder
+    folder_ids = [folder.id for folder in session.user.playlist_folders()]
+    assert folder.id in folder_ids
+    folder.remove()
+    assert folder.id not in folder_ids
+
+
 def test_get_user_playlist_creator(session):
     playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     creator = playlist.creator
@@ -77,13 +87,13 @@ def test_get_editorial_playlist_creator(session):
 
 def test_create_playlist(session):
     playlist = session.user.create_playlist("Testing", "Testing1234")
-    playlist.add([125169484])
+    playlist.add(["125169484"])
     assert playlist.tracks()[0].name == "Alone, Pt. II"
     assert playlist.description == "Testing1234"
     assert playlist.name == "Testing"
-    playlist.remove_by_id(125169484)
+    playlist.remove_by_id("125169484")
     assert len(playlist.tracks()) == 0
-    playlist.add([64728757, 125169484])
+    playlist.add(["64728757", "125169484"])
     for index, item in enumerate(playlist.tracks()):
         if item.name == "Alone, Pt. II":
             playlist.remove_by_index(index)
@@ -114,14 +124,113 @@ def test_create_playlist(session):
     long_playlist = session.playlist("944dd087-f65c-4954-a9a3-042a574e86e3")
     playlist_tracks = long_playlist.tracks(limit=250)
 
-    playlist.add(playlist.id for playlist in playlist_tracks)
+    playlist.add([track.id for track in playlist_tracks])
     playlist._reparse()
-    playlist.remove_by_id(199477058)
+    playlist.remove_by_id("199477058")
     playlist._reparse()
 
-    assert all(playlist.id != 199477058 for playlist in playlist.tracks(limit=250))
+    track_ids = [track.id for track in playlist.tracks(limit=250)]
+    assert 199477058 not in track_ids
 
     playlist.delete()
+
+
+def test_create_folder(session):
+    folder = session.user.create_folder(title="testfolder")
+    assert folder.name == "testfolder"
+    assert folder.parent is None
+    assert folder.parent_folder_id == "root"
+    assert folder.listen_url == f"https://listen.tidal.com/folder/{folder.id}"
+    assert folder.total_number_of_items == 0
+    assert folder.trn == f"trn:folder:{folder.id}"
+    folder_id = folder.id
+
+    # update name
+    folder.rename(name="testfolder1")
+    assert folder.name == "testfolder1"
+
+    # cleanup
+    folder.remove()
+
+    # check if folder has been removed
+    with pytest.raises(ObjectNotFound):
+        session.folder(folder_id)
+
+
+def test_folder_add_items(session):
+    folder = session.user.create_folder(title="testfolder")
+    folder_a = session.folder(folder.id)
+    assert isinstance(folder_a, tidalapi.playlist.Folder)
+    assert folder_a.id == folder.id
+
+    # create a playlist and add it to the folder
+    playlist_a = session.user.create_playlist("TestingA", "Testing1234")
+    playlist_a.add(["125169484"])
+    playlist_b = session.user.create_playlist("TestingB", "Testing1234")
+    playlist_b.add(["125169484"])
+    folder.add_items([playlist_a.id, playlist_b.id])
+
+    # verify items
+    assert folder.total_number_of_items == 2
+    items = folder.items()
+    assert len(items) == 2
+    item_ids = [item.id for item in items]
+    assert playlist_a.id in item_ids
+    assert playlist_b.id in item_ids
+
+    # cleanup (This will also delete playlists inside the folder!)
+    folder.remove()
+
+
+def test_folder_moves(session):
+    folder_a = session.user.create_folder(title="testfolderA")
+    folder_b = session.user.create_folder(title="testfolderB")
+
+    # create a playlist and add it to the folder
+    playlist_a = session.user.create_playlist("TestingA", "Testing1234")
+    playlist_a.add(["125169484"])
+    playlist_b = session.user.create_playlist("TestingB", "Testing1234")
+    playlist_b.add(["125169484"])
+    folder_a.add_items([playlist_a.id, playlist_b.id])
+
+    # verify items
+    assert folder_a.total_number_of_items == 2
+    assert folder_b.total_number_of_items == 0
+    items = folder_a.items()
+    item_ids = [item.id for item in items]
+
+    # move items to folder B
+    folder_a.move_items_to_folder(trns=item_ids, folder=folder_b.id)
+    folder_b._reparse()  # Manually refresh, as src folder contents will have changed
+    assert folder_a.total_number_of_items == 0
+    assert folder_b.total_number_of_items == 2
+    item_a_ids = [item.id for item in folder_a.items()]
+    item_b_ids = [item.id for item in folder_b.items()]
+    assert playlist_a.id not in item_a_ids
+    assert playlist_b.id not in item_a_ids
+    assert playlist_a.id in item_b_ids
+    assert playlist_b.id in item_b_ids
+
+    # move items to the root folder
+    folder_b.move_items_to_root(trns=item_ids)
+    assert folder_a.total_number_of_items == 0
+    assert folder_b.total_number_of_items == 0
+    folder_b.move_items_to_folder(trns=item_ids)
+    assert folder_b.total_number_of_items == 2
+
+    # cleanup (This will also delete playlists inside the folders, if they are still there
+    folder_a.remove()
+    folder_b.remove()
+
+
+def test_add_remove_folder(session):
+    folder = session.user.create_folder(title="testfolderA")
+    folder_id = folder.id
+    # remove folder from favourites
+    session.user.favorites.remove_folders_playlists([folder.id])
+    # check if folder has been removed
+    with pytest.raises(ObjectNotFound):
+        session.folder(folder_id)
 
 
 def test_add_remove_favorite_artist(session):

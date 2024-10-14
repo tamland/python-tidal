@@ -17,9 +17,10 @@
 #
 """pkce_example.py: A simple example script that describes how to use PKCE login and MPEG-DASH streams"""
 
+from pathlib import Path
+
 import tidalapi
 from tidalapi import Quality
-from pathlib import Path
 
 session_file1 = Path("tidal-session-pkce.json")
 
@@ -51,12 +52,16 @@ for track in tracks:
     manifest = stream.get_stream_manifest()
     audio_resolution = stream.get_audio_resolution()
 
-    print("track:{}, (quality:{}, codec:{}, {}bit/{}Hz)".format(track.id,
-                                                                stream.audio_quality,
-                                                                manifest.get_codecs(),
-                                                                audio_resolution[0],
-                                                                audio_resolution[1]))
-    if stream.is_MPD:
+    print(
+        "track:{}, (quality:{}, codec:{}, {}bit/{}Hz)".format(
+            track.id,
+            stream.audio_quality,
+            manifest.get_codecs(),
+            audio_resolution[0],
+            audio_resolution[1],
+        )
+    )
+    if stream.is_mpd:
         # HI_RES_LOSSLESS quality supported when using MPEG-DASH stream (PKCE only!)
         # 1. Export as MPD manifest
         mpd = stream.get_manifest_data()
@@ -66,7 +71,7 @@ for track in tracks:
         #    my_file.write(mpd)
         # with open("{}_{}.m3u8".format(album_id, track.id), "w") as my_file:
         #    my_file.write(hls)
-    elif stream.is_BTS:
+    elif stream.is_bts:
         # Direct URL (m4a or flac) is available for Quality < HI_RES_LOSSLESS
         url = manifest.get_urls()
     break

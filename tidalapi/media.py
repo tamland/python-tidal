@@ -617,7 +617,7 @@ class StreamManifest:
             self.mime_type = stream_manifest["mimeType"]
             self.encryption_type = stream_manifest["encryptionType"]
             self.encryption_key = (
-                stream_manifest["encryptionKey"] if self.is_encrypted else None
+                stream_manifest.get("keyId") if self.encryption_type else None
             )
         else:
             raise UnknownManifestFormat

@@ -4,6 +4,7 @@ History
 =======
 v0.7.7
 ------
+* Bugfix: Logical loop of is_encrypted / encryption_key - TooYoungTooSimp_
 * Tests: Added additional playlist, folder tests. - tehkillerbee_
 * Feature: Add support for playlist merging. - tehkillerbee_
 * Added trn to playlist object for convenience. - tehkillerbee_
@@ -215,6 +216,7 @@ v0.6.2
 .. _quodrum-glas: https://github.com/quodrum-glas
 .. _M4TH1EU: https://github.com/M4TH1EU
 .. _GioF71: https://github.com/GioF71
+.. _TooYoungTooSimp: https://github.com/TooYoungTooSimp
 
 
 

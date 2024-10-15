@@ -66,6 +66,7 @@ def test_get_playlist_folders(session):
     folder_ids = [folder.id for folder in session.user.playlist_folders()]
     assert folder.id in folder_ids
     folder.remove()
+    folder_ids = [folder.id for folder in session.user.playlist_folders()]
     assert folder.id not in folder_ids
 
 

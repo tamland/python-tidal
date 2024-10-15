@@ -267,6 +267,7 @@ def test_playlist_merge(session):
     tracks = [track.id for track in playlist.tracks()]
     for track in tracks:
         assert track in added_items
+    playlist.delete()
 
 
 def test_playlist_public_private(session):

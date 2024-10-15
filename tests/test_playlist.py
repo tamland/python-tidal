@@ -24,6 +24,7 @@ from dateutil import tz
 
 import tidalapi
 from tidalapi.exceptions import ObjectNotFound
+
 from .cover import verify_image_cover, verify_image_resolution
 
 

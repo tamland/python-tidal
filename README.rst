@@ -42,12 +42,12 @@ This project uses poetry for dependency management and packaging. To install dep
         $ poetry install --no-root
 
 Contributions
------------
+-------------
 
 Issues, suggestions and PRs are always welcome and are much appreciated.
 
 Maintainer(s)
------------
+-------------
 * Current:
     * `tehkillerbee <https://github.com/tehkillerbee>`_
 

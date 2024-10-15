@@ -24,7 +24,6 @@ from dateutil import tz
 
 import tidalapi
 from tidalapi.exceptions import ObjectNotFound
-
 from .cover import verify_image_cover, verify_image_resolution
 
 
@@ -267,6 +266,7 @@ def test_playlist_merge(session):
     tracks = [track.id for track in playlist.tracks()]
     for track in tracks:
         assert track in added_items
+    playlist.delete()
 
 
 def test_playlist_public_private(session):

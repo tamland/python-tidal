@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tidalapi"
-version = "0.7.7"
+version = "0.8.0"
 description = "Unofficial API for TIDAL music streaming service."
 authors = ["Thomas Amland <thomas.amland@googlemail.com>"]
 maintainers = ["tehkillerbee <tehkillerbee@users.noreply.github.com>"]
@@ -21,11 +21,11 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-requests = "^2.28.0"
+requests = "^2.32.3"
 python-dateutil = "^2.8.2"
-typing-extensions = "^4.10.0"
+typing-extensions = "^4.12.2"
 ratelimit = "^2.2.1"
-isodate = "^0.6.1"
+isodate = "^0.7.2"
 mpegdash = "^0.4.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -41,7 +41,7 @@ ffmpeg-python = "^0.2.0"
 black = ">=23.3,<25.0"
 isort = "^5.12.0"
 ruff = "^0.0.277"
-docformatter = {extras = ["tomli"], version = "^1.7.3"}
+docformatter = { extras = ["tomli"], version = "^1.7.3" }
 pytest-mock = "^3.11.1"
 
 [build-system]

@@ -187,8 +187,8 @@ class LoggedInUser(FetchedUser):
     ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the (public) playlists created by the user.
 
-        :param offset: The amount of items you want returned.
         :param limit: The index of the first item you want included.
+        :param offset: The amount of items you want returned.
         :return: List of public playlists.
         """
         params = {"limit": limit, "offset": offset}
@@ -209,7 +209,7 @@ class LoggedInUser(FetchedUser):
         )
 
     def playlist_and_favorite_playlists(
-        self, limit: Optional[int] = None, offset: int = 0
+        self, offset: int = 0, limit: int = 50
     ) -> List[Union["Playlist", "UserPlaylist"]]:
         """Get the playlists created by the user, and the playlists favorited by the
         user. This function is limited to 50 by TIDAL, requiring pagination.

@@ -592,10 +592,7 @@ class StreamManifest:
         self.file_extension = self.get_file_extension(self.urls[0], self.codecs)
 
     def get_urls(self) -> [str]:
-        if self.is_mpd:
-            return self.urls
-        else:
-            return self.urls[0]
+        return self.urls
 
     def get_hls(self) -> str:
         if self.is_mpd:

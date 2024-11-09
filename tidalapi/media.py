@@ -58,7 +58,6 @@ class Quality(str, Enum):
     low_96k: str = "LOW"
     low_320k: str = "HIGH"
     high_lossless: str = "LOSSLESS"
-    hi_res: str = "HI_RES"
     hi_res_lossless: str = "HI_RES_LOSSLESS"
     default: str = low_320k
 
@@ -480,7 +479,7 @@ class Stream:
     audio_mode: str = AudioMode.stereo  # STEREO, DOLBY_ATMOS
     audio_quality: str = (
         Quality.low_320k
-    )  # LOW, HIGH, LOSSLESS, HI_RES, HI_RES_LOSSLESS
+    )  # LOW, HIGH, LOSSLESS, HI_RES_LOSSLESS
     manifest_mime_type: str = ""
     manifest_hash: str = ""
     manifest: str = ""

@@ -142,7 +142,7 @@ def test_video_quality_defaults_to_best(session):
 
 
 @pytest.mark.parametrize(
-    "quality", ["LOW", "HIGH", "LOSSLESS", "HI_RES", "HI_RES_LOSSLESS"]
+    "quality", ["LOW", "HIGH", "LOSSLESS", "HI_RES_LOSSLESS"]
 )
 def test_manually_set_audio_quality_is_preserved(session, quality):
     session.audio_quality = quality

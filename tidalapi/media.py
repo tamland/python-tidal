@@ -86,7 +86,7 @@ class AudioMode(str, Enum):
 
 
 class MediaMetadataTags(str, Enum):
-    hires_lossless: str = "HIRES_LOSSLESS"
+    hi_res_lossless: str = "HIRES_LOSSLESS"
     lossless: str = "LOSSLESS"
     dolby_atmos: str = "DOLBY_ATMOS"
 
@@ -442,7 +442,7 @@ class Track(Media):
         try:
             if (
                 self.media_metadata_tags
-                and MediaMetadataTags.hires_lossless in self.media_metadata_tags
+                and MediaMetadataTags.hi_res_lossless in self.media_metadata_tags
             ):
                 return True
         except:

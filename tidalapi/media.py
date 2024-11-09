@@ -477,9 +477,7 @@ class Stream:
 
     track_id: int = -1
     audio_mode: str = AudioMode.stereo  # STEREO, DOLBY_ATMOS
-    audio_quality: str = (
-        Quality.low_320k
-    )  # LOW, HIGH, LOSSLESS, HI_RES_LOSSLESS
+    audio_quality: str = Quality.low_320k  # LOW, HIGH, LOSSLESS, HI_RES_LOSSLESS
     manifest_mime_type: str = ""
     manifest_hash: str = ""
     manifest: str = ""

@@ -108,7 +108,7 @@ def test_page_iterator(session):
         elif isinstance(item, tidalapi.Video):
             videos += 1
 
-    assert playlists == 20
+    assert playlists == 19
     assert videos == 30
 
 

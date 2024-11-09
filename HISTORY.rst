@@ -2,6 +2,12 @@
 
 History
 =======
+v0.8.1
+------
+* Typings: get_urls() returned value shall be `[str]`. - exislow_
+* Remove MQA legacy code leftovers, HIRES naming inconsistency  - exislow_
+* Tests: Updated unit test(s) - tehkillerbee_
+
 v0.8.0
 ------
 * BREAKING: MQA, Sony 360 audio no longer supported July 24th 2024; removed references to these formats. - tehkillerbee_

@@ -606,8 +606,10 @@ class Session:
             a :class:`concurrent.futures.Future` that will poll until the login is completed, or until the link expires.
         :raises: TimeoutError: If the login takes too long
         """
-        login, future = self._login_with_link()
-        return login, future
+        json_obj: JsonObj = self._login_with_link()
+        executor = concurrent.futures.ThreadPoolExecutor()
+
+        return LinkLogin(json_obj), executor.submit(self._process_link_login, json_obj)
 
     def save_session_to_file(self, session_file: Path):
         # create a new session
@@ -644,7 +646,7 @@ class Session:
 
         return self.load_oauth_session(**args)
 
-    def _login_with_link(self) -> Tuple[LinkLogin, concurrent.futures.Future[Any]]:
+    def _login_with_link(self) -> JsonObj:
         url = "https://auth.tidal.com/v1/oauth2/device_authorization"
         params = {"client_id": self.config.client_id, "scope": "r_usr w_usr w_sub"}
 
@@ -655,8 +657,8 @@ class Session:
             request.raise_for_status()
 
         json = request.json()
-        executor = concurrent.futures.ThreadPoolExecutor()
-        return LinkLogin(json), executor.submit(self._process_link_login, json)
+
+        return json
 
     def _process_link_login(self, json: JsonObj) -> None:
         json = self._wait_for_link_login(json)

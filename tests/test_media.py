@@ -539,7 +539,7 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
         assert manifest.dash_info is not None
         assert manifest.encryption_key is None
         assert manifest.encryption_type == "NONE"
-        assert manifest.file_extension == AudioExtensions.FLAC
+        assert manifest.file_extension == AudioExtensions.M4A
         assert manifest.is_encrypted == False
         assert manifest.manifest_mime_type == ManifestMimeType.MPD
         assert manifest.mime_type == MimeType.audio_mp4

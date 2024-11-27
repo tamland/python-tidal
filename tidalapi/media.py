@@ -618,21 +618,19 @@ class StreamManifest:
     @staticmethod
     def get_file_extension(stream_url: str, stream_codec: Optional[str] = None) -> str:
         if AudioExtensions.FLAC in stream_url:
+            # If the file extension within the URL is '*.flac', this is simply a FLAC file.
             result: str = AudioExtensions.FLAC
         elif AudioExtensions.MP4 in stream_url:
-            if stream_codec:
-                if Codec.AC4 is stream_codec:
-                    result: str = AudioExtensions.MP4
-                elif Codec.FLAC is stream_codec:
-                    result: str = AudioExtensions.FLAC
-                else:
-                    result: str = AudioExtensions.M4A
-            else:
-                result: str = AudioExtensions.MP4
+            # MPEG-4 is simply a container format for different audio / video encoded lines, like FLAC, AAC, M4A etc.
+            # '*.m4a' is usually used as file extension, if the container contains only audio lines
+            # See https://en.wikipedia.org/wiki/MP4_file_format
+            result: str = AudioExtensions.M4A
         elif VideoExtensions.TS in stream_url:
+            # Video are streamed as '*.ts' files by TIDAL.
             result: str = VideoExtensions.TS
         else:
-            result: str = AudioExtensions.M4A
+            # If everything fails it might be an '*.mp4' file
+            result: str = AudioExtensions.MP4
 
         return result
 

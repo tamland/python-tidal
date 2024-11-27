@@ -34,7 +34,7 @@ session.login_session_file(session_file1)
 # Normal: Quality.low_320k      (m4a 320k)
 # HiFi: Quality.high_lossless   (FLAC)
 # HiFi+ Quality.hi_res_lossless (FLAC HI_RES)
-session.audio_quality = Quality.hi_res_lossless
+session.audio_quality = Quality.high_lossless
 
 # album_id = "77640617"    # U2 / Achtung Baby            (Max quality: HI_RES MQA, 16bit/44100Hz)
 # album_id = "110827651"   # The Black Keys / Let's Rock  (Max quality: LOSSLESS FLAC, 24bit/48000Hz)

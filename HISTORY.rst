@@ -2,6 +2,13 @@
 
 History
 =======
+v0.8.2
+------
+* Fixed wrong determination of file extensions for stream metadata. - exislow_
+* Moved LinkLogin and futures to login_oauth. - exislow_
+* Added/updated docstrings for auth methods. - exislow_
+* Methods for device authorization have been renamed considered private. - exislow_
+
 v0.8.1
 ------
 * Typings: get_urls() returned value shall be `[str]`. - exislow_

@@ -108,7 +108,9 @@ def test_page_iterator(session):
         elif isinstance(item, tidalapi.Video):
             videos += 1
 
-    assert playlists == 19
+    # Number of playlists tend to change, resulting in failing tests.
+    # So we will make sure at least 10 playlists are returned.
+    assert playlists >= 10
     assert videos == 30
 
 

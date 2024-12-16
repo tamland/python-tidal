@@ -620,7 +620,7 @@ class StreamManifest:
         if AudioExtensions.FLAC in stream_url:
             # If the file extension within the URL is '*.flac', this is simply a FLAC file.
             result: str = AudioExtensions.FLAC
-        elif AudioExtensions.MP4 in stream_url:
+        elif AudioExtensions.MP4 in stream_url or AudioExtensions.M4A in stream_url or stream_codec == Codec.MP4A:
             # MPEG-4 is simply a container format for different audio / video encoded lines, like FLAC, AAC, M4A etc.
             # '*.m4a' is usually used as file extension, if the container contains only audio lines
             # See https://en.wikipedia.org/wiki/MP4_file_format

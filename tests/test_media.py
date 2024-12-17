@@ -550,3 +550,14 @@ def validate_stream_manifest(manifest, is_hi_res_lossless: bool = False):
 def test_reset_session_quality(session):
     # HACK: Make sure to reset audio quality to default value for remaining tests
     session.audio_quality = Quality.default
+
+
+def test_track_extension(session):
+    track = session.track(65119559)
+    # Set session as MPD/DASH type (i.e. HI_RES_LOSSLESS Quality).
+    session.audio_quality = Quality.low_320k
+    # Attempt to get stream and manifest
+    stream = track.get_stream()
+    manifest = stream.get_stream_manifest()
+    # Assert extension
+    assert manifest.file_extension == AudioExtensions.M4A

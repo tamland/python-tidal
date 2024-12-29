@@ -2,6 +2,11 @@
 
 History
 =======
+v0.8.3
+------
+* Extended file extension detection to properly detect M4A files. - exislow_
+* Tests: Updated unit test(s) - tehkillerbee_
+
 v0.8.2
 ------
 * Fixed wrong determination of file extensions for stream metadata. - exislow_

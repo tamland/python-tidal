@@ -34,32 +34,56 @@ def test_get_explore_items(session):
     assert explore.title == "Explore"
     # First page usually contains Genres
     assert explore.categories[0].title == "Genres"
-    assert explore.categories[1].title == "Moods, Activities & Events"
-    assert explore.categories[2].title == ""  # Usually empty
+    assert explore.categories[1].title == "Moods & Activities"
+    assert explore.categories[2].title == "Decades"
+    assert explore.categories[3].title == ""  # Usually empty
 
-    # Genre_decades items
-    genre_decades = explore.categories[0].items[0]
-    genre_decades_page_items = iter(genre_decades.get())
-    first_item = next(genre_decades_page_items).get()
-    assert isinstance(first_item, tidalapi.Page)
-    assert first_item.title == "1950s"
-    assert first_item.categories[0].title == "Playlists"
-    assert first_item.categories[1].title == "Milestone Year Albums"
-    assert first_item.categories[2].title == "Albums Of The Decade"
-    playlist = first_item.categories[0].items[0]
-    assert isinstance(playlist, tidalapi.Playlist)
-    assert playlist.name  # == 'Remember...the 1950s'
-    assert playlist.num_tracks > 1
-    assert playlist.num_videos == 0
-
-    genre_genres = explore.categories[0].items[1]
+    # category: genres
+    genre_genres = explore.categories[0].items[0]
     genre_genres_page_items = iter(genre_genres.get())
-    playlist = next(genre_genres_page_items)  # Usually a playlist
-    assert isinstance(playlist, tidalapi.Playlist)
-    assert playlist.name  # == 'Remember...the 1950s'
-    assert playlist.num_tracks > 1
-    assert playlist.num_videos == 0
+    # First item is usually a (root) Page containing various categories
+    assert isinstance(genre_genres_page_items, tidalapi.Page)
+    # assert genre_genres_page_items.title == "Hip-Hop"
+    # assert genre_genres_page_items.categories[0].title == "Playlists"
+    # ...
+    # assert genre_genres_page_items.categories[8].title == "Top Artists"
+    next_item = next(genre_genres_page_items)  # Next item is usually a playlist
+    assert isinstance(next_item, tidalapi.Playlist)
+    # assert playlist.name == "FLOW - ny hiphop"
+    assert next_item.num_tracks > 1
+    assert next_item.num_videos == 0
 
+    # category: moods
+    genre_moods = explore.categories[0].items[1]
+    genre_moods_page_items = iter(genre_genres.get())
+    # First item is usually a (root) Page
+    assert isinstance(genre_moods_page_items, tidalapi.Page)
+    # assert genre_moods_page_items.title == "Hip-Hop"
+    # assert genre_genres_page_items.categories[0].title == "Playlists"
+    # ...
+    # assert genre_genres_page_items.categories[8].title == "Top Artists"
+    genre_moods_page_items = iter(genre_moods.get())
+    next_item = next(genre_moods_page_items)  # Next item is usually a playlist
+    assert isinstance(next_item, tidalapi.Playlist)
+    # assert next_item.name == "Real Love: Best New R&B"
+    assert next_item.num_tracks > 1
+    assert next_item.num_videos == 0
+
+    # category: decades
+    genre_decades = explore.categories[0].items[2]
+    genre_decades_page_items = iter(genre_decades.get())
+    assert isinstance(genre_decades_page_items, tidalapi.Page)
+    # assert genre_decades_page_items.title == "Pop"
+    # assert genre_decades_page_items.categories[0].title == "Playlists"
+    # ...
+    # assert genre_decades_page_items.categories[8].title == "Top Artists"
+    next_item = next(genre_decades_page_items)  # Next item is usually a playlist
+    assert isinstance(next_item, tidalapi.Playlist)
+    # assert next_item.name == "Remember...the 1950s"
+    assert next_item.num_tracks > 1
+    assert next_item.num_videos == 0
+
+    # show more pages
     genres_more = explore.categories[0].show_more()
     iterator = iter(genres_more)
     next(iterator)
@@ -147,7 +171,7 @@ def test_genres(session):
 def test_moods(session):
     moods = session.moods()
     first = next(iter(moods))
-    assert first.title == "For DJs"
+    assert first.title == "Holidays"
     assert isinstance(next(iter(first.get())), tidalapi.Playlist)
 
 

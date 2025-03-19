@@ -62,6 +62,7 @@ class Album:
     tidal_release_date: Optional[datetime] = None
     release_date: Optional[datetime] = None
     copyright = None
+    upc = None
     version = None
     explicit: Optional[bool] = True
     universal_product_number: Optional[int] = -1
@@ -124,6 +125,7 @@ class Album:
         self.num_videos = json_obj.get("numberOfVideos")
         self.num_volumes = json_obj.get("numberOfVolumes")
         self.copyright = json_obj.get("copyright")
+        self.upc = json_obj.get("upc")
         self.version = json_obj.get("version")
         self.explicit = json_obj.get("explicit")
         self.universal_product_number = json_obj.get("upc")

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (C) 2023- The Tidalapi Developers
 # Copyright (C) 2019-2020 morguldir
 # Copyright (C) 2014 Thomas Amland

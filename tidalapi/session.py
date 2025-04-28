@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (C) 2023- The Tidalapi Developers
 # Copyright (C) 2019-2022 morguldir
 # Copyright (C) 2014 Thomas Amland
@@ -17,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import annotations, print_function, unicode_literals
+from __future__ import annotations
 
 import base64
 import concurrent.futures
